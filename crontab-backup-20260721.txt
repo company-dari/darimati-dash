@@ -1,0 +1,2 @@
+0 9 * * 1 cd /Users/darimati/Desktop/coding/news-crawl && /usr/bin/python3 /Users/darimati/Desktop/coding/news-crawl/weekly_report.py >> /Users/darimati/Desktop/coding/news-crawl/logs/cron.log 2>&1
+0 8 * * * cd /Users/darimati/fb-ads-dashboard && /usr/bin/python3 fetch.py >> fetch.log 2>&1
