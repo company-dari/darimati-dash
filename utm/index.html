@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UTM·광고명 생성기</title>
+<style>
+  :root{
+    color-scheme: light;
+    --plane:#f9f9f7; --surface:#fcfcfb;
+    --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+    --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,0.10);
+    --s1:#2a78d6; --good:#006300; --field:#ffffff;
+    --chipbg:rgba(42,120,214,0.08);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:where(:not([data-theme="light"])){
+      color-scheme:dark;
+      --plane:#0d0d0d; --surface:#1a1a19;
+      --ink:#fff; --ink2:#c3c2b7; --muted:#898781;
+      --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,0.10);
+      --s1:#3987e5; --good:#0ca30c; --field:#242423;
+      --chipbg:rgba(57,135,229,0.14);
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --plane:#0d0d0d; --surface:#1a1a19;
+    --ink:#fff; --ink2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,0.10);
+    --s1:#3987e5; --good:#0ca30c; --field:#242423;
+    --chipbg:rgba(57,135,229,0.14);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--plane);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1180px;margin:0 auto;padding:26px 20px 70px;}
+  .nav{display:flex;gap:8px;margin-bottom:20px;}
+  .nav a{font-size:13px;font-weight:600;color:var(--ink2);text-decoration:none;
+    padding:7px 14px;border-radius:20px;border:1px solid var(--border);}
+  .nav a.on{background:var(--s1);color:#fff;border-color:var(--s1);}
+  h1{font-size:22px;margin:0 0 4px;letter-spacing:-0.01em;}
+  .sub{color:var(--ink2);font-size:13.5px;margin-bottom:22px;}
+  .grid{display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start;}
+  @media(max-width:820px){.grid{grid-template-columns:1fr;}}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;}
+  .card h2{font-size:14px;margin:0 0 14px;}
+  label{display:block;font-size:12px;font-weight:600;color:var(--ink2);margin:12px 0 5px;}
+  label:first-of-type{margin-top:0;}
+  input,textarea{width:100%;font-family:inherit;font-size:13.5px;color:var(--ink);
+    background:var(--field);border:1px solid var(--axis);border-radius:9px;padding:9px 11px;}
+  input:focus,textarea:focus{outline:none;border-color:var(--s1);}
+  textarea{min-height:150px;resize:vertical;line-height:1.7;font-variant-numeric:tabular-nums;}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .hint{font-size:11.5px;color:var(--muted);margin-top:4px;line-height:1.4;}
+  .btn{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-family:inherit;
+    font-size:13px;font-weight:700;border:none;border-radius:9px;padding:10px 16px;
+    background:var(--s1);color:#fff;}
+  .btn.ghost{background:transparent;color:var(--ink2);border:1px solid var(--border);}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;}
+  .count{font-size:12.5px;color:var(--muted);margin-left:auto;}
+  .tbl-scroll{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:760px;}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--grid);vertical-align:top;}
+  th{color:var(--muted);font-weight:600;font-size:11px;border-bottom:1px solid var(--axis);white-space:nowrap;}
+  td.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;}
+  td.url{max-width:360px;word-break:break-all;color:var(--ink2);}
+  .cp{cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--s1);
+    font-size:11px;font-weight:700;border-radius:7px;padding:4px 8px;white-space:nowrap;}
+  .cp.done{color:var(--good);border-color:var(--good);}
+  tr:last-child td{border-bottom:none;}
+  .empty{color:var(--muted);font-size:13px;padding:30px 4px;text-align:center;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);
+    color:var(--surface);font-size:13px;font-weight:600;padding:10px 18px;border-radius:10px;
+    opacity:0;transition:opacity .18s;pointer-events:none;z-index:20;}
+  .toast.show{opacity:1;}
+</style>
+<meta name="robots" content="noindex,nofollow">
+</head>
+<body>
+<div class="wrap">
+  <div class="nav">
+    <a href="../ads/">현황 요약</a>
+    <a href="utm-builder.html" class="on">UTM·광고명 생성기</a>
+    <a href="#" onclick="alert('광고 일지는 맥에서만 쓸 수 있어요');return false">광고 일지</a>
+  </div>
+  <h1>UTM·광고명 생성기</h1>
+  <div class="sub">소재 컨셉만 줄줄이 입력하면 캠페인명·그룹명·소재명·추적 URL을 한 번에 만들어요. 구글시트 복붙 끝.</div>
+
+  <div class="grid">
+    <!-- 입력 -->
+    <div class="card">
+      <h2>세팅 규칙</h2>
+      <label>상품 URL (네이버 브랜드스토어)</label>
+      <input id="url" value="https://brand.naver.com/darimati/products/13462747167">
+      <div class="hint">뒤에 붙은 ?파라미터는 자동으로 떼고 새로 붙여요.</div>
+
+      <div class="two">
+        <div><label>캠페인 목표</label><input id="goal" value="TRF"></div>
+        <div><label>상품/유형</label><input id="type" value="HYBRID"></div>
+      </div>
+      <div class="two">
+        <div><label>도착지</label><input id="dest" value="NAVER"></div>
+        <div><label>날짜 (MMDD)</label><input id="date" value="0714"></div>
+      </div>
+      <div class="two">
+        <div><label>타겟 연령</label><input id="age" value="2554"></div>
+        <div><label>소재 타입</label><input id="mtype" value="IMG"></div>
+      </div>
+      <div class="two">
+        <div><label>매체 (nt_source)</label><input id="src" value="meta"></div>
+        <div><label>버전 (nt_detail)</label><input id="ver" value="v1"></div>
+      </div>
+
+      <label>소재 컨셉 — 한 줄에 하나씩</label>
+      <textarea id="concepts">대회02
+대회03
+대회04
+야외01
+야외02
+야외04
+화이트03
+화이트04</textarea>
+      <div class="hint">이 값이 소재명 뒷부분 + URL의 nt_keyword로 들어가요.</div>
+    </div>
+
+    <!-- 출력 -->
+    <div class="card">
+      <div class="toolbar">
+        <button class="btn" id="gen">생성하기</button>
+        <button class="btn ghost" id="copyAll">표 전체 복사 (시트 붙여넣기용)</button>
+        <span class="count" id="count"></span>
+      </div>
+      <div class="tbl-scroll"><table id="out"></table></div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+function val(id){ return $(id).value.trim(); }
+
+function baseUrl(u){ return u.split("?")[0].replace(/\/+$/,""); }
+
+function build(){
+  const url = baseUrl(val("url"));
+  const goal=val("goal").toUpperCase(), type=val("type").toUpperCase(), dest=val("dest").toUpperCase();
+  const date=val("date"), age=val("age"), mtype=val("mtype").toUpperCase();
+  const src=val("src"), ver=val("ver");
+  const typeLc = type.toLowerCase();
+  const concepts = val("concepts").split("\n").map(s=>s.trim()).filter(Boolean);
+
+  const campaign = `${goal}_${type}_${dest}_${date}`;
+  const group = `AGE${age}`;
+
+  return concepts.map(c=>{
+    const creative = `${type}_${mtype}_${c}`;
+    const link = `${url}?nt_source=${src}&nt_medium=${typeLc}&nt_detail=${ver}&nt_keyword=${c}`;
+    return {campaign, group, creative, link, concept:c};
+  });
+}
+
+function render(){
+  const rows = build();
+  $("count").textContent = rows.length ? `${rows.length}개 생성됨` : "";
+  if(!rows.length){ $("out").innerHTML = `<tr><td class="empty">소재 컨셉을 한 줄에 하나씩 입력하고 [생성하기]를 누르세요.</td></tr>`; return; }
+  const head = `<thead><tr><th>캠페인명</th><th>그룹명</th><th>소재명</th><th>추적 URL</th><th></th></tr></thead>`;
+  const body = rows.map((r,i)=>`<tr>
+    <td class="mono">${r.campaign}</td>
+    <td class="mono">${r.group}</td>
+    <td class="mono">${r.creative}</td>
+    <td class="url mono">${r.link}</td>
+    <td><button class="cp" data-i="${i}">URL 복사</button></td>
+  </tr>`).join("");
+  $("out").innerHTML = head + "<tbody>"+body+"</tbody>";
+  window.__rows = rows;
+}
+
+function toast(msg){
+  const t=$("toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(window.__tt); window.__tt=setTimeout(()=>t.classList.remove("show"),1400);
+}
+function copy(text){ navigator.clipboard.writeText(text); }
+
+$("gen").addEventListener("click", render);
+$("out").addEventListener("click", e=>{
+  const b=e.target.closest(".cp"); if(!b) return;
+  const r=window.__rows[+b.dataset.i];
+  copy(r.link); b.textContent="복사됨 ✓"; b.classList.add("done");
+  setTimeout(()=>{b.textContent="URL 복사";b.classList.remove("done");},1200);
+});
+$("copyAll").addEventListener("click", ()=>{
+  const rows = window.__rows || build();
+  const header = ["캠페인명","그룹명","소재명","추적URL"].join("\t");
+  const tsv = [header, ...rows.map(r=>[r.campaign,r.group,r.creative,r.link].join("\t"))].join("\n");
+  copy(tsv); toast(`${rows.length}줄 복사 완료 — 구글시트에 붙여넣으세요`);
+});
+
+render(); // 첫 로드시 예시로 바로 생성
+</script>
+</body>
+</html>
