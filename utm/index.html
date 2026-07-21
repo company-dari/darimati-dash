@@ -199,5 +199,46 @@ $("copyAll").addEventListener("click", ()=>{
 
 render(); // 첫 로드시 예시로 바로 생성
 </script>
+
+<style>
+#dm-share{position:fixed;right:14px;bottom:14px;bottom:calc(14px + env(safe-area-inset-bottom));
+  z-index:2147483000;display:flex;align-items:center;gap:6px;
+  padding:11px 16px;border-radius:999px;border:0;cursor:pointer;
+  background:#14161a;color:#fff;font-size:13.5px;font-weight:650;
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",system-ui,sans-serif;
+  box-shadow:0 4px 16px rgba(0,0,0,.28);-webkit-tap-highlight-color:transparent}
+#dm-share:active{transform:scale(.96)}
+#dm-toast{position:fixed;left:50%;bottom:74px;transform:translateX(-50%) translateY(14px);
+  z-index:2147483000;max-width:min(88vw,340px);text-align:center;
+  background:#14161a;color:#fff;padding:12px 18px;border-radius:14px;
+  font-size:13px;line-height:1.5;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",system-ui,sans-serif;
+  opacity:0;pointer-events:none;transition:.22s;box-shadow:0 6px 24px rgba(0,0,0,.3)}
+#dm-toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+@media print{#dm-share,#dm-toast{display:none}}
+</style>
+<button id="dm-share">🔗 링크 복사</button>
+<div id="dm-toast"></div>
+<script>
+(function(){
+  var btn = document.getElementById('dm-share'), t = document.getElementById('dm-toast'), timer;
+  function toast(msg){
+    t.innerHTML = msg; t.classList.add('on');
+    clearTimeout(timer); timer = setTimeout(function(){ t.classList.remove('on'); }, 3200);
+  }
+  btn.addEventListener('click', async function(){
+    var url = location.href.split('#')[0];
+    /* 폰이면 카톡·메시지로 바로 보내기, 안 되면 클립보드 복사 */
+    if(navigator.share && /iPhone|iPad|Android/i.test(navigator.userAgent)){
+      try { await navigator.share({title: document.title, url: url}); return; } catch(e){ if(e.name === 'AbortError') return; }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      toast("링크를 복사했어요.");
+    } catch(e){
+      toast('복사가 막혔어요. 주소창을 길게 눌러 복사해주세요.');
+    }
+  });
+})();
+</script>
 </body>
 </html>

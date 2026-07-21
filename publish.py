@@ -128,6 +128,59 @@ if(saved) tryPin(saved, true);
 </html>
 """
 
+# ─────────────────────────────────────────────────────────────
+# 공유 버튼 — 대시보드를 보다가 그 자리에서 링크를 복사해 남에게 보낼 수 있게.
+SHARE = """
+<style>
+#dm-share{position:fixed;right:14px;bottom:14px;bottom:calc(14px + env(safe-area-inset-bottom));
+  z-index:2147483000;display:flex;align-items:center;gap:6px;
+  padding:11px 16px;border-radius:999px;border:0;cursor:pointer;
+  background:#14161a;color:#fff;font-size:13.5px;font-weight:650;
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",system-ui,sans-serif;
+  box-shadow:0 4px 16px rgba(0,0,0,.28);-webkit-tap-highlight-color:transparent}
+#dm-share:active{transform:scale(.96)}
+#dm-toast{position:fixed;left:50%;bottom:74px;transform:translateX(-50%) translateY(14px);
+  z-index:2147483000;max-width:min(88vw,340px);text-align:center;
+  background:#14161a;color:#fff;padding:12px 18px;border-radius:14px;
+  font-size:13px;line-height:1.5;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",system-ui,sans-serif;
+  opacity:0;pointer-events:none;transition:.22s;box-shadow:0 6px 24px rgba(0,0,0,.3)}
+#dm-toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+@media print{#dm-share,#dm-toast{display:none}}
+</style>
+<button id="dm-share">🔗 링크 복사</button>
+<div id="dm-toast"></div>
+<script>
+(function(){
+  var btn = document.getElementById('dm-share'), t = document.getElementById('dm-toast'), timer;
+  function toast(msg){
+    t.innerHTML = msg; t.classList.add('on');
+    clearTimeout(timer); timer = setTimeout(function(){ t.classList.remove('on'); }, 3200);
+  }
+  btn.addEventListener('click', async function(){
+    var url = location.href.split('#')[0];
+    /* 폰이면 카톡·메시지로 바로 보내기, 안 되면 클립보드 복사 */
+    if(navigator.share && /iPhone|iPad|Android/i.test(navigator.userAgent)){
+      try { await navigator.share({title: document.title, url: url}); return; } catch(e){ if(e.name === 'AbortError') return; }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      toast(__NOTE__);
+    } catch(e){
+      toast('복사가 막혔어요. 주소창을 길게 눌러 복사해주세요.');
+    }
+  });
+})();
+</script>
+"""
+
+def with_share(html, locked):
+    note = ('링크를 복사했어요.<br><b>받는 분도 PIN이 필요합니다.</b>'
+            if locked else '링크를 복사했어요.')
+    block = SHARE.replace("__NOTE__", json.dumps(note, ensure_ascii=False))
+    if "</body>" in html:
+        return html.replace("</body>", block + "</body>", 1)
+    return html + block
+
 def gate_page(title, icon, inner_html, stamp, password):
     payload = encrypt(inner_html, password)
     return (GATE.replace("__PAYLOAD__", json.dumps(payload))
@@ -161,7 +214,7 @@ def build_ads(password):
     m = re.search(r'"updated":\s*"([^"]+)"', data)
     stamp = m.group(1) if m else "-"
     write(os.path.join(HERE, "ads", "index.html"),
-          gate_page("메타 광고 대시보드", "📊", html, stamp, password))
+          gate_page("메타 광고 대시보드", "📊", with_share(html, True), stamp, password))
     return stamp
 
 def build_growth(password):
@@ -173,7 +226,7 @@ def build_growth(password):
     html = read(src)
     stamp = datetime.fromtimestamp(os.path.getmtime(src)).strftime("%Y.%m.%d %H:%M")
     write(os.path.join(HERE, "growth", "index.html"),
-          gate_page("네이버 Growth 대시보드", "📈", html, stamp, password))
+          gate_page("네이버 Growth 대시보드", "📈", with_share(html, True), stamp, password))
     return stamp
 
 def build_utm():
@@ -185,7 +238,7 @@ def build_utm():
     html = html.replace("</head>", '<meta name="robots" content="noindex,nofollow">\n</head>', 1)
     html = html.replace('href="dashboard.html"', 'href="../ads/"')
     html = html.replace('href="log.html"', 'href="#" onclick="alert(\'광고 일지는 맥에서만 쓸 수 있어요\');return false"')
-    write(os.path.join(HERE, "utm", "index.html"), html)
+    write(os.path.join(HERE, "utm", "index.html"), with_share(html, False))
 
 INDEX = """<!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
