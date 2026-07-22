@@ -256,6 +256,7 @@ a span{display:block;font-weight:400;font-size:12.5px;color:#98a0ad;margin-top:4
 <h1>다리마티 대시보드</h1><p>폰에서 보는 읽기 전용 스냅샷</p>
 <a href="ads/">📊 메타 광고 대시보드<span>광고비·노출·클릭·CPC · PIN 필요</span></a>
 <a href="growth/">📈 네이버 Growth 대시보드<span>매출·유입·검색어·퍼널 · PIN 필요</span></a>
+<a href="talent/">👥 인물 관리<span>선수·크리에이터·파트너·코치 · 대시보드에서 직접 수정 · PIN 필요</span></a>
 <a href="utm/">🔗 UTM·광고명 생성기<span>바로 사용</span></a>
 </div></body></html>
 """
