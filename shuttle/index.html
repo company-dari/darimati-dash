@@ -248,7 +248,8 @@
   var DIVS = ["1", "2", "3"];
 
   var qs = new URLSearchParams(location.search);
-  var api = qs.get("api") || API_URL || localStorage.getItem("rex_api");
+  // ?local=1 을 붙이면 인터넷 없이 같은 브라우저 안에서만 동기화합니다 (에그 먹통 대비)
+  var api = qs.get("local") ? "" : (qs.get("api") || API_URL || localStorage.getItem("rex_api"));
   if (qs.get("api")) localStorage.setItem("rex_api", qs.get("api"));
 
   var forcedDiv = qs.get("div");

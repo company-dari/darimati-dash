@@ -167,8 +167,9 @@
     <input id="sApi" placeholder="https://script.google.com/macros/s/.../exec" />
     <p class="hint">이미 연결돼 있습니다. 건드리지 않아도 됩니다.</p>
     <label for="sKey">암호 <span style="text-transform:none;letter-spacing:0">— 이 기기에서 처음 한 번만</span></label>
-    <input id="sKey" type="password" placeholder="dari1!" autocomplete="off" />
-    <button type="button" class="btn solid wide" id="saveSetup">저장</button>
+    <input id="sKey" type="text" placeholder="dari1!" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+    <p class="hint" id="setupMsg"></p>
+    <button type="button" class="btn solid wide" id="saveSetup">저장하고 연결 확인</button>
     <button type="button" class="btn wide" id="closeSetup">닫기</button>
   </fieldset>
 </div>
@@ -184,8 +185,10 @@
   var QKEY = "rextreme_queue_v1";
   var BOARD_URL = location.href.replace(/admin\/?(\?.*)?$/, "");
 
-  var api = API_URL || localStorage.getItem("rex_api");
-  var key = localStorage.getItem("rex_key") || "";
+  var qs = new URLSearchParams(location.search);
+  // ?local=1 → 인터넷 없이 같은 브라우저 안에서만 동기화 (에그 먹통 대비)
+  var api = qs.get("local") ? "" : (API_URL || localStorage.getItem("rex_api"));
+  var key = (localStorage.getItem("rex_key") || "").trim();
   var rows = [];                       // 화면에 그릴 명단
   var queue = [];
   var cfg = { sort: "asc", live: "1", title: "" };
@@ -265,7 +268,7 @@
     var job = queue[0];
     call(job).then(function (j) {
       if (j && j.ok) { queue.shift(); saveQueue(); }
-      else if (j && j.error === "BAD_KEY") { toast("암호가 맞지 않습니다 — 설정에서 확인하세요"); }
+      else if (j && j.error === "BAD_KEY") { badKey(); }
       flushing = false;
       if (queue.length) setTimeout(flush, 200); else refresh();
     }).catch(function () { flushing = false; });
@@ -275,7 +278,7 @@
     if (!api) { loadLocal(); rows = local.athletes.slice(); syncCfgInputs(); render(); setConn("", "로컬 모드 · 이 브라우저에만 저장"); return; }
     call({ a: "list" }).then(function (j) {
       if (!j || !j.ok) {
-        if (j && j.error === "BAD_KEY") setConn("bad", "암호 오류");
+        if (j && j.error === "BAD_KEY") badKey();
         else setConn("bad", "응답 이상");
         return;
       }
@@ -456,18 +459,55 @@
   function openSetup() {
     document.getElementById("sApi").value = api;
     document.getElementById("sKey").value = key;
+    document.getElementById("setupMsg").textContent = "";
     setupBox.hidden = false; appBox.hidden = true;
   }
+  var badKeyShown = false;
+  function badKey() {
+    setConn("bad", "암호 오류");
+    if (badKeyShown) return;
+    badKeyShown = true;
+    openSetup();
+    document.getElementById("setupMsg").textContent =
+      "암호가 맞지 않습니다. 입력한 내용은 지워지지 않았으니 암호만 맞추면 한 번에 전송됩니다.";
+    document.getElementById("sKey").focus();
+  }
+
   document.getElementById("setupBtn").addEventListener("click", openSetup);
   document.getElementById("closeSetup").addEventListener("click", function () { setupBox.hidden = true; appBox.hidden = false; });
   document.getElementById("saveSetup").addEventListener("click", function () {
-    api = document.getElementById("sApi").value.trim();
-    key = document.getElementById("sKey").value;
-    localStorage.setItem("rex_api", api);
-    localStorage.setItem("rex_key", key);
-    setupBox.hidden = true; appBox.hidden = false;
-    toast(api ? "시트에 연결합니다" : "로컬 모드로 저장합니다");
-    refresh();
+    var btn = this;
+    var newApi = document.getElementById("sApi").value.trim();
+    var newKey = document.getElementById("sKey").value.trim();
+    var msg = document.getElementById("setupMsg");
+
+    if (!newApi) {   // 로컬 모드
+      api = ""; key = newKey;
+      localStorage.setItem("rex_api", ""); localStorage.setItem("rex_key", key);
+      setupBox.hidden = true; appBox.hidden = false;
+      toast("로컬 모드로 저장합니다"); refresh(); return;
+    }
+
+    btn.disabled = true; msg.textContent = "암호를 확인하는 중…";
+    fetch(newApi + (newApi.indexOf("?") > -1 ? "&" : "?") + "a=ping&key=" + encodeURIComponent(newKey) + "&_=" + new Date().getTime(), { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        btn.disabled = false;
+        if (j && j.ok) {
+          api = newApi; key = newKey; badKeyShown = false;
+          localStorage.setItem("rex_api", api); localStorage.setItem("rex_key", key);
+          setupBox.hidden = true; appBox.hidden = false;
+          msg.textContent = "";
+          toast("연결됐습니다" + (queue.length ? " · 대기 " + queue.length + "건 전송 중" : ""));
+          flush(); refresh();
+        } else {
+          msg.textContent = "암호가 맞지 않습니다. 대소문자와 느낌표(!)까지 정확히 입력하세요.";
+        }
+      })
+      .catch(function () {
+        btn.disabled = false;
+        msg.textContent = "시트에 연결할 수 없습니다. 인터넷(에그) 연결을 확인하세요.";
+      });
   });
 
   /* ── 구동 ─────────────────────────────────────── */
