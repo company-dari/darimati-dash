@@ -115,6 +115,28 @@
 
   .empty { padding: 3vh 0; color: var(--dim); font-size: .6em; }
 
+  /* ── 하단 안내 롤링 배너 ─────────────────────── */
+  .notice {
+    display: flex; align-items: center; gap: 1.2em; overflow: hidden;
+    margin: 0 calc(-1 * clamp(1rem, 2.6vw, 3rem));
+    padding: 1.7vh clamp(1rem, 2.6vw, 3rem);
+    background: rgba(255, 90, 40, .09);
+    border-top: 1px solid var(--rule-strong);
+  }
+  .notice[hidden] { display: none; }
+  .notice .tag {
+    flex: none; font-family: var(--font-num); font-size: calc(1.3vh * var(--s));
+    font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: var(--signal);
+    border: 1px solid var(--signal); border-radius: 999px; padding: .45em .9em; line-height: 1;
+  }
+  .notice .msg {
+    font-size: calc(2.5vh * var(--s)); font-weight: 700; letter-spacing: -.015em; line-height: 1.2;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    transition: opacity .4s ease, transform .4s ease;
+  }
+  .notice .msg.out { opacity: 0; transform: translateY(-45%); }
+  .notice .msg.below { opacity: 0; transform: translateY(45%); }
+
   /* ── 바닥 ────────────────────────────────────── */
   .foot {
     display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 1.4rem;
@@ -213,6 +235,11 @@
   <div class="colhead"><span>#</span><span>NAME</span><span class="t">TIME</span></div>
   <div class="scroller" id="scroller"><div class="list" id="list"></div></div>
 
+  <div class="notice" id="notice" hidden>
+    <span class="tag">안내</span>
+    <span class="msg" id="noticeMsg"></span>
+  </div>
+
   <footer class="foot">
     <span class="conn" id="conn"><span class="dot"></span><span id="connText">연결 확인 중</span></span>
     <span class="waiting" id="waitBox" hidden><span class="lbl">기록 대기</span><span class="names" id="waitNames"></span></span>
@@ -294,13 +321,32 @@
     document.getElementById("connText").textContent = text + stamp;
   }
 
+  // 시트가 알려주는 한국 시각과 이 기기 시계의 차이. TV 시계가 틀려도 화면은 맞습니다.
+  var skew = 0;
+  var pollDelay = 3000, pollTimer = null;
+  function schedulePoll(ms) { clearTimeout(pollTimer); pollTimer = setTimeout(poll, ms); }
+
   function poll() {
-    if (!api) { apply(loadLocal(), false); setConn("", "로컬 모드"); return; }
+    if (!api) { apply(loadLocal(), false); setConn("", "로컬 모드"); schedulePoll(3000); return; }
     fetch(api + (api.indexOf("?") > -1 ? "&" : "?") + "a=board&_=" + new Date().getTime(), { cache: "no-store" })
       .then(function (r) { return r.json(); })
-      .then(function (j) { if (!j || !j.ok) throw 0; apply(j, true); })
-      .catch(function () { setConn("bad", lastOkAt ? "연결 끊김 · 마지막" : "연결 실패"); });
+      .then(function (j) {
+        if (!j || !j.ok) throw 0;
+        if (j.ts) { var t = Date.parse(j.ts); if (!isNaN(t)) skew = t - Date.now(); }
+        apply(j, true);
+        tick();
+        pollDelay = 3000;
+        schedulePoll(pollDelay);
+      })
+      .catch(function () {
+        setConn("bad", lastOkAt ? "연결 끊김 · 마지막" : "연결 실패");
+        pollDelay = Math.min(pollDelay * 2, 30000);   // 계속 두드리지 않고 간격을 늘립니다
+        schedulePoll(pollDelay);
+      });
   }
+
+  // 한국 시각 (UTC+9). skew가 0이면 이 기기 시계를 그대로 씁니다.
+  function kst() { return new Date(Date.now() + skew + 9 * 3600 * 1000); }
 
   function apply(data, ok) {
     view.rows = data.rows || [];
@@ -308,6 +354,7 @@
       var before = view.cfg.qr;
       view.cfg = data.cfg;
       if (view.cfg.qr !== before) drawQR();
+      setNotice();
     }
     if (ok) { lastOkAt = new Date(); setConn("ok", "실시간"); }
     detectNew();
@@ -395,7 +442,7 @@
 
   // 시계로 지금 진행 중인 부를 판단합니다 (1부 ~12:59 / 2부 ~15:59 / 3부 그 이후)
   function divByClock() {
-    var h = new Date().getHours();
+    var h = kst().getUTCHours();
     if (h < 13) return "1";
     if (h < 16) return "2";
     return "3";
@@ -497,6 +544,47 @@
     }
   }
 
+  /* ── 하단 안내 롤링 배너 ───────────────────── */
+
+  // 운영 페이지에서 안 바꾸면 이 문구가 나옵니다. 여러 개면 6초마다 돌아갑니다.
+  var DEFAULT_NOTICE = [
+    "각 시간대별 행사가 종료되면 결과와 경품 안내를 개별 연락드립니다",
+    "참가 신청은 다리마티 부스에서 받습니다"
+  ];
+  var noticeList = [], noticeIdx = 0, noticeTimer = null;
+
+  function setNotice() {
+    var raw = String(view.cfg.notice === undefined ? "" : view.cfg.notice).trim();
+    var list = raw
+      ? raw.split("|").map(function (s) { return s.trim(); }).filter(Boolean)
+      : DEFAULT_NOTICE;
+    if (JSON.stringify(list) === JSON.stringify(noticeList)) return;
+
+    noticeList = list; noticeIdx = 0;
+    clearInterval(noticeTimer);
+    var box = document.getElementById("notice");
+    box.hidden = list.length === 0;
+    if (!list.length) { autofit(); return; }
+    document.getElementById("noticeMsg").textContent = list[0];
+    if (list.length > 1) noticeTimer = setInterval(rollNotice, 6000);
+    autofit();
+  }
+
+  function rollNotice() {
+    var el = document.getElementById("noticeMsg");
+    el.classList.add("out");
+    setTimeout(function () {
+      noticeIdx = (noticeIdx + 1) % noticeList.length;
+      el.style.transition = "none";
+      el.classList.remove("out");
+      el.classList.add("below");
+      el.textContent = noticeList[noticeIdx];
+      void el.offsetWidth;              // 아래에서 올라오도록 위치를 먼저 잡습니다
+      el.style.transition = "";
+      el.classList.remove("below");
+    }, 400);
+  }
+
   /* ── QR ────────────────────────────────────── */
 
   function drawQR() {
@@ -538,15 +626,15 @@
   });
 
   function tick() {
-    var d = new Date();
-    document.getElementById("clock").textContent = two(d.getHours()) + ":" + two(d.getMinutes());
+    var d = kst();
+    document.getElementById("clock").textContent = two(d.getUTCHours()) + ":" + two(d.getUTCMinutes());
   }
 
   window.addEventListener("storage", function (e) { if (e.key === LKEY) poll(); });
   window.addEventListener("resize", function () { autofit(); });
 
-  applyScale(); tick(); setInterval(tick, 10000);
-  poll(); setInterval(poll, 3000);
+  applyScale(); setNotice(); tick(); setInterval(tick, 10000);
+  poll();
 })();
 </script>
 </body>

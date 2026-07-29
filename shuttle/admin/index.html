@@ -148,6 +148,10 @@
         <label for="cQr">화면 구석 QR 주소 <span style="text-transform:none;letter-spacing:0">(비우면 QR 없음)</span></label>
         <input id="cQr" inputmode="url" placeholder="https://www.darimati.us/pages/rextreme-2026" />
 
+        <label for="cNotice">하단 롤링 안내 문구</label>
+        <input id="cNotice" placeholder="각 시간대별 행사가 종료되면 개별 연락드립니다" />
+        <p class="hint">여러 개면 <b>|</b> 로 구분 — 6초마다 돌아갑니다. 비우면 기본 문구가 나옵니다</p>
+
         <button type="button" class="btn wide" id="applyCfg">기록판에 적용</button>
 
         <div class="row-actions" style="margin-top:1rem">
@@ -340,7 +344,7 @@
   }
 
   function pushCfg() {
-    if (api) enqueue({ a: "cfg", sort: cfg.sort, live: cfg.live, cut: cfg.cut || "", cutlabel: cfg.cutlabel || "", qr: cfg.qr || "" });
+    if (api) enqueue({ a: "cfg", sort: cfg.sort, live: cfg.live, cut: cfg.cut || "", cutlabel: cfg.cutlabel || "", qr: cfg.qr || "", notice: cfg.notice || "" });
     else { saveLocal(); }
   }
 
@@ -405,6 +409,7 @@
     document.getElementById("cCut").value = cfg.cut ? fmt(Number(cfg.cut)) : "";
     document.getElementById("cCutLabel").value = cfg.cutlabel || "";
     document.getElementById("cQr").value = cfg.qr || "";
+    document.getElementById("cNotice").value = cfg.notice || "";
   }
 
   /* ── 이벤트 ───────────────────────────────────── */
@@ -482,7 +487,7 @@
   });
   document.getElementById("cSort").addEventListener("change", function () { cfg.sort = this.value; pushCfg(); toast("순위 기준 변경됨"); });
 
-  ["cCut", "cCutLabel", "cQr"].forEach(function (id) {
+  ["cCut", "cCutLabel", "cQr", "cNotice"].forEach(function (id) {
     document.getElementById(id).addEventListener("input", function () { cfgDirty = true; });
   });
 
@@ -508,6 +513,7 @@
     cfg.cut = cutSec;
     cfg.cutlabel = document.getElementById("cCutLabel").value.trim();
     cfg.qr = url;
+    cfg.notice = document.getElementById("cNotice").value.trim();
     document.getElementById("cQr").value = url;
     cfgDirty = false;
     pushCfg();
