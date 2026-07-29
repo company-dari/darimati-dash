@@ -127,9 +127,11 @@
         <legend>기록판 화면</legend>
         <label for="cLive">지금 TV에 띄울 부</label>
         <select id="cLive">
+          <option value="auto">시간대 자동 (시계 따라 넘어감)</option>
           <option value="1">1부 (10~12시)</option><option value="2">2부 (13~15시)</option><option value="3">3부 (16~18시)</option>
-          <option value="rotate">자동 순환 (20초마다)</option>
+          <option value="rotate">부 순환 (20초마다)</option>
         </select>
+        <p class="hint" id="cLiveHint"></p>
         <label for="cSort">순위 기준</label>
         <select id="cSort">
           <option value="asc">기록이 빠를수록 1위</option>
@@ -398,6 +400,7 @@
   function syncCfgInputs() {
     document.getElementById("cLive").value = cfg.live || "1";
     document.getElementById("cSort").value = cfg.sort || "asc";
+    liveHint();
     if (cfgDirty) return;  // 사용자가 고치는 중이면 덮어쓰지 않습니다
     document.getElementById("cCut").value = cfg.cut ? fmt(Number(cfg.cut)) : "";
     document.getElementById("cCutLabel").value = cfg.cutlabel || "";
@@ -459,9 +462,23 @@
 
   // 부별 진행 시간대 (8/1 현장 운영표)
   var DIV_TIME = { "1": "10~12시", "2": "13~15시", "3": "16~18시" };
+  function divByClock() {
+    var h = new Date().getHours();
+    return h < 13 ? "1" : (h < 16 ? "2" : "3");
+  }
+  function liveLabel(v) {
+    if (v === "auto") { var d = divByClock(); return "시간대 자동 — 지금은 " + d + "부 (" + DIV_TIME[d] + ")"; }
+    if (v === "rotate") return "부 순환 (20초마다)";
+    return v + "부 (" + DIV_TIME[v] + ")";
+  }
+  function liveHint() {
+    document.getElementById("cLiveHint").textContent =
+      document.getElementById("cLive").value === "auto" ? "지금 " + divByClock() + "부가 표시됩니다" : "";
+  }
+
   document.getElementById("cLive").addEventListener("change", function () {
-    cfg.live = this.value; pushCfg();
-    toast("기록판: " + (this.value === "rotate" ? "자동 순환" : this.value + "부 (" + DIV_TIME[this.value] + ")"));
+    cfg.live = this.value; pushCfg(); liveHint();
+    toast("기록판: " + liveLabel(this.value));
   });
   document.getElementById("cSort").addEventListener("change", function () { cfg.sort = this.value; pushCfg(); toast("순위 기준 변경됨"); });
 

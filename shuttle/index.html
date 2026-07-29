@@ -393,9 +393,18 @@
     return asc() ? t <= c : t >= c;
   }
 
+  // 시계로 지금 진행 중인 부를 판단합니다 (1부 ~12:59 / 2부 ~15:59 / 3부 그 이후)
+  function divByClock() {
+    var h = new Date().getHours();
+    if (h < 13) return "1";
+    if (h < 16) return "2";
+    return "3";
+  }
+
   function pickDiv() {
     if (forcedDiv) return forcedDiv;
     var live = String(view.cfg.live || "1");
+    if (live === "auto") return divByClock();
     if (live !== "rotate") return DIVS.indexOf(live) > -1 ? live : "1";
     var have = DIVS.filter(function (d) { return view.rows.some(function (r) { return r.d === d; }); });
     if (!have.length) return "1";
