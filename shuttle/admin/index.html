@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>SHUTTLE RUN · 운영</title>
+<style>
+  :root {
+    --ground: #0a0e10;
+    --panel: #121a1e;
+    --panel-2: #182126;
+    --rule: #243036;
+    --text: #eef3f5;
+    --muted: #8697a0;
+    --dim: #56666f;
+    --signal: #ff5a28;
+    --live: #4ade80;
+    --font-ui: system-ui, -apple-system, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif;
+    --font-num: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ground); color: var(--text);
+    font-family: var(--font-ui); -webkit-font-smoothing: antialiased;
+    padding: 1.1rem clamp(.8rem, 3vw, 2rem) 4rem;
+  }
+  header.top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .6rem 1rem; padding-bottom: .9rem; border-bottom: 1px solid var(--rule); }
+  h1 { margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -.02em; }
+  h1 span { color: var(--signal); }
+  .sub { font-family: var(--font-num); font-size: .68rem; letter-spacing: .18em; text-transform: uppercase; color: var(--dim); margin: .25rem 0 0; }
+  .conn { display: flex; align-items: center; gap: .45em; font-family: var(--font-num); font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); }
+  .dot { width: .5em; height: .5em; border-radius: 50%; background: var(--dim); }
+  .conn.ok .dot { background: var(--live); }
+  .conn.bad .dot { background: var(--signal); }
+
+  .cols { display: grid; grid-template-columns: minmax(260px, 320px) 1fr; gap: 1.6rem; align-items: start; margin-top: 1.2rem; }
+  @media (max-width: 860px) { .cols { grid-template-columns: 1fr; } }
+
+  fieldset { border: 1px solid var(--rule); border-radius: 5px; padding: .8rem 1rem 1.1rem; margin: 0 0 1rem; }
+  legend { font-family: var(--font-num); font-size: .66rem; letter-spacing: .2em; text-transform: uppercase; color: var(--signal); padding: 0 .4rem; }
+  label { display: block; font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: .85rem 0 .3rem; }
+  input, select {
+    width: 100%; background: var(--ground); border: 1px solid var(--rule); color: var(--text);
+    font-family: var(--font-ui); font-size: 1rem; padding: .55rem .6rem; border-radius: 4px;
+  }
+  input[data-num] { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+  input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+  .hint { font-family: var(--font-num); font-size: .74rem; color: var(--dim); margin: .35rem 0 0; min-height: 1.1em; }
+  .hint.ok { color: var(--signal); }
+
+  .btn { appearance: none; border: 1px solid var(--rule); background: var(--panel-2); color: var(--text);
+    font-family: var(--font-ui); font-size: .85rem; font-weight: 700; padding: .55rem 1rem; border-radius: 4px; cursor: pointer; }
+  .btn:hover { border-color: var(--dim); }
+  .btn.solid { background: var(--signal); border-color: var(--signal); color: #170500; }
+  .btn.wide { width: 100%; margin-top: 1rem; padding: .75rem; font-size: .95rem; }
+  .btn.sm { font-size: .78rem; padding: .4rem .7rem; }
+  .btn.danger:hover { border-color: var(--signal); color: var(--signal); }
+
+  .toolbar { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; margin-bottom: .7rem; }
+  .toolbar input { flex: 1 1 170px; width: auto; }
+  .toolbar select { width: auto; }
+  .chip { display: inline-block; font-family: var(--font-num); font-size: .7rem; letter-spacing: .06em;
+    padding: .18rem .5rem; border: 1px solid var(--rule); border-radius: 999px; color: var(--muted); white-space: nowrap; }
+  .chip.warn { border-color: var(--signal); color: var(--signal); }
+
+  .tbl-wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 5px; }
+  table { width: 100%; border-collapse: collapse; font-size: .92rem; min-width: 560px; }
+  th { text-align: left; font-family: var(--font-num); font-size: .64rem; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--dim); font-weight: 400; padding: .5rem .6rem; border-bottom: 1px solid var(--rule); background: var(--panel); }
+  td { padding: .35rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: middle; }
+  tr:last-child td { border-bottom: 0; }
+  td.nm { font-weight: 700; font-size: 1rem; }
+  td.ph { font-family: var(--font-num); color: var(--muted); font-size: .85rem; }
+  td input { width: 6.4rem; padding: .38rem .4rem; text-align: center; font-family: var(--font-num); }
+  .x { appearance: none; background: none; border: 0; color: var(--dim); cursor: pointer; font-size: 1rem; padding: .2rem .4rem; }
+  .x:hover { color: var(--signal); }
+
+  .setup { max-width: 460px; margin: 3rem auto; }
+  .toast { position: fixed; left: 50%; bottom: 1.1rem; transform: translate(-50%, 160%); background: var(--signal);
+    color: #170500; font-weight: 700; font-size: .9rem; padding: .6rem 1.2rem; border-radius: 4px; z-index: 90; transition: transform .25s ease; }
+  .toast[data-show="true"] { transform: translate(-50%, 0); }
+  .row-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+  @media (prefers-reduced-motion: reduce) { * { transition-duration: .01ms !important; } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div>
+    <h1>SHUTTLE RUN <span>/</span> 운영</h1>
+    <p class="sub">등록 · 기록 입력 — 이 화면은 TV에 띄우지 마세요</p>
+  </div>
+  <div style="display:flex;gap:.7rem;align-items:center;flex-wrap:wrap">
+    <span class="conn" id="conn"><span class="dot"></span><span id="connText">확인 중</span></span>
+    <button type="button" class="btn sm" id="setupBtn">설정</button>
+  </div>
+</header>
+
+<div id="app">
+  <div class="cols">
+    <div>
+      <form id="regForm" autocomplete="off">
+        <fieldset>
+          <legend>선수 등록</legend>
+          <label for="fName">이름</label>
+          <input id="fName" required placeholder="김지용" />
+
+          <label for="fPhone">연락처 <span style="text-transform:none;letter-spacing:0">(기록판에 안 뜸)</span></label>
+          <input id="fPhone" data-num inputmode="tel" placeholder="010-0000-0000" />
+
+          <label for="fDiv">부</label>
+          <select id="fDiv"><option value="1">1부</option><option value="2">2부</option><option value="3">3부</option></select>
+
+          <label for="fTime">기록 (나중에 입력해도 됨)</label>
+          <input id="fTime" data-num inputmode="numeric" placeholder="18:04" />
+          <p class="hint" id="fTimeHint">분:초 · 1804 처럼 숫자만 쳐도 됩니다</p>
+
+          <button type="submit" class="btn solid wide">등록</button>
+        </fieldset>
+      </form>
+
+      <fieldset>
+        <legend>기록판 화면</legend>
+        <label for="cLive">지금 TV에 띄울 부</label>
+        <select id="cLive">
+          <option value="1">1부</option><option value="2">2부</option><option value="3">3부</option>
+          <option value="rotate">자동 순환 (20초마다)</option>
+        </select>
+        <label for="cSort">순위 기준</label>
+        <select id="cSort">
+          <option value="asc">기록이 빠를수록 1위</option>
+          <option value="desc">기록이 클수록 1위</option>
+        </select>
+        <div class="row-actions" style="margin-top:1rem">
+          <button type="button" class="btn sm" id="openBoard">기록판 열기</button>
+          <button type="button" class="btn sm" id="copyBoard">주소 복사</button>
+        </div>
+      </fieldset>
+    </div>
+
+    <div>
+      <div class="toolbar">
+        <input id="search" placeholder="이름 · 연락처 검색" aria-label="검색" />
+        <select id="filterDiv"><option value="all">전체 부</option><option value="1">1부</option><option value="2">2부</option><option value="3">3부</option></select>
+        <span class="chip" id="cntChip">0명</span>
+        <span class="chip warn" id="queueChip" hidden>전송 대기 0</span>
+        <button type="button" class="btn sm" id="exportBtn">CSV</button>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th style="width:3.4rem">부</th><th>이름</th><th style="width:9rem">연락처</th><th style="width:7.5rem">기록</th><th style="width:2.6rem"></th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="setup" class="setup" hidden>
+  <fieldset>
+    <legend>연결 설정</legend>
+    <label for="sApi">구글시트 주소 (Apps Script 웹앱 URL)</label>
+    <input id="sApi" placeholder="https://script.google.com/macros/s/.../exec" />
+    <p class="hint">비워두면 이 브라우저 안에서만 저장됩니다 (같은 노트북에서 기록판을 띄울 때 사용)</p>
+    <label for="sKey">암호</label>
+    <input id="sKey" type="password" placeholder="dari1!" />
+    <button type="button" class="btn solid wide" id="saveSetup">저장</button>
+    <button type="button" class="btn wide" id="closeSetup">닫기</button>
+  </fieldset>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var API_URL = "";                    // 배포 후 여기에 주소를 넣으면 설정 없이 바로 붙습니다
+  var LKEY = "rextreme_shuttle_v1";    // 로컬 모드 저장소 (기록판과 공유)
+  var QKEY = "rextreme_queue_v1";
+  var BOARD_URL = location.href.replace(/admin\/?(\?.*)?$/, "");
+
+  var api = localStorage.getItem("rex_api") || API_URL;
+  var key = localStorage.getItem("rex_key") || "";
+  var rows = [];                       // 화면에 그릴 명단
+  var queue = [];
+  var cfg = { sort: "asc", live: "1", title: "" };
+  var lastOkAt = null;
+  var local = { athletes: [], seq: 1, cfg: cfg };
+
+  try { queue = JSON.parse(localStorage.getItem(QKEY)) || []; } catch (e) { queue = []; }
+
+  /* ── 공통 ─────────────────────────────────────── */
+
+  function two(n) { return n < 10 ? "0" + n : "" + n; }
+  function fmt(sec) {
+    if (sec === null || sec === undefined || sec === "") return "";
+    var n = Number(sec); return Math.floor(n / 60) + ":" + two(n % 60);
+  }
+  function parseTime(input) {
+    var s = String(input || "").trim();
+    if (!s) return null;
+    s = s.replace(/[.\s'"]/g, ":").replace(/:+/g, ":").replace(/^:|:$/g, "");
+    var mm, ss;
+    if (s.indexOf(":") > -1) { var a = s.split(":"); mm = parseInt(a[0], 10); ss = parseInt(a[1], 10); }
+    else {
+      if (!/^\d{1,6}$/.test(s)) return null;
+      if (s.length <= 2) { mm = 0; ss = parseInt(s, 10); }
+      else { ss = parseInt(s.slice(-2), 10); mm = parseInt(s.slice(0, -2), 10); }
+    }
+    if (isNaN(mm) || isNaN(ss) || mm < 0 || ss < 0 || ss > 59) return null;
+    return mm * 60 + ss;
+  }
+  var toastEl = document.getElementById("toast"), tTimer;
+  function toast(m) {
+    toastEl.textContent = m; toastEl.dataset.show = "true";
+    clearTimeout(tTimer); tTimer = setTimeout(function () { toastEl.dataset.show = "false"; }, 2200);
+  }
+  function setConn(cls, text) {
+    var el = document.getElementById("conn");
+    el.className = "conn " + cls;
+    var stamp = lastOkAt ? " · " + two(lastOkAt.getHours()) + ":" + two(lastOkAt.getMinutes()) + ":" + two(lastOkAt.getSeconds()) : "";
+    document.getElementById("connText").textContent = text + stamp;
+  }
+
+  /* ── 로컬 모드 저장소 ─────────────────────────── */
+
+  function loadLocal() {
+    try {
+      var p = JSON.parse(localStorage.getItem(LKEY));
+      if (p && Array.isArray(p.athletes)) local = { athletes: p.athletes, seq: p.seq || p.athletes.length + 1, cfg: p.cfg || cfg };
+    } catch (e) {}
+    cfg = local.cfg || cfg;
+  }
+  function saveLocal() {
+    local.cfg = cfg;
+    try { localStorage.setItem(LKEY, JSON.stringify(local)); }
+    catch (e) { toast("저장 공간이 가득 찼습니다. CSV로 내보내세요"); }
+  }
+
+  /* ── 서버 통신 ────────────────────────────────── */
+
+  function call(params) {
+    var u = api + (api.indexOf("?") > -1 ? "&" : "?");
+    var qp = ["key=" + encodeURIComponent(key)];
+    Object.keys(params).forEach(function (k) { qp.push(k + "=" + encodeURIComponent(params[k])); });
+    qp.push("_=" + new Date().getTime());
+    return fetch(u + qp.join("&"), { cache: "no-store" }).then(function (r) { return r.json(); });
+  }
+
+  function saveQueue() { try { localStorage.setItem(QKEY, JSON.stringify(queue)); } catch (e) {} renderQueue(); }
+
+  function enqueue(params) {
+    queue.push(params); saveQueue(); flush();
+  }
+
+  var flushing = false;
+  function flush() {
+    if (flushing || !api || !queue.length) return;
+    flushing = true;
+    var job = queue[0];
+    call(job).then(function (j) {
+      if (j && j.ok) { queue.shift(); saveQueue(); }
+      else if (j && j.error === "BAD_KEY") { toast("암호가 맞지 않습니다 — 설정에서 확인하세요"); }
+      flushing = false;
+      if (queue.length) setTimeout(flush, 200); else refresh();
+    }).catch(function () { flushing = false; });
+  }
+
+  function refresh() {
+    if (!api) { loadLocal(); rows = local.athletes.slice(); syncCfgInputs(); render(); setConn("", "로컬 모드 · 이 브라우저에만 저장"); return; }
+    call({ a: "list" }).then(function (j) {
+      if (!j || !j.ok) {
+        if (j && j.error === "BAD_KEY") setConn("bad", "암호 오류");
+        else setConn("bad", "응답 이상");
+        return;
+      }
+      rows = j.rows.map(function (r) { return { id: r.id, seq: r.seq, div: r.div, name: r.name, phone: r.phone, time: r.time }; });
+      if (j.cfg) { cfg = j.cfg; syncCfgInputs(); }
+      lastOkAt = new Date(); setConn("ok", "시트 연결됨");
+      render();
+    }).catch(function () { setConn("bad", lastOkAt ? "연결 끊김 · 마지막" : "연결 실패"); });
+  }
+
+  /* ── 동작 ─────────────────────────────────────── */
+
+  function addAthlete(a) {
+    if (api) {
+      rows.push({ id: "tmp" + new Date().getTime(), seq: 9999, div: a.div, name: a.name, phone: a.phone, time: a.time, tmp: true });
+      render();
+      enqueue({ a: "add", name: a.name, phone: a.phone, div: a.div, time: a.time === null ? "" : a.time });
+    } else {
+      local.athletes.push({ id: "r" + local.seq, seq: local.seq++, div: a.div, name: a.name, phone: a.phone, time: a.time });
+      saveLocal(); rows = local.athletes.slice(); render();
+    }
+  }
+
+  function setTime(id, sec) {
+    var hit = rows.filter(function (r) { return r.id === id; })[0];
+    if (hit) hit.time = sec;
+    if (api) { render(); enqueue({ a: "time", id: id, time: sec === null ? "" : sec }); }
+    else {
+      var l = local.athletes.filter(function (r) { return r.id === id; })[0];
+      if (l) l.time = sec;
+      saveLocal(); render();
+    }
+  }
+
+  function removeAthlete(id) {
+    rows = rows.filter(function (r) { return r.id !== id; });
+    if (api) { render(); enqueue({ a: "del", id: id }); }
+    else {
+      local.athletes = local.athletes.filter(function (r) { return r.id !== id; });
+      saveLocal(); render();
+    }
+  }
+
+  function pushCfg() {
+    if (api) enqueue({ a: "cfg", sort: cfg.sort, live: cfg.live });
+    else { saveLocal(); }
+  }
+
+  /* ── 렌더 ─────────────────────────────────────── */
+
+  var tbody = document.getElementById("tbody");
+  var elSearch = document.getElementById("search");
+  var elFilter = document.getElementById("filterDiv");
+
+  function render() {
+    var q = elSearch.value.trim().toLowerCase();
+    var f = elFilter.value;
+    var list = rows.filter(function (r) {
+      if (f !== "all" && r.div !== f) return false;
+      if (!q) return true;
+      return (r.name + " " + (r.phone || "")).toLowerCase().indexOf(q) > -1;
+    }).sort(function (x, y) { return String(x.div).localeCompare(String(y.div)) || (y.seq - x.seq); });
+
+    document.getElementById("cntChip").textContent = list.length + "명";
+    tbody.innerHTML = "";
+    if (!list.length) {
+      var tr0 = document.createElement("tr");
+      tr0.innerHTML = "<td colspan='5' style='color:var(--dim);padding:1.4rem .6rem'>아직 등록된 선수가 없습니다</td>";
+      tbody.appendChild(tr0);
+      renderQueue(); return;
+    }
+    list.forEach(function (r) {
+      var tr = document.createElement("tr");
+      tr.innerHTML =
+        "<td><span class='chip'>" + r.div + "부</span></td>" +
+        "<td class='nm'></td><td class='ph'></td>" +
+        "<td><input data-id='" + r.id + "' placeholder='18:04' value='" + fmt(r.time) + "'" + (r.tmp ? " disabled" : "") + " /></td>" +
+        "<td><button type='button' class='x' data-del='" + r.id + "' title='삭제'>✕</button></td>";
+      tr.querySelector(".nm").textContent = r.name + (r.tmp ? " …" : "");
+      tr.querySelector(".ph").textContent = r.phone || "—";
+      tbody.appendChild(tr);
+    });
+    renderQueue();
+  }
+
+  function renderQueue() {
+    var c = document.getElementById("queueChip");
+    c.hidden = queue.length === 0;
+    c.textContent = "전송 대기 " + queue.length;
+  }
+
+  function syncCfgInputs() {
+    document.getElementById("cLive").value = cfg.live || "1";
+    document.getElementById("cSort").value = cfg.sort || "asc";
+  }
+
+  /* ── 이벤트 ───────────────────────────────────── */
+
+  var fTime = document.getElementById("fTime"), fHint = document.getElementById("fTimeHint");
+  fTime.addEventListener("input", function () {
+    var v = fTime.value.trim();
+    if (!v) { fHint.className = "hint"; fHint.textContent = "분:초 · 1804 처럼 숫자만 쳐도 됩니다"; return; }
+    var t = parseTime(v);
+    if (t === null) { fHint.className = "hint"; fHint.textContent = "형식을 확인하세요 (예: 18:04)"; }
+    else { fHint.className = "hint ok"; fHint.textContent = "→ " + fmt(t); }
+  });
+
+  document.getElementById("regForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var name = document.getElementById("fName").value.trim();
+    if (!name) return;
+    var raw = fTime.value.trim();
+    var t = raw ? parseTime(raw) : null;
+    if (raw && t === null) { toast("기록 형식을 확인하세요 (예: 18:04)"); return; }
+    addAthlete({ name: name, phone: document.getElementById("fPhone").value.trim(), div: document.getElementById("fDiv").value, time: t });
+    document.getElementById("fName").value = "";
+    document.getElementById("fPhone").value = "";
+    fTime.value = ""; fHint.className = "hint"; fHint.textContent = "분:초 · 1804 처럼 숫자만 쳐도 됩니다";
+    document.getElementById("fName").focus();
+    toast(name + " 등록" + (t !== null ? " · " + fmt(t) : ""));
+  });
+
+  tbody.addEventListener("change", function (e) {
+    var inp = e.target.closest("input[data-id]");
+    if (!inp) return;
+    var v = inp.value.trim();
+    if (!v) { setTime(inp.dataset.id, null); toast("기록 지움"); return; }
+    var t = parseTime(v);
+    if (t === null) { toast("형식을 확인하세요 (예: 18:04)"); render(); return; }
+    setTime(inp.dataset.id, t);
+    toast("기록 " + fmt(t) + " 저장");
+  });
+  tbody.addEventListener("keydown", function (e) { if (e.key === "Enter" && e.target.matches("input[data-id]")) e.target.blur(); });
+  tbody.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-del]");
+    if (!b) return;
+    var r = rows.filter(function (x) { return x.id === b.dataset.del; })[0];
+    if (!r || !confirm(r.name + " 선수를 지울까요?")) return;
+    removeAthlete(r.id);
+  });
+
+  elSearch.addEventListener("input", render);
+  elFilter.addEventListener("change", render);
+
+  document.getElementById("cLive").addEventListener("change", function () { cfg.live = this.value; pushCfg(); toast("기록판: " + (this.value === "rotate" ? "자동 순환" : this.value + "부")); });
+  document.getElementById("cSort").addEventListener("change", function () { cfg.sort = this.value; pushCfg(); toast("순위 기준 변경됨"); });
+
+  document.getElementById("openBoard").addEventListener("click", function () { window.open(BOARD_URL, "_blank", "noopener"); });
+  document.getElementById("copyBoard").addEventListener("click", function () {
+    navigator.clipboard.writeText(BOARD_URL).then(function () { toast("기록판 주소를 복사했습니다"); },
+      function () { prompt("이 주소를 복사하세요", BOARD_URL); });
+  });
+
+  document.getElementById("exportBtn").addEventListener("click", function () {
+    function esc(v) { var s = String(v == null ? "" : v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
+    var asc = cfg.sort !== "desc";
+    var rankMap = {};
+    ["1", "2", "3"].forEach(function (d) {
+      rows.filter(function (r) { return r.div === d && r.time !== null && r.time !== undefined && r.time !== ""; })
+        .sort(function (a, b) { return asc ? a.time - b.time : b.time - a.time; })
+        .forEach(function (r, i) { rankMap[r.id] = i + 1; });
+    });
+    var lines = ["부,순위,이름,연락처,기록,기록(초)"];
+    rows.slice().sort(function (x, y) { return String(x.div).localeCompare(String(y.div)) || (rankMap[x.id] || 999) - (rankMap[y.id] || 999); })
+      .forEach(function (r) {
+        lines.push([r.div + "부", rankMap[r.id] || "", esc(r.name), esc(r.phone), fmt(r.time), r.time == null ? "" : r.time].join(","));
+      });
+    var blob = new Blob(["﻿" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = "shuttlerun.csv"; a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+    toast("CSV 내려받음");
+  });
+
+  /* ── 설정 ─────────────────────────────────────── */
+
+  var setupBox = document.getElementById("setup"), appBox = document.getElementById("app");
+  function openSetup() {
+    document.getElementById("sApi").value = api;
+    document.getElementById("sKey").value = key;
+    setupBox.hidden = false; appBox.hidden = true;
+  }
+  document.getElementById("setupBtn").addEventListener("click", openSetup);
+  document.getElementById("closeSetup").addEventListener("click", function () { setupBox.hidden = true; appBox.hidden = false; });
+  document.getElementById("saveSetup").addEventListener("click", function () {
+    api = document.getElementById("sApi").value.trim();
+    key = document.getElementById("sKey").value;
+    localStorage.setItem("rex_api", api);
+    localStorage.setItem("rex_key", key);
+    setupBox.hidden = true; appBox.hidden = false;
+    toast(api ? "시트에 연결합니다" : "로컬 모드로 저장합니다");
+    refresh();
+  });
+
+  /* ── 구동 ─────────────────────────────────────── */
+
+  loadLocal();
+  syncCfgInputs();
+  refresh();
+  setInterval(function () { flush(); refresh(); }, 5000);
+  if (api && !key) openSetup();
+})();
+</script>
+</body>
+</html>
