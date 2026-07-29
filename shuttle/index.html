@@ -21,8 +21,12 @@
     --live: #4ade80;
     --font-ui: system-ui, -apple-system, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif;
     --font-num: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    /* 크기의 기준 단위. 가로 화면이면 화면 높이(1vh), 세로 화면이면 화면 너비(1vw).
+       같은 패널을 돌려 쓰는 것이므로 짧은 변은 어느 쪽이든 같다 → 글자가 물리적으로 같은 크기로 유지된다.
+       세로 전환은 맨 아래 @media (orientation: portrait) 한 줄이 전부다. */
+    --u: 1vh;
     --s: 1;          /* 전체 배율 (A+ / A−) */
-    --rowfs: 4.4vh;  /* 목록 글자 크기 — 자동으로 줄어듭니다 */
+    --rowfs: calc(4.4 * var(--u));  /* 목록 글자 크기 — 자동으로 줄어듭니다 */
     color-scheme: dark;
   }
   * { box-sizing: border-box; }
@@ -38,15 +42,15 @@
   /* ── 브랜드 밴드 ─────────────────────────────── */
   .brand {
     display: flex; align-items: center; justify-content: space-between;
-    gap: 2rem; padding: 2.2vh 0 1.6vh; border-bottom: 1px solid var(--rule-strong);
+    gap: 2rem; padding: calc(2.2 * var(--u)) 0 calc(1.6 * var(--u)); border-bottom: 1px solid var(--rule-strong);
   }
   .lockup { display: flex; align-items: center; gap: clamp(.8rem, 1.8vw, 1.8rem); min-width: 0; }
-  .mark { height: calc(10vh * var(--s)); width: auto; color: var(--signal); flex: none; }
-  .wordmark { height: calc(5.2vh * var(--s)); width: auto; color: var(--text); display: block; }
-  .lockup .stack { display: flex; flex-direction: column; gap: 1vh; min-width: 0; }
+  .mark { height: calc(calc(10 * var(--u)) * var(--s)); width: auto; color: var(--signal); flex: none; }
+  .wordmark { height: calc(calc(5.2 * var(--u)) * var(--s)); width: auto; color: var(--text); display: block; }
+  .lockup .stack { display: flex; flex-direction: column; gap: calc(1 * var(--u)); min-width: 0; }
   .challenge {
     display: flex; align-items: baseline; gap: .6em; flex-wrap: wrap;
-    font-size: calc(4.6vh * var(--s)); font-weight: 800; letter-spacing: -.035em; line-height: 1;
+    font-size: calc(calc(4.6 * var(--u)) * var(--s)); font-weight: 800; letter-spacing: -.035em; line-height: 1;
   }
   .challenge em {
     font-style: normal; font-family: var(--font-num); font-weight: 700;
@@ -54,39 +58,39 @@
   }
   .meta { display: flex; align-items: center; gap: clamp(.9rem, 2vw, 2.2rem); flex: none; }
   .divpill {
-    font-size: calc(2.6vh * var(--s)); font-weight: 800; letter-spacing: -.02em;
+    font-size: calc(calc(2.6 * var(--u)) * var(--s)); font-weight: 800; letter-spacing: -.02em;
     background: var(--signal); color: #170500; padding: .35em .7em; border-radius: 3px; line-height: 1;
   }
   .clock {
     font-family: var(--font-num); font-variant-numeric: tabular-nums;
-    font-size: calc(2.9vh * var(--s)); font-weight: 700; color: var(--muted);
+    font-size: calc(calc(2.9 * var(--u)) * var(--s)); font-weight: 700; color: var(--muted);
   }
 
   /* ── 1위 밴드 ────────────────────────────────── */
   .leader {
     display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto;
     align-items: baseline; column-gap: clamp(1rem, 2.5vw, 2.5rem); row-gap: .6vh;
-    padding: 2vh 0 2vh;
+    padding: calc(2 * var(--u)) 0 calc(2 * var(--u));
     border-bottom: 1px solid var(--rule-strong);
     background: linear-gradient(90deg, rgba(255,90,40,.13), rgba(255,90,40,0) 72%);
     margin: 0 calc(-1 * clamp(1rem, 2.6vw, 3rem)); padding-left: clamp(1rem, 2.6vw, 3rem); padding-right: clamp(1rem, 2.6vw, 3rem);
   }
   .leader .label {
-    grid-column: 1 / -1; font-family: var(--font-num); font-size: calc(1.9vh * var(--s));
+    grid-column: 1 / -1; font-family: var(--font-num); font-size: calc(calc(1.9 * var(--u)) * var(--s));
     font-weight: 700; letter-spacing: .3em; text-transform: uppercase; color: var(--signal); line-height: 1;
   }
-  .leader .who { grid-column: 1; font-size: calc(9vh * var(--s)); font-weight: 800; letter-spacing: -.035em;
+  .leader .who { grid-column: 1; font-size: calc(calc(9 * var(--u)) * var(--s)); font-weight: 800; letter-spacing: -.035em;
     line-height: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .leader .rec { grid-column: 2; font-family: var(--font-num); font-variant-numeric: tabular-nums;
-    font-size: calc(9vh * var(--s)); font-weight: 700; letter-spacing: -.04em; line-height: 1; color: var(--gold); }
-  .leader.idle .who { font-size: calc(3.6vh * var(--s)); font-weight: 700; color: var(--dim); letter-spacing: -.01em; }
+    font-size: calc(calc(9 * var(--u)) * var(--s)); font-weight: 700; letter-spacing: -.04em; line-height: 1; color: var(--gold); }
+  .leader.idle .who { font-size: calc(calc(3.6 * var(--u)) * var(--s)); font-weight: 700; color: var(--dim); letter-spacing: -.01em; }
   .leader.idle { background: none; }
 
   /* ── 목록 ────────────────────────────────────── */
   .colhead, .row { display: grid; grid-template-columns: 2.6em 1fr auto; align-items: baseline; gap: .9em; }
   .colhead {
-    font-family: var(--font-num); font-size: calc(1.4vh * var(--s)); letter-spacing: .24em;
-    text-transform: uppercase; color: var(--dim); padding: 1.4vh 0 .8vh;
+    font-family: var(--font-num); font-size: calc(calc(1.4 * var(--u)) * var(--s)); letter-spacing: .24em;
+    text-transform: uppercase; color: var(--dim); padding: calc(1.4 * var(--u)) 0 .8vh;
   }
   .colhead .t { text-align: right; }
 
@@ -113,24 +117,24 @@
   }
   .cutline::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--live), transparent); opacity: .5; }
 
-  .empty { padding: 3vh 0; color: var(--dim); font-size: .6em; }
+  .empty { padding: calc(3 * var(--u)) 0; color: var(--dim); font-size: .6em; }
 
   /* ── 하단 안내 롤링 배너 ─────────────────────── */
   .notice {
     display: flex; align-items: center; gap: 1.2em; overflow: hidden;
     margin: 0 calc(-1 * clamp(1rem, 2.6vw, 3rem));
-    padding: 1.7vh clamp(1rem, 2.6vw, 3rem);
+    padding: calc(1.7 * var(--u)) clamp(1rem, 2.6vw, 3rem);
     background: rgba(255, 90, 40, .09);
     border-top: 1px solid var(--rule-strong);
   }
   .notice[hidden] { display: none; }
   .notice .tag {
-    flex: none; font-family: var(--font-num); font-size: calc(1.3vh * var(--s));
+    flex: none; font-family: var(--font-num); font-size: calc(calc(1.3 * var(--u)) * var(--s));
     font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: var(--signal);
     border: 1px solid var(--signal); border-radius: 999px; padding: .45em .9em; line-height: 1;
   }
   .notice .msg {
-    font-size: calc(2.5vh * var(--s)); font-weight: 700; letter-spacing: -.015em; line-height: 1.2;
+    font-size: calc(calc(2.5 * var(--u)) * var(--s)); font-weight: 700; letter-spacing: -.015em; line-height: 1.2;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     transition: opacity .4s ease, transform .4s ease;
   }
@@ -140,10 +144,10 @@
   /* ── 바닥 ────────────────────────────────────── */
   .foot {
     display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 1.4rem;
-    border-top: 1px solid var(--rule-strong); padding: 1.4vh 0 1.6vh;
+    border-top: 1px solid var(--rule-strong); padding: calc(1.4 * var(--u)) 0 calc(1.6 * var(--u));
   }
   .conn { display: flex; align-items: center; gap: .55em;
-    font-family: var(--font-num); font-size: calc(1.35vh * var(--s)); letter-spacing: .16em;
+    font-family: var(--font-num); font-size: calc(calc(1.35 * var(--u)) * var(--s)); letter-spacing: .16em;
     text-transform: uppercase; color: var(--dim); white-space: nowrap; }
   .dot { width: .55em; height: .55em; border-radius: 50%; background: var(--dim); }
   .conn.ok .dot { background: var(--live); }
@@ -151,51 +155,51 @@
 
   .waiting { min-width: 0; display: flex; align-items: baseline; gap: .9em; overflow: hidden; }
   .waiting[hidden] { display: none; }
-  .waiting .lbl { font-family: var(--font-num); font-size: calc(1.35vh * var(--s)); letter-spacing: .16em;
+  .waiting .lbl { font-family: var(--font-num); font-size: calc(calc(1.35 * var(--u)) * var(--s)); letter-spacing: .16em;
     text-transform: uppercase; color: var(--dim); white-space: nowrap; flex: none; }
-  .waiting .names { font-size: calc(2vh * var(--s)); font-weight: 600; color: var(--muted);
+  .waiting .names { font-size: calc(calc(2 * var(--u)) * var(--s)); font-weight: 600; color: var(--muted);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
   .qr { display: flex; align-items: center; gap: .9em; }
   .qr .cap { text-align: right; line-height: 1.35; }
-  .qr .cap b { display: block; font-size: calc(1.9vh * var(--s)); font-weight: 800; letter-spacing: -.01em; }
-  .qr .cap span { font-family: var(--font-num); font-size: calc(1.25vh * var(--s)); letter-spacing: .14em;
+  .qr .cap b { display: block; font-size: calc(calc(1.9 * var(--u)) * var(--s)); font-weight: 800; letter-spacing: -.01em; }
+  .qr .cap span { font-family: var(--font-num); font-size: calc(calc(1.25 * var(--u)) * var(--s)); letter-spacing: .14em;
     text-transform: uppercase; color: var(--dim); }
-  .qr canvas { display: block; width: calc(8vh * var(--s)); height: calc(8vh * var(--s));
+  .qr canvas { display: block; width: calc(calc(8 * var(--u)) * var(--s)); height: calc(calc(8 * var(--u)) * var(--s));
     background: #fff; padding: .5vh; border-radius: 3px; image-rendering: pixelated; }
   .qr[hidden] { display: none; }
 
   /* ── 신기록 연출 ─────────────────────────────── */
   .takeover {
     position: fixed; inset: 0; z-index: 60; display: none;
-    flex-direction: column; align-items: center; justify-content: center; gap: 2vh;
+    flex-direction: column; align-items: center; justify-content: center; gap: calc(2 * var(--u));
     background: radial-gradient(circle at 50% 45%, #2a0d03 0%, #06080a 68%);
   }
   .takeover[data-show="true"] { display: flex; animation: fadein .35s ease-out; }
   .takeover .kicker {
-    font-family: var(--font-num); font-size: 2.6vh; letter-spacing: .42em; text-transform: uppercase;
+    font-family: var(--font-num); font-size: calc(2.6 * var(--u)); letter-spacing: .42em; text-transform: uppercase;
     color: var(--signal); animation: pop .5s cubic-bezier(.2,1.4,.4,1) both;
   }
-  .takeover .big { font-size: 17vh; font-weight: 800; letter-spacing: -.045em; line-height: .95;
+  .takeover .big { font-size: calc(17 * var(--u)); font-weight: 800; letter-spacing: -.045em; line-height: .95;
     animation: pop .55s .06s cubic-bezier(.2,1.4,.4,1) both; text-align: center; }
   .takeover .rec { font-family: var(--font-num); font-variant-numeric: tabular-nums;
-    font-size: 13vh; font-weight: 700; letter-spacing: -.04em; color: var(--gold);
+    font-size: calc(13 * var(--u)); font-weight: 700; letter-spacing: -.04em; color: var(--gold);
     animation: pop .55s .13s cubic-bezier(.2,1.4,.4,1) both; }
-  .takeover .sub { font-family: var(--font-num); font-size: 2.2vh; letter-spacing: .28em;
+  .takeover .sub { font-family: var(--font-num); font-size: calc(2.2 * var(--u)); letter-spacing: .28em;
     text-transform: uppercase; color: var(--muted); }
   @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
   @keyframes pop { from { opacity: 0; transform: translateY(14px) scale(.94); } to { opacity: 1; transform: none; } }
 
   .banner {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
-    display: flex; align-items: baseline; gap: 1.2em; padding: 2vh clamp(1rem, 2.6vw, 3rem);
+    display: flex; align-items: baseline; gap: 1.2em; padding: calc(2 * var(--u)) clamp(1rem, 2.6vw, 3rem);
     background: var(--signal); color: #170500;
     transform: translateY(105%); transition: transform .3s cubic-bezier(.4,0,.2,1);
   }
   .banner[data-show="true"] { transform: translateY(0); }
-  .banner .k { font-family: var(--font-num); font-size: 1.6vh; letter-spacing: .28em; text-transform: uppercase; opacity: .75; }
-  .banner .n { font-size: 4.4vh; font-weight: 800; letter-spacing: -.03em; }
-  .banner .t { font-family: var(--font-num); font-variant-numeric: tabular-nums; font-size: 4.4vh; font-weight: 700; margin-left: auto; }
+  .banner .k { font-family: var(--font-num); font-size: calc(1.6 * var(--u)); letter-spacing: .28em; text-transform: uppercase; opacity: .75; }
+  .banner .n { font-size: calc(4.4 * var(--u)); font-weight: 800; letter-spacing: -.03em; }
+  .banner .t { font-family: var(--font-num); font-variant-numeric: tabular-nums; font-size: calc(4.4 * var(--u)); font-weight: 700; margin-left: auto; }
 
   .ctl { position: fixed; right: .6rem; top: .6rem; display: flex; gap: .35rem; opacity: .1; transition: opacity .2s; z-index: 70; }
   .ctl:hover { opacity: 1; }
@@ -203,6 +207,29 @@
     font-family: var(--font-ui); font-size: .8rem; font-weight: 700; padding: .4rem .7rem; border-radius: 3px; cursor: pointer; }
   .ctl button:hover { color: var(--text); }
   button:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+
+  /* ── 세로 모니터 ─────────────────────────────────
+     모니터를 90° 돌려 세로로 쓸 때. 브라우저 창이 높이>너비 이면 자동으로 켜진다.
+     글자 크기는 --u 가 알아서 맞추므로, 여기서는 "가로로 늘어놓던 것"만 세로로 쌓는다. */
+  @media (orientation: portrait) {
+    :root { --u: 1vw; }
+
+    /* 브랜드 밴드: 로고 줄 / 종목·시계 줄 로 분리 */
+    .brand { flex-direction: column; align-items: stretch; gap: calc(1.4 * var(--u)); }
+    .meta { justify-content: space-between; }
+
+    /* 1위 밴드: 이름 아래 기록 (옆으로 나란히 두면 폭이 모자람) */
+    .leader { grid-template-columns: 1fr; }
+    .leader .who, .leader .rec { grid-column: 1; }
+    .leader .rec { font-size: calc(11 * var(--u) * var(--s)); }
+
+    /* 세로는 위아래로 길어서 2단으로 쪼갤 이유가 없다 */
+    .list.split { display: block; }
+
+    /* 바닥: 접속상태 + QR 한 줄, 기록 대기는 그 아래 한 줄 */
+    .foot { grid-template-columns: 1fr auto; gap: calc(1 * var(--u)) 1.4rem; }
+    .waiting { grid-column: 1 / -1; grid-row: 2; }
+  }
 
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition-duration: .01ms !important; } }
 </style>
@@ -535,12 +562,16 @@
 
   // 목록이 한 화면에 들어오도록 글자 크기를 자동으로 줄입니다
   function autofit() {
+    // 단위는 --u 가 쥐고 있다 (가로=1vh, 세로=1vw). 여기서는 배수만 줄인다.
+    function put(v) {
+      document.documentElement.style.setProperty("--rowfs", "calc(" + v + " * var(--u))");
+    }
     var base = 4.4, size = base;
-    document.documentElement.style.setProperty("--rowfs", size + "vh");
+    put(size);
     var guard = 0;
     while (elList.scrollHeight > elScroller.clientHeight && size > 1.4 && guard++ < 40) {
       size = Math.round((size - 0.15) * 100) / 100;
-      document.documentElement.style.setProperty("--rowfs", size + "vh");
+      put(size);
     }
   }
 
