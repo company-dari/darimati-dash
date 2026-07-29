@@ -46,15 +46,16 @@
   }
   .lockup { display: flex; align-items: center; gap: clamp(.8rem, 1.8vw, 1.8rem); min-width: 0; }
   .mark { height: calc(calc(10 * var(--u)) * var(--s)); width: auto; color: var(--signal); flex: none; }
-  .wordmark { height: calc(calc(5.2 * var(--u)) * var(--s)); width: auto; color: var(--text); display: block; }
+  /* DARIMATI 워드마크는 안 쓴다 — 마크와 챌린지 두 개만 남겨 헤더를 단순화 */
+  .wordmark { display: none; }
   .lockup .stack { display: flex; flex-direction: column; gap: calc(1 * var(--u)); min-width: 0; }
   .challenge {
-    display: flex; align-items: baseline; gap: .6em; flex-wrap: wrap;
+    display: flex; flex-direction: column; align-items: flex-start; gap: calc(.9 * var(--u));
     font-size: calc(calc(4.6 * var(--u)) * var(--s)); font-weight: 800; letter-spacing: -.035em; line-height: 1;
   }
   .challenge em {
     font-style: normal; font-family: var(--font-num); font-weight: 700;
-    font-size: .42em; letter-spacing: .18em; color: var(--signal); text-transform: uppercase;
+    font-size: .34em; letter-spacing: .18em; color: var(--signal); text-transform: uppercase;
   }
   .meta { display: flex; align-items: center; gap: clamp(.9rem, 2vw, 2.2rem); flex: none; }
   .divpill {
@@ -216,14 +217,10 @@
      모니터를 눕혀 세워 회전시킨 경우도 여기에 걸린다(아래 회전 모드 참고).
      글자 크기는 --u 가 알아서 맞추므로, 여기서는 "가로로 늘어놓던 것"만 세로로 쌓는다. */
   :root.pt .brand { flex-direction: column; align-items: stretch; gap: calc(1.8 * var(--u)); }
-  /* 마크와 워드마크를 한 줄로 묶고, 그 아래에 '셔틀런 챌린지'를 크게 내린다 */
-  :root.pt .lockup { display: grid; grid-template-columns: auto 1fr; align-items: center;
-    column-gap: clamp(.8rem, 1.8vw, 1.8rem); row-gap: calc(1.6 * var(--u)); }
-  :root.pt .stack { display: contents; }
-  :root.pt .mark { grid-column: 1; grid-row: 1; }
-  :root.pt .wordmark { grid-column: 2; grid-row: 1; }
-  :root.pt .challenge { grid-column: 1 / -1; grid-row: 2;
-    font-size: calc(calc(7.6 * var(--u)) * var(--s)); }
+  /* 마크 옆에 챌린지 락업 — 세로 화면에서는 둘 다 키운다 */
+  :root.pt .lockup { gap: clamp(1rem, 2.4vw, 2.4rem); }
+  :root.pt .mark { height: calc(calc(13 * var(--u)) * var(--s)); }
+  :root.pt .challenge { font-size: calc(calc(6.2 * var(--u)) * var(--s)); }
   :root.pt .meta { justify-content: space-between; }
 
   /* 1위 밴드: 이름 아래 기록 (옆으로 나란히 두면 폭이 모자람) */
