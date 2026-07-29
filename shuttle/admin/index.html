@@ -95,6 +95,7 @@
   </div>
   <div style="display:flex;gap:.7rem;align-items:center;flex-wrap:wrap">
     <span class="conn" id="conn"><span class="dot"></span><span id="connText">확인 중</span></span>
+    <button type="button" class="btn sm" id="openBoardTop" title="기록판(TV 화면)을 새 창으로 엽니다">📺 기록판 보기</button>
     <button type="button" class="btn sm" id="setupBtn">설정</button>
   </div>
 </header>
@@ -491,7 +492,14 @@
     toast("기록판에 적용했습니다");
   });
 
-  document.getElementById("openBoard").addEventListener("click", function () { window.open(BOARD_URL, "_blank", "noopener"); });
+  // 기록판 열기 — 같은 창 이름을 재사용해서, 여러 번 눌러도 탭이 쌓이지 않고 그 창만 앞으로 나옵니다.
+  function openBoardWindow() {
+    var w = window.open(BOARD_URL, "rextremeBoard");
+    if (w) { try { w.focus(); } catch (e) {} }
+    else { toast("팝업이 차단됐습니다 — 주소창 오른쪽에서 허용해 주세요"); }
+  }
+  document.getElementById("openBoard").addEventListener("click", openBoardWindow);
+  document.getElementById("openBoardTop").addEventListener("click", openBoardWindow);
   document.getElementById("copyBoard").addEventListener("click", function () {
     navigator.clipboard.writeText(BOARD_URL).then(function () { toast("기록판 주소를 복사했습니다"); },
       function () { prompt("이 주소를 복사하세요", BOARD_URL); });
