@@ -133,6 +133,19 @@
           <option value="asc">기록이 빠를수록 1위</option>
           <option value="desc">기록이 클수록 1위</option>
         </select>
+
+        <label for="cCut">커트라인 <span style="text-transform:none;letter-spacing:0">(비우면 표시 안 함)</span></label>
+        <input id="cCut" data-num inputmode="numeric" placeholder="15:00" />
+        <p class="hint" id="cCutHint">이 기록 안에 든 사람은 초록색으로 표시되고, 목록에 선이 그어집니다</p>
+
+        <label for="cCutLabel">커트라인 문구</label>
+        <input id="cCutLabel" placeholder="경품 대상" />
+
+        <label for="cQr">화면 구석 QR 주소 <span style="text-transform:none;letter-spacing:0">(비우면 QR 없음)</span></label>
+        <input id="cQr" inputmode="url" placeholder="https://www.darimati.us/pages/rextreme-2026" />
+
+        <button type="button" class="btn wide" id="applyCfg">기록판에 적용</button>
+
         <div class="row-actions" style="margin-top:1rem">
           <button type="button" class="btn sm" id="openBoard">기록판 열기</button>
           <button type="button" class="btn sm" id="copyBoard">주소 복사</button>
@@ -323,7 +336,7 @@
   }
 
   function pushCfg() {
-    if (api) enqueue({ a: "cfg", sort: cfg.sort, live: cfg.live });
+    if (api) enqueue({ a: "cfg", sort: cfg.sort, live: cfg.live, cut: cfg.cut || "", cutlabel: cfg.cutlabel || "", qr: cfg.qr || "" });
     else { saveLocal(); }
   }
 
@@ -370,9 +383,14 @@
     c.textContent = "전송 대기 " + queue.length;
   }
 
+  var cfgDirty = false;
   function syncCfgInputs() {
     document.getElementById("cLive").value = cfg.live || "1";
     document.getElementById("cSort").value = cfg.sort || "asc";
+    if (cfgDirty) return;  // 사용자가 고치는 중이면 덮어쓰지 않습니다
+    document.getElementById("cCut").value = cfg.cut ? fmt(Number(cfg.cut)) : "";
+    document.getElementById("cCutLabel").value = cfg.cutlabel || "";
+    document.getElementById("cQr").value = cfg.qr || "";
   }
 
   /* ── 이벤트 ───────────────────────────────────── */
@@ -425,6 +443,38 @@
 
   document.getElementById("cLive").addEventListener("change", function () { cfg.live = this.value; pushCfg(); toast("기록판: " + (this.value === "rotate" ? "자동 순환" : this.value + "부")); });
   document.getElementById("cSort").addEventListener("change", function () { cfg.sort = this.value; pushCfg(); toast("순위 기준 변경됨"); });
+
+  ["cCut", "cCutLabel", "cQr"].forEach(function (id) {
+    document.getElementById(id).addEventListener("input", function () { cfgDirty = true; });
+  });
+
+  document.getElementById("cCut").addEventListener("input", function () {
+    var h = document.getElementById("cCutHint");
+    var v = this.value.trim();
+    if (!v) { h.className = "hint"; h.textContent = "비워두면 커트라인 선이 안 나옵니다"; return; }
+    var t = parseTime(v);
+    if (t === null) { h.className = "hint"; h.textContent = "형식을 확인하세요 (예: 15:00)"; }
+    else { h.className = "hint ok"; h.textContent = "→ " + fmt(t) + " 안에 들면 초록색 표시"; }
+  });
+
+  document.getElementById("applyCfg").addEventListener("click", function () {
+    var cutRaw = document.getElementById("cCut").value.trim();
+    var cutSec = "";
+    if (cutRaw) {
+      var t = parseTime(cutRaw);
+      if (t === null) { toast("커트라인 형식을 확인하세요 (예: 15:00)"); return; }
+      cutSec = t;
+    }
+    var url = document.getElementById("cQr").value.trim();
+    if (url && !/^https?:\/\//i.test(url)) url = "https://" + url;
+    cfg.cut = cutSec;
+    cfg.cutlabel = document.getElementById("cCutLabel").value.trim();
+    cfg.qr = url;
+    document.getElementById("cQr").value = url;
+    cfgDirty = false;
+    pushCfg();
+    toast("기록판에 적용했습니다");
+  });
 
   document.getElementById("openBoard").addEventListener("click", function () { window.open(BOARD_URL, "_blank", "noopener"); });
   document.getElementById("copyBoard").addEventListener("click", function () {
