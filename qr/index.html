@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>다리마티 QR 관리</title>
+<style>
+  :root{--bg:#0e1013;--card:#171a1f;--line:#262b33;--fg:#e9ecf1;--dim:#98a0ad;--ok:#4ade80;--warn:#fbbf24}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);padding:24px 16px 60px;
+       font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",system-ui,sans-serif;
+       -webkit-text-size-adjust:100%}
+  .w{max-width:620px;margin:0 auto}
+  h1{font-size:20px;margin:0 0 4px}
+  .sub{color:var(--dim);font-size:13px;margin:0 0 20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px}
+  label{display:block;font-size:12px;color:var(--dim);margin:0 0 5px}
+  input,textarea{width:100%;padding:11px 12px;background:#0e1013;border:1px solid var(--line);
+        border-radius:9px;color:var(--fg);font-size:15px;font-family:inherit}
+  input:focus,textarea:focus{outline:none;border-color:#4b5563}
+  .row{display:flex;gap:8px}.row>*{flex:1}
+  button{padding:11px 14px;border-radius:9px;border:1px solid var(--line);background:#20242b;
+         color:var(--fg);font-size:14px;font-weight:650;cursor:pointer;font-family:inherit}
+  button:hover{background:#272c34}
+  button.p{background:var(--fg);color:#0e1013;border-color:var(--fg)}
+  button.s{padding:7px 11px;font-size:12.5px;font-weight:600}
+  .mt{margin-top:10px}
+  .msg{font-size:13px;padding:10px 12px;border-radius:9px;margin-bottom:12px;display:none}
+  .msg.on{display:block}
+  .msg.err{background:#3b1d1d;color:#fca5a5}
+  .msg.ok{background:#14301f;color:#86efac}
+
+  .item{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:10px;overflow:hidden}
+  .head{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer}
+  .head:hover{background:#1b1f25}
+  .nm{flex:1;min-width:0}
+  .nm b{display:block;font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .nm span{display:block;font-size:12px;color:var(--dim);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cnt{text-align:right;flex-shrink:0}
+  .cnt b{display:block;font-size:17px;font-weight:800;font-variant-numeric:tabular-nums}
+  .cnt span{font-size:11px;color:var(--dim)}
+  .off{opacity:.45}
+  .tag{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:6px;
+       background:#3a2a12;color:var(--warn);margin-left:6px;vertical-align:1px}
+
+  .body{border-top:1px solid var(--line);padding:16px;display:none}
+  .body.on{display:block}
+  .qrwrap{text-align:center;padding:14px 0 4px}
+  canvas{background:#fff;border-radius:10px;max-width:220px;width:100%;height:auto;image-rendering:pixelated}
+  .fixed{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:var(--dim);
+         background:#0e1013;border:1px solid var(--line);border-radius:8px;padding:9px 10px;
+         word-break:break-all;margin:12px 0 4px;line-height:1.5}
+  .hint{font-size:11.5px;color:var(--dim);line-height:1.6;margin:8px 0 0}
+  .bars{display:flex;align-items:flex-end;gap:2px;height:46px;margin:14px 0 2px}
+  .bars i{flex:1;background:#2f3742;border-radius:2px 2px 0 0;min-height:2px}
+  .bars i.hot{background:#6b7280}
+  .lbl{display:flex;justify-content:space-between;font-size:10.5px;color:var(--dim)}
+  .sec{border-top:1px solid var(--line);margin-top:16px;padding-top:14px}
+  .danger{color:#f87171;border-color:#4a2020;background:#2a1616}
+  .empty{text-align:center;color:var(--dim);font-size:13.5px;padding:34px 10px;line-height:1.7}
+  .foot{color:var(--dim);font-size:11.5px;line-height:1.7;margin-top:26px;text-align:center}
+  a{color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="w">
+  <h1>QR 관리</h1>
+  <p class="sub">인쇄한 QR은 그대로 두고 목적지만 바꿉니다</p>
+
+  <div id="msg" class="msg"></div>
+
+  <!-- 최초 1회 연결 -->
+  <div id="setup" class="card" hidden>
+    <label>구글 앱스스크립트 주소 (…/exec)</label>
+    <input id="sApi" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off">
+    <div class="mt"></div>
+    <label>암호</label>
+    <input id="sKey" type="password" placeholder="암호" autocomplete="current-password">
+    <div class="mt"><button class="p" id="bConn" style="width:100%">연결</button></div>
+    <p class="hint">이 기기에만 저장됩니다. 서버로 올라가지 않습니다.</p>
+  </div>
+
+  <!-- 새 QR -->
+  <div id="mk" class="card" hidden>
+    <div class="row">
+      <div style="flex:1.1">
+        <label>코드 (주소에 들어갈 영문)</label>
+        <input id="nCode" placeholder="join" autocomplete="off" autocapitalize="off">
+      </div>
+      <div style="flex:1.4">
+        <label>이름 (내가 알아볼 용도)</label>
+        <input id="nName" placeholder="조인 페이지" autocomplete="off">
+      </div>
+    </div>
+    <div class="mt"></div>
+    <label>목적지 — 지금 보낼 링크</label>
+    <input id="nUrl" placeholder="https://www.darimati.us/pages/join" autocomplete="off">
+    <div class="mt"></div>
+    <label>메모 (어디에 인쇄하는지 · 선택)</label>
+    <input id="nMemo" placeholder="7월 전단지 3,000장" autocomplete="off">
+    <div class="mt"><button class="p" id="bNew" style="width:100%">QR 만들기</button></div>
+  </div>
+
+  <div id="list"></div>
+
+  <p class="foot" id="foot"></p>
+</div>
+
+<script src="qrcode.js"></script>
+<script>
+/* ─────────────────────────────────────────────────────────────
+   QR 관리 대시보드
+
+   여기서 다루는 건 두 가지다.
+     · 고정 주소 — QR 이미지에 박히는 글자. 인쇄하는 순간 못 바꾼다.
+     · 목적지    — 그 고정 주소가 지금 어디로 보낼지. 언제든 바꾼다.
+
+   그래서 목적지를 아무리 갈아끼워도 이미 뿌린 인쇄물은 계속 살아 있다.
+   ───────────────────────────────────────────────────────────── */
+
+var LS = "qr.admin";
+var cfg = load();
+var state = { links: [], dates: [], open: "", armed: "" };
+
+function load() {
+  try { return JSON.parse(localStorage.getItem(LS)) || {}; } catch (e) { return {}; }
+}
+function save() {
+  try { localStorage.setItem(LS, JSON.stringify(cfg)); } catch (e) {}
+}
+
+/* 인쇄물에 박힐 주소의 앞부분. 이 페이지 위치에서 자동으로 뽑는다.
+   나중에 qr.darimati.us 같은 짧은 주소로 옮기면 여기만 바꾸면 되고,
+   그때도 옛 주소를 살려두면 이미 인쇄한 QR은 그대로 쓸 수 있다. */
+function base() {
+  if (cfg.base) return cfg.base;
+  var h = location.href.split(/[?#]/)[0];
+  var i = h.lastIndexOf("/qr/");
+  if (i > -1) return h.slice(0, i) + "/q/?c=";
+  return "https://company-dari.github.io/darimati-dash/q/?c=";
+}
+function fixedUrl(code) { return base() + code; }
+
+/* ── 통신 ─────────────────────────────────────────── */
+
+function api(action, params) {
+  var u = cfg.api + (cfg.api.indexOf("?") > -1 ? "&" : "?") + "a=" + action +
+          "&key=" + encodeURIComponent(cfg.key) + "&_=" + new Date().getTime();
+  for (var k in params) {
+    if (params[k] != null) u += "&" + k + "=" + encodeURIComponent(params[k]);
+  }
+  return fetch(u, { cache: "no-store" }).then(function (r) { return r.json(); });
+}
+
+function msg(text, kind) {
+  var el = document.getElementById("msg");
+  el.textContent = text;
+  el.className = "msg on " + (kind || "ok");
+  if (kind !== "err") setTimeout(function () { el.className = "msg"; }, 2600);
+}
+
+/* ── 화면 ─────────────────────────────────────────── */
+
+function boot() {
+  var connected = !!(cfg.api && cfg.key);
+  document.getElementById("setup").hidden = connected;
+  document.getElementById("mk").hidden = !connected;
+  if (connected) refresh();
+}
+
+function refresh() {
+  api("list", {})
+    .then(function (j) {
+      if (!j.ok) {
+        if (j.error === "BAD_KEY") {
+          cfg = {}; save(); boot();
+          msg("암호가 맞지 않습니다. 다시 연결해 주세요.", "err");
+        } else msg("불러오지 못했습니다 (" + j.error + ")", "err");
+        return;
+      }
+      state.links = j.links || [];
+      state.dates = j.dates || [];
+      render();
+      document.getElementById("foot").textContent =
+        "QR " + state.links.length + "개 · 전체 스캔 " + (j.total || 0) + "회";
+    })
+    .catch(function () { msg("구글에 연결하지 못했습니다. 잠시 뒤 새로고침 해주세요.", "err"); });
+}
+
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  });
+}
+
+function render() {
+  var box = document.getElementById("list");
+  if (!state.links.length) {
+    box.innerHTML = '<div class="empty">아직 만든 QR이 없습니다.<br>위에서 첫 QR을 만들어 보세요.</div>';
+    return;
+  }
+
+  box.innerHTML = state.links.map(function (x) {
+    var open = state.open === x.code;
+    return '' +
+      '<div class="item' + (x.active ? "" : " off") + '">' +
+        '<div class="head" data-open="' + esc(x.code) + '">' +
+          '<div class="nm">' +
+            '<b>' + esc(x.name || x.code) + (x.active ? "" : '<span class="tag">중지</span>') + '</b>' +
+            '<span>' + esc(x.url) + '</span>' +
+          '</div>' +
+          '<div class="cnt"><b>' + x.scans + '</b><span>' + (x.last || "스캔 없음") + '</span></div>' +
+        '</div>' +
+        '<div class="body' + (open ? " on" : "") + '" id="b-' + esc(x.code) + '">' +
+          (open ? detail(x) : "") +
+        '</div>' +
+      '</div>';
+  }).join("");
+
+  if (state.open) {
+    var x = find(state.open);
+    if (x) drawQR(x.code);
+  }
+}
+
+function find(code) {
+  for (var i = 0; i < state.links.length; i++) if (state.links[i].code === code) return state.links[i];
+  return null;
+}
+
+function detail(x) {
+  var days = x.days || {}, max = 1;
+  state.dates.forEach(function (d) { if ((days[d] || 0) > max) max = days[d]; });
+  var bars = state.dates.map(function (d) {
+    var v = days[d] || 0;
+    return '<i class="' + (v ? "hot" : "") + '" style="height:' + Math.round((v / max) * 100) + '%"></i>';
+  }).join("");
+
+  return '' +
+    '<div class="qrwrap"><canvas id="c-' + esc(x.code) + '"></canvas></div>' +
+    '<div class="row" style="margin-top:12px">' +
+      '<button class="s" data-png="' + esc(x.code) + '">PNG 내려받기</button>' +
+      '<button class="s" data-svg="' + esc(x.code) + '">SVG (인쇄용)</button>' +
+      '<button class="s" data-copy="' + esc(x.code) + '">주소 복사</button>' +
+    '</div>' +
+    '<div class="fixed">' + esc(fixedUrl(x.code)) + '</div>' +
+    '<p class="hint">QR에 박힌 주소입니다. <b>이 주소는 영원히 그대로</b>이고, 아래 목적지만 바뀝니다.</p>' +
+
+    '<div class="sec">' +
+      '<label>목적지 — 지금 이 QR이 보내는 곳</label>' +
+      '<input id="u-' + esc(x.code) + '" value="' + esc(x.url) + '" autocomplete="off">' +
+      '<div class="mt"></div>' +
+      '<label>메모</label>' +
+      '<input id="m-' + esc(x.code) + '" value="' + esc(x.memo) + '" autocomplete="off">' +
+      '<div class="row mt">' +
+        '<button class="p" data-save="' + esc(x.code) + '">목적지 저장</button>' +
+        '<button data-toggle="' + esc(x.code) + '">' + (x.active ? "잠시 중지" : "다시 사용") + '</button>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="sec">' +
+      '<div class="bars">' + bars + '</div>' +
+      '<div class="lbl"><span>30일 전</span><span>스캔 ' + x.scans + '회 · 만든 날 ' + esc(x.created) + '</span><span>오늘</span></div>' +
+    '</div>' +
+
+    '<div class="sec">' +
+      '<button class="s danger" data-del="' + esc(x.code) + '">' +
+        (state.armed === x.code ? "정말 지웁니다 — 한 번 더" : "이 QR 지우기") + '</button>' +
+      '<p class="hint">지우면 인쇄된 QR은 홈으로 갑니다. 스캔 기록은 시트에 남습니다.</p>' +
+    '</div>';
+}
+
+/* ── QR 그리기 ────────────────────────────────────── */
+
+function matrix(code) {
+  var q = qrcode(0, "M");           // 오류정정 M — 인쇄물에 두루 쓰는 표준
+  q.addData(fixedUrl(code));
+  q.make();
+  return q;
+}
+
+function drawQR(code) {
+  var cv = document.getElementById("c-" + code);
+  if (!cv) return;
+  var q = matrix(code), n = q.getModuleCount(), px = 4, pad = 4;
+  cv.width = cv.height = (n + pad * 2) * px;
+  var ctx = cv.getContext("2d");
+  ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.fillStyle = "#000";
+  for (var r = 0; r < n; r++)
+    for (var c = 0; c < n; c++)
+      if (q.isDark(r, c)) ctx.fillRect((c + pad) * px, (r + pad) * px, px, px);
+}
+
+// 인쇄용 PNG — 1200px 안팎. 여백(4모듈)이 없으면 인식률이 떨어지므로 반드시 넣는다.
+function png(code) {
+  var q = matrix(code), n = q.getModuleCount(), pad = 4;
+  var px = Math.max(4, Math.round(1200 / (n + pad * 2)));
+  var cv = document.createElement("canvas");
+  cv.width = cv.height = (n + pad * 2) * px;
+  var ctx = cv.getContext("2d");
+  ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.fillStyle = "#000";
+  for (var r = 0; r < n; r++)
+    for (var c = 0; c < n; c++)
+      if (q.isDark(r, c)) ctx.fillRect((c + pad) * px, (r + pad) * px, px, px);
+  down(cv.toDataURL("image/png"), "darimati-qr-" + code + ".png");
+}
+
+// 벡터라 아무리 키워도 안 깨진다. 현수막·대형 인쇄는 이쪽을 넘기면 된다.
+function svg(code) {
+  var q = matrix(code), n = q.getModuleCount(), pad = 4, s = n + pad * 2;
+  var d = [];
+  for (var r = 0; r < n; r++)
+    for (var c = 0; c < n; c++)
+      if (q.isDark(r, c)) d.push("M" + (c + pad) + " " + (r + pad) + "h1v1h-1z");
+  var out =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + s + ' ' + s + '" width="1200" height="1200" shape-rendering="crispEdges">' +
+    '<rect width="' + s + '" height="' + s + '" fill="#fff"/>' +
+    '<path d="' + d.join("") + '" fill="#000"/></svg>';
+  down("data:image/svg+xml;charset=utf-8," + encodeURIComponent(out), "darimati-qr-" + code + ".svg");
+}
+
+function down(href, name) {
+  var a = document.createElement("a");
+  a.href = href; a.download = name;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+/* ── 조작 ─────────────────────────────────────────── */
+
+document.getElementById("bConn").addEventListener("click", function () {
+  var api_ = document.getElementById("sApi").value.trim();
+  var key = document.getElementById("sKey").value.trim();
+  if (!api_ || !key) { msg("주소와 암호를 모두 입력해 주세요.", "err"); return; }
+  fetch(api_ + (api_.indexOf("?") > -1 ? "&" : "?") + "a=ping&key=" + encodeURIComponent(key) +
+        "&_=" + new Date().getTime(), { cache: "no-store" })
+    .then(function (r) { return r.json(); })
+    .then(function (j) {
+      if (!j.ok) { msg(j.error === "BAD_KEY" ? "암호가 맞지 않습니다." : "연결 거절: " + j.error, "err"); return; }
+      cfg.api = api_; cfg.key = key; save(); boot(); msg("연결됐습니다");
+    })
+    .catch(function () { msg("주소가 맞는지 확인해 주세요. …/exec 로 끝나야 합니다.", "err"); });
+});
+
+document.getElementById("bNew").addEventListener("click", function () {
+  var code = document.getElementById("nCode").value.trim().toLowerCase();
+  var url = document.getElementById("nUrl").value.trim();
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(code)) { msg("코드는 영문 소문자·숫자·하이픈만 됩니다.", "err"); return; }
+  if (!url) { msg("목적지를 넣어 주세요.", "err"); return; }
+  if (find(code)) { msg("이미 쓰고 있는 코드입니다.", "err"); return; }
+
+  api("save", {
+    c: code,
+    name: document.getElementById("nName").value.trim(),
+    url: url,
+    memo: document.getElementById("nMemo").value.trim(),
+    active: 1
+  }).then(function (j) {
+    if (!j.ok) { msg("저장 실패 (" + j.error + ")", "err"); return; }
+    ["nCode", "nName", "nUrl", "nMemo"].forEach(function (id) { document.getElementById(id).value = ""; });
+    state.open = code;
+    msg("만들었습니다 — 아래에서 QR을 내려받으세요");
+    refresh();
+  });
+});
+
+document.getElementById("list").addEventListener("click", function (e) {
+  var t = e.target.closest("[data-open],[data-save],[data-toggle],[data-del],[data-png],[data-svg],[data-copy]");
+  if (!t) return;
+  var d = t.dataset;
+
+  if (d.open != null) {
+    state.open = state.open === d.open ? "" : d.open;
+    state.armed = "";
+    render();
+    return;
+  }
+  if (d.png != null) { png(d.png); return; }
+  if (d.svg != null) { svg(d.svg); return; }
+
+  if (d.copy != null) {
+    var text = fixedUrl(d.copy);
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(function () { msg("주소를 복사했습니다"); });
+    else msg(text);
+    return;
+  }
+
+  if (d.save != null) {
+    var x = find(d.save);
+    api("save", {
+      c: d.save,
+      name: x.name,
+      url: document.getElementById("u-" + d.save).value.trim(),
+      memo: document.getElementById("m-" + d.save).value.trim(),
+      active: x.active ? 1 : 0
+    }).then(function (j) {
+      msg(j.ok ? "바꿨습니다 — 인쇄된 QR은 그대로 씁니다" : "저장 실패 (" + j.error + ")", j.ok ? "ok" : "err");
+      if (j.ok) refresh();
+    });
+    return;
+  }
+
+  if (d.toggle != null) {
+    var y = find(d.toggle);
+    api("save", { c: d.toggle, name: y.name, url: y.url, memo: y.memo, active: y.active ? 0 : 1 })
+      .then(function (j) { if (j.ok) refresh(); else msg("실패 (" + j.error + ")", "err"); });
+    return;
+  }
+
+  if (d.del != null) {
+    // 실수로 지우면 인쇄물이 죽으므로 두 번 눌러야 지워진다.
+    if (state.armed !== d.del) { state.armed = d.del; render(); return; }
+    api("del", { c: d.del }).then(function (j) {
+      state.armed = ""; state.open = "";
+      if (j.ok) { msg("지웠습니다"); refresh(); } else msg("실패 (" + j.error + ")", "err");
+    });
+  }
+});
+
+boot();
+</script>
+</body>
+</html>

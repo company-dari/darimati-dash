@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>다리마티</title>
+<style>
+  html,body{height:100%;margin:0}
+  body{background:#0e1013;color:#e9ecf1;display:flex;align-items:center;justify-content:center;
+       font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",system-ui,sans-serif}
+  .w{text-align:center;padding:24px;max-width:340px;opacity:0;transition:opacity .2s}
+  .w.on{opacity:1}
+  .m{font-weight:800;letter-spacing:.22em;font-size:13px;color:#98a0ad;margin-bottom:18px}
+  .s{width:26px;height:26px;margin:0 auto;border:2px solid #262b33;border-top-color:#e9ecf1;
+     border-radius:50%;animation:sp .7s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  h1{font-size:16px;margin:14px 0 6px}
+  p{font-size:13px;color:#98a0ad;line-height:1.6;margin:0 0 18px}
+  a{display:inline-block;padding:11px 20px;background:#e9ecf1;color:#0e1013;border-radius:10px;
+    text-decoration:none;font-weight:700;font-size:14px}
+</style>
+</head>
+<body>
+<div class="w" id="w">
+  <div class="m">DARIMATI</div>
+  <div class="s" id="sp"></div>
+  <div id="err" hidden>
+    <h1>페이지를 찾지 못했습니다</h1>
+    <p>주소가 바뀌었거나 준비 중인 QR입니다.<br>홈에서 원하시는 내용을 찾아보세요.</p>
+    <a href="https://www.darimati.us">다리마티 홈으로</a>
+  </div>
+</div>
+
+<script src="links.js"></script>
+<script>
+/* 인쇄된 QR이 가리키는 고정 주소.
+   여기서 하는 일은 하나뿐이다 — 링크표에 적힌 "지금의 목적지"로 손님을 넘긴다.
+
+   목적지를 찾는 순서(앞의 것이 실패하면 다음으로 내려간다):
+     1) 구글시트 실시간 조회   ← 방금 바꾼 목적지가 즉시 반영되는 경로
+     2) 이 기기에 남은 캐시    ← 구글이 느리거나 잠깐 죽었을 때
+     3) 배포 때 구워둔 스냅샷  ← 첫 방문자도 구제되는 마지막 보루
+   셋 다 실패해야만 안내 화면을 보여준다. */
+
+(function () {
+  var CFG = window.QR || {};
+  var API = CFG.api || "";
+  var SNAP = CFG.map || {};
+  var HOME = "https://www.darimati.us";
+  var CK = "qr.cache";
+  var TIMEOUT = 3500;
+
+  var code = (function () {
+    var m = location.search.match(/[?&]c=([^&]+)/);
+    if (m) return decodeURIComponent(m[1]).trim().toLowerCase();
+    return location.hash.replace(/^#/, "").trim().toLowerCase();
+  })();
+
+  var done = false;
+  function go(url) {
+    if (done || !url) return;
+    done = true;
+    location.replace(url);
+  }
+
+  // 0.4초 안에 넘어가면 화면을 아예 안 보여준다(깜빡임 방지).
+  setTimeout(function () { if (!done) document.getElementById("w").className = "w on"; }, 400);
+
+  function fail() {
+    if (done) return;
+    done = true;
+    document.getElementById("w").className = "w on";
+    document.getElementById("sp").hidden = true;
+    document.getElementById("err").hidden = false;
+  }
+
+  function cache(get, url) {
+    try {
+      var c = JSON.parse(localStorage.getItem(CK) || "{}");
+      if (get) return c[code];
+      c[code] = url;
+      localStorage.setItem(CK, JSON.stringify(c));
+    } catch (e) {}
+  }
+
+  function backup() {
+    var u = cache(true) || SNAP[code];
+    if (u) go(u);
+    else if (!code) go(HOME);
+    else fail();
+  }
+
+  if (!code) { go(HOME); return; }
+  if (!API) { backup(); return; }
+
+  var device = /iPad|Tablet/i.test(navigator.userAgent) ? "태블릿"
+             : /Mobi|Android|iPhone/i.test(navigator.userAgent) ? "모바일" : "PC";
+
+  var timer = setTimeout(backup, TIMEOUT);
+
+  fetch(API + (API.indexOf("?") > -1 ? "&" : "?") +
+        "a=go&c=" + encodeURIComponent(code) +
+        "&d=" + encodeURIComponent(device) +
+        "&r=" + encodeURIComponent(document.referrer || "") +
+        "&_=" + new Date().getTime(), { cache: "no-store" })
+    .then(function (r) { return r.json(); })
+    .then(function (j) {
+      clearTimeout(timer);
+      if (j && j.ok && j.url) { cache(false, j.url); go(j.url); return; }
+      // 시트가 "이 코드는 없다/중지다"라고 답한 경우 — 오래된 캐시로 되살리지 않는다.
+      if (j && j.url) go(j.url);
+      else fail();
+    })
+    .catch(function () { clearTimeout(timer); backup(); });
+})();
+</script>
+</body>
+</html>
