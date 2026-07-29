@@ -41,12 +41,12 @@
     gap: 2rem; padding: 2.2vh 0 1.6vh; border-bottom: 1px solid var(--rule-strong);
   }
   .lockup { display: flex; align-items: center; gap: clamp(.8rem, 1.8vw, 1.8rem); min-width: 0; }
-  .mark { height: calc(7.4vh * var(--s)); width: auto; color: var(--signal); flex: none; }
-  .wordmark { height: calc(3.9vh * var(--s)); width: auto; color: var(--text); display: block; }
-  .lockup .stack { display: flex; flex-direction: column; gap: .7vh; min-width: 0; }
+  .mark { height: calc(10vh * var(--s)); width: auto; color: var(--signal); flex: none; }
+  .wordmark { height: calc(5.2vh * var(--s)); width: auto; color: var(--text); display: block; }
+  .lockup .stack { display: flex; flex-direction: column; gap: 1vh; min-width: 0; }
   .challenge {
-    display: flex; align-items: baseline; gap: .7em; flex-wrap: wrap;
-    font-size: calc(3.5vh * var(--s)); font-weight: 800; letter-spacing: -.03em; line-height: 1;
+    display: flex; align-items: baseline; gap: .6em; flex-wrap: wrap;
+    font-size: calc(4.6vh * var(--s)); font-weight: 800; letter-spacing: -.035em; line-height: 1;
   }
   .challenge em {
     font-style: normal; font-family: var(--font-num); font-weight: 700;
@@ -64,20 +64,21 @@
 
   /* ── 1위 밴드 ────────────────────────────────── */
   .leader {
-    display: grid; grid-template-columns: auto 1fr auto; align-items: center;
-    gap: clamp(1rem, 2.5vw, 2.5rem); padding: 2.4vh 0 2.2vh;
+    display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto;
+    align-items: baseline; column-gap: clamp(1rem, 2.5vw, 2.5rem); row-gap: .6vh;
+    padding: 2vh 0 2vh;
     border-bottom: 1px solid var(--rule-strong);
     background: linear-gradient(90deg, rgba(255,90,40,.13), rgba(255,90,40,0) 72%);
     margin: 0 calc(-1 * clamp(1rem, 2.6vw, 3rem)); padding-left: clamp(1rem, 2.6vw, 3rem); padding-right: clamp(1rem, 2.6vw, 3rem);
   }
   .leader .label {
-    font-family: var(--font-num); font-size: calc(1.5vh * var(--s)); letter-spacing: .24em;
-    text-transform: uppercase; color: var(--signal); writing-mode: vertical-rl; transform: rotate(180deg);
+    grid-column: 1 / -1; font-family: var(--font-num); font-size: calc(1.9vh * var(--s));
+    font-weight: 700; letter-spacing: .3em; text-transform: uppercase; color: var(--signal); line-height: 1;
   }
-  .leader .who { font-size: calc(8.4vh * var(--s)); font-weight: 800; letter-spacing: -.035em; line-height: 1;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .leader .rec { font-family: var(--font-num); font-variant-numeric: tabular-nums;
-    font-size: calc(8.4vh * var(--s)); font-weight: 700; letter-spacing: -.04em; line-height: 1; color: var(--gold); }
+  .leader .who { grid-column: 1; font-size: calc(9vh * var(--s)); font-weight: 800; letter-spacing: -.035em;
+    line-height: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .leader .rec { grid-column: 2; font-family: var(--font-num); font-variant-numeric: tabular-nums;
+    font-size: calc(9vh * var(--s)); font-weight: 700; letter-spacing: -.04em; line-height: 1; color: var(--gold); }
   .leader.idle .who { font-size: calc(3.6vh * var(--s)); font-weight: 700; color: var(--dim); letter-spacing: -.01em; }
   .leader.idle { background: none; }
 
@@ -203,7 +204,7 @@
   </header>
 
   <section class="leader idle" id="leader">
-    <span class="label">현재 1위</span>
+    <span class="label" id="leaderLabel">현재 1위</span>
     <span class="who" id="leaderName">첫 기록을 기다립니다</span>
     <span class="rec" id="leaderTime"></span>
   </section>
@@ -415,11 +416,13 @@
     var lead = document.getElementById("leader");
     if (rows.length) {
       lead.classList.remove("idle");
+      document.getElementById("leaderLabel").textContent = "현재 1위 · Leader";
       document.getElementById("leaderName").textContent = rows[0].a.n;
       document.getElementById("leaderTime").textContent = fmt(rows[0].a.t);
     } else {
       lead.classList.add("idle");
-      document.getElementById("leaderName").textContent = wait.length ? "등록 " + wait.length + "명 · 첫 기록을 기다립니다" : "곧 시작합니다";
+      document.getElementById("leaderLabel").textContent = "지금 도전하세요";
+      document.getElementById("leaderName").textContent = wait.length ? "등록 " + wait.length + "명 · 첫 기록을 기다립니다" : "누구나 참여 · 부스에서 신청";
       document.getElementById("leaderTime").textContent = "";
     }
 
