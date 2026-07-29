@@ -21,10 +21,10 @@
     --live: #4ade80;
     --font-ui: system-ui, -apple-system, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif;
     --font-num: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-    /* 크기의 기준 단위. 가로 화면이면 화면 높이(1vh), 세로 화면이면 화면 너비(1vw).
-       같은 패널을 돌려 쓰는 것이므로 짧은 변은 어느 쪽이든 같다 → 글자가 물리적으로 같은 크기로 유지된다.
-       세로 전환은 맨 아래 @media (orientation: portrait) 한 줄이 전부다. */
-    --u: 1vh;
+    /* 크기의 기준 단위 = 화면의 짧은 변의 1%.
+       가로로 두든 세로로 눕히든 패널의 짧은 변은 같으므로, 글자가 물리적으로 같은 크기로 유지된다.
+       (가로 화면에서는 1vh 와 완전히 같은 값이라 기존 화면이 그대로다) */
+    --u: 1vmin;
     --s: 1;          /* 전체 배율 (A+ / A−) */
     --rowfs: calc(4.4 * var(--u));  /* 목록 글자 크기 — 자동으로 줄어듭니다 */
     color-scheme: dark;
@@ -208,28 +208,38 @@
   .ctl button:hover { color: var(--text); }
   button:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
 
-  /* ── 세로 모니터 ─────────────────────────────────
-     모니터를 90° 돌려 세로로 쓸 때. 브라우저 창이 높이>너비 이면 자동으로 켜진다.
+  /* ── 세로로 길쭉한 화면일 때 ───────────────────
+     화면이 세로면 JS 가 <html> 에 .pt 를 붙인다.
+     모니터를 눕혀 세워 회전시킨 경우도 여기에 걸린다(아래 회전 모드 참고).
      글자 크기는 --u 가 알아서 맞추므로, 여기서는 "가로로 늘어놓던 것"만 세로로 쌓는다. */
-  @media (orientation: portrait) {
-    :root { --u: 1vw; }
+  :root.pt .brand { flex-direction: column; align-items: stretch; gap: calc(1.4 * var(--u)); }
+  :root.pt .meta { justify-content: space-between; }
 
-    /* 브랜드 밴드: 로고 줄 / 종목·시계 줄 로 분리 */
-    .brand { flex-direction: column; align-items: stretch; gap: calc(1.4 * var(--u)); }
-    .meta { justify-content: space-between; }
+  /* 1위 밴드: 이름 아래 기록 (옆으로 나란히 두면 폭이 모자람) */
+  :root.pt .leader { grid-template-columns: 1fr; }
+  :root.pt .leader .who, :root.pt .leader .rec { grid-column: 1; }
+  :root.pt .leader .rec { font-size: calc(11 * var(--u) * var(--s)); }
 
-    /* 1위 밴드: 이름 아래 기록 (옆으로 나란히 두면 폭이 모자람) */
-    .leader { grid-template-columns: 1fr; }
-    .leader .who, .leader .rec { grid-column: 1; }
-    .leader .rec { font-size: calc(11 * var(--u) * var(--s)); }
+  /* 세로는 위아래로 길어서 2단으로 쪼갤 이유가 없다 */
+  :root.pt .list.split { display: block; }
 
-    /* 세로는 위아래로 길어서 2단으로 쪼갤 이유가 없다 */
-    .list.split { display: block; }
+  /* 바닥: 접속상태 + QR 한 줄, 기록 대기는 그 아래 한 줄 */
+  :root.pt .foot { grid-template-columns: 1fr auto; gap: calc(1 * var(--u)) 1.4rem; }
+  :root.pt .waiting { grid-column: 1 / -1; grid-row: 2; }
 
-    /* 바닥: 접속상태 + QR 한 줄, 기록 대기는 그 아래 한 줄 */
-    .foot { grid-template-columns: 1fr auto; gap: calc(1 * var(--u)) 1.4rem; }
-    .waiting { grid-column: 1 / -1; grid-row: 2; }
+  /* ── 모니터를 눕혀 세운 경우 (회전 모드) ───────
+     패널만 90° 돌려 달았는데 신호는 가로 그대로 들어올 때, 화면 내용을 돌려 맞춘다.
+     우측 상단 ⟳ 버튼으로 0° → 90° → 270° 순환. 주소에 ?rotate=90 도 가능.
+     body 를 통째로 돌리므로 그 안의 position:fixed 요소
+     (신기록 전체화면 연출·하단 배너·조작 버튼)도 함께 돌아간다. */
+  html.rot { overflow: hidden; }
+  html.rot body {
+    position: absolute; top: 0; left: 0;
+    width: 100vh; height: 100vw;      /* 가로세로를 맞바꾼다 */
+    transform-origin: 0 0;
   }
+  html.rot.r90 body  { transform: rotate(90deg) translateY(-100%); }
+  html.rot.r270 body { transform: rotate(-90deg) translateX(-100%); }
 
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition-duration: .01ms !important; } }
 </style>
@@ -291,6 +301,7 @@
 <div class="ctl">
   <button type="button" id="fontDown">A−</button>
   <button type="button" id="fontUp">A+</button>
+  <button type="button" id="rotBtn" title="모니터를 눕혀 세웠을 때 화면을 돌립니다">⟳ 회전</button>
   <button type="button" id="fsBtn">전체화면</button>
 </div>
 
@@ -639,11 +650,37 @@
 
   /* ── 화면 설정 ─────────────────────────────── */
 
-  var vs = { scale: 1 };
+  var vs = { scale: 1, rot: 0 };
   try { vs = JSON.parse(localStorage.getItem(VKEY)) || vs; } catch (e) {}
   if (typeof vs.scale !== "number") vs.scale = 1;
   function applyScale() { document.documentElement.style.setProperty("--s", vs.scale); autofit(); }
   function saveView() { try { localStorage.setItem(VKEY, JSON.stringify(vs)); } catch (e) {} }
+
+  /* 화면 회전 — 모니터를 물리적으로 눕혀 세웠을 때 내용을 돌려 맞춘다.
+     한 번 정해두면 이 기기에 저장되므로 당일 아침에 한 번만 맞추면 된다. */
+  var ROTS = [0, 90, 270];
+  if (qs.get("rotate") !== null) vs.rot = Number(qs.get("rotate"));
+  if (ROTS.indexOf(vs.rot) < 0) vs.rot = 0;
+
+  // 화면이 세로로 길쭉한가? 회전 모드면 가로세로가 뒤바뀐 걸 감안한다.
+  function setPortrait() {
+    var portrait = vs.rot !== 0
+      ? window.innerWidth >= window.innerHeight
+      : window.innerHeight > window.innerWidth;
+    document.documentElement.classList.toggle("pt", portrait);
+  }
+  function applyRot() {
+    var h = document.documentElement;
+    h.classList.toggle("rot", vs.rot !== 0);
+    h.classList.toggle("r90", vs.rot === 90);
+    h.classList.toggle("r270", vs.rot === 270);
+    setPortrait();
+    autofit();
+  }
+  document.getElementById("rotBtn").addEventListener("click", function () {
+    vs.rot = ROTS[(ROTS.indexOf(vs.rot) + 1) % ROTS.length];
+    applyRot(); saveView();
+  });
 
   document.getElementById("fontUp").addEventListener("click", function () {
     vs.scale = Math.min(1.6, Math.round((vs.scale + 0.05) * 100) / 100); applyScale(); saveView();
@@ -662,9 +699,9 @@
   }
 
   window.addEventListener("storage", function (e) { if (e.key === LKEY) poll(); });
-  window.addEventListener("resize", function () { autofit(); });
+  window.addEventListener("resize", function () { setPortrait(); autofit(); });
 
-  applyScale(); setNotice(); tick(); setInterval(tick, 10000);
+  applyRot(); applyScale(); setNotice(); tick(); setInterval(tick, 10000);
   poll();
 })();
 </script>
