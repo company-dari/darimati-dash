@@ -137,8 +137,8 @@ function base() {
   if (cfg.base) return cfg.base;
   var h = location.href.split(/[?#]/)[0];
   var i = h.lastIndexOf("/qr/");
-  if (i > -1) return h.slice(0, i) + "/q/?c=";
-  return "https://company-dari.github.io/darimati-dash/q/?c=";
+  if (i > -1) return h.slice(0, i) + "/q/?code=";
+  return "https://company-dari.github.io/darimati-dash/q/?code=";
 }
 function fixedUrl(code) { return base() + code; }
 
@@ -352,7 +352,7 @@ document.getElementById("bNew").addEventListener("click", function () {
   if (find(code)) { msg("이미 쓰고 있는 코드입니다.", "err"); return; }
 
   api("save", {
-    c: code,
+    code: code,
     name: document.getElementById("nName").value.trim(),
     url: url,
     memo: document.getElementById("nMemo").value.trim(),
@@ -390,7 +390,7 @@ document.getElementById("list").addEventListener("click", function (e) {
   if (d.save != null) {
     var x = find(d.save);
     api("save", {
-      c: d.save,
+      code: d.save,
       name: x.name,
       url: document.getElementById("u-" + d.save).value.trim(),
       memo: document.getElementById("m-" + d.save).value.trim(),
@@ -404,7 +404,7 @@ document.getElementById("list").addEventListener("click", function (e) {
 
   if (d.toggle != null) {
     var y = find(d.toggle);
-    api("save", { c: d.toggle, name: y.name, url: y.url, memo: y.memo, active: y.active ? 0 : 1 })
+    api("save", { code: d.toggle, name: y.name, url: y.url, memo: y.memo, active: y.active ? 0 : 1 })
       .then(function (j) { if (j.ok) refresh(); else msg("실패 (" + j.error + ")", "err"); });
     return;
   }
@@ -412,7 +412,7 @@ document.getElementById("list").addEventListener("click", function (e) {
   if (d.del != null) {
     // 실수로 지우면 인쇄물이 죽으므로 두 번 눌러야 지워진다.
     if (state.armed !== d.del) { state.armed = d.del; render(); return; }
-    api("del", { c: d.del }).then(function (j) {
+    api("del", { code: d.del }).then(function (j) {
       state.armed = ""; state.open = "";
       if (j.ok) { msg("지웠습니다"); refresh(); } else msg("실패 (" + j.error + ")", "err");
     });

@@ -107,7 +107,8 @@
         <fieldset>
           <legend>선수 등록</legend>
           <label for="fName">이름</label>
-          <input id="fName" required placeholder="김지용" />
+          <div class="ac-wrap"><input id="fName" required placeholder="이름 검색 (부스 가입자)" autocomplete="off" />
+            <div id="acBox" class="ac" hidden></div></div>
 
           <label for="fPhone">연락처 <span style="text-transform:none;letter-spacing:0">(기록판에 안 뜸)</span></label>
           <input id="fPhone" data-num inputmode="tel" placeholder="010-0000-0000" />
@@ -618,6 +619,68 @@
   refresh();
   setInterval(function () { flush(); refresh(); }, 5000);
   if (api && !key) openSetup();
+})();
+
+/* ── 가입자 자동완성: 부스 회원가입 명단(구글시트)에서 이름 검색 → 이름·연락처 자동입력 ── */
+(function () {
+  var SIGNUP_API = "https://script.google.com/macros/s/AKfycbxRYt8LhKNutruaAEvHdSLr3j252frU9IyD9WcR-Fxv24kc0rwUxlUMUdunZcDI-bw8eg/exec";
+  var nameEl = document.getElementById("fName");
+  var phoneEl = document.getElementById("fPhone");
+  var box = document.getElementById("acBox");
+  if (!nameEl || !box) return;
+
+  var st = document.createElement("style");
+  st.textContent =
+    ".ac-wrap{position:relative}" +
+    ".ac{position:absolute;left:0;right:0;top:calc(100% + 2px);z-index:60;background:var(--panel,#141414);border:1px solid var(--rule,#333);border-radius:4px;max-height:250px;overflow:auto;box-shadow:0 10px 28px rgba(0,0,0,.45)}" +
+    ".ac .it{padding:.55rem .65rem;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:.7rem;border-bottom:1px solid var(--rule,#2a2a2a);font-size:.92rem}" +
+    ".ac .it:last-child{border-bottom:0}" +
+    ".ac .it:hover,.ac .it.on{background:rgba(255,255,255,.08)}" +
+    ".ac .it .ph{color:var(--muted,#9a9a9a);font-family:var(--font-num,monospace);font-size:.82rem;white-space:nowrap}" +
+    ".ac .empty{padding:.55rem .65rem;color:var(--muted,#9a9a9a);font-size:.82rem}";
+  document.head.appendChild(st);
+
+  var cache = null, loading = false, items = [], sel = -1;
+
+  function load(cb) {
+    if (cache) { cb(); return; }
+    if (loading) return;
+    loading = true;
+    fetch(SIGNUP_API + "?_=" + Date.now(), { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (j) { cache = (j && j.rows) ? j.rows : []; loading = false; cb(); })
+      .catch(function () { loading = false; cache = []; cb(); });
+  }
+  function esc(s) { return String(s || "").replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function mask(p) { p = String(p || "").replace(/[^0-9]/g, ""); return p.length >= 4 ? "010-••••-" + p.slice(-4) : (p || "번호없음"); }
+  function hide() { box.hidden = true; box.innerHTML = ""; items = []; sel = -1; }
+  function pick(i) { var it = items[i]; if (!it) return; nameEl.value = it.name; if (phoneEl) phoneEl.value = it.phone; hide(); if (phoneEl) phoneEl.focus(); }
+  function render(q) {
+    q = String(q || "").trim();
+    if (!q) { hide(); return; }
+    var ql = q.toLowerCase(), qd = q.replace(/[^0-9]/g, "");
+    items = (cache || []).filter(function (r) {
+      var nameHit = String(r.name || "").toLowerCase().indexOf(ql) > -1;
+      var phoneHit = qd && String(r.phone || "").replace(/[^0-9]/g, "").indexOf(qd) > -1;
+      return nameHit || phoneHit;
+    }).slice(0, 8);
+    if (!items.length) { box.innerHTML = '<div class="empty">일치하는 가입자 없음 · 직접 입력 가능</div>'; box.hidden = false; return; }
+    box.innerHTML = items.map(function (it, idx) {
+      return '<div class="it' + (idx === sel ? " on" : "") + '" data-i="' + idx + '"><span>' + esc(it.name) + '</span><span class="ph">' + mask(it.phone) + "</span></div>";
+    }).join("");
+    box.hidden = false;
+  }
+  nameEl.addEventListener("input", function () { sel = -1; load(function () { render(nameEl.value); }); });
+  nameEl.addEventListener("focus", function () { if (nameEl.value.trim()) load(function () { render(nameEl.value); }); });
+  nameEl.addEventListener("keydown", function (e) {
+    if (box.hidden || !items.length) return;
+    if (e.key === "ArrowDown") { e.preventDefault(); sel = Math.min(sel + 1, items.length - 1); render(nameEl.value); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); sel = Math.max(sel - 1, 0); render(nameEl.value); }
+    else if (e.key === "Enter" && sel >= 0) { e.preventDefault(); pick(sel); }
+    else if (e.key === "Escape") { hide(); }
+  });
+  box.addEventListener("mousedown", function (e) { var it = e.target.closest(".it"); if (it) { e.preventDefault(); pick(+it.getAttribute("data-i")); } });
+  document.addEventListener("click", function (e) { if (!box.contains(e.target) && e.target !== nameEl) hide(); });
 })();
 </script>
 </body>

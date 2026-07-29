@@ -52,7 +52,7 @@
   var TIMEOUT = 3500;
 
   var code = (function () {
-    var m = location.search.match(/[?&]c=([^&]+)/);
+    var m = location.search.match(/[?&]code=([^&]+)/) || location.search.match(/[?&]c=([^&]+)/);
     if (m) return decodeURIComponent(m[1]).trim().toLowerCase();
     return location.hash.replace(/^#/, "").trim().toLowerCase();
   })();
@@ -99,8 +99,9 @@
 
   var timer = setTimeout(backup, TIMEOUT);
 
+  // 파라미터 이름은 반드시 code — c 로 보내면 구글이 400으로 막는다(Code.gs 주석 참고).
   fetch(API + (API.indexOf("?") > -1 ? "&" : "?") +
-        "a=go&c=" + encodeURIComponent(code) +
+        "a=go&code=" + encodeURIComponent(code) +
         "&d=" + encodeURIComponent(device) +
         "&r=" + encodeURIComponent(document.referrer || "") +
         "&_=" + new Date().getTime(), { cache: "no-store" })

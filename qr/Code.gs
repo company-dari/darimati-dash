@@ -11,6 +11,10 @@
  *
  * 손님이 QR을 찍을 때 부르는 go 요청에는 암호가 필요 없다(필요하면 QR이 안 열림).
  * 목적지를 고치거나 목록을 읽는 요청만 아래 KEY를 알아야 통과한다.
+ *
+ * ⚠️ 코드를 넘기는 파라미터 이름은 반드시 `code` 다. `c` 를 쓰면 안 된다 —
+ *    구글 프런트가 script.google.com 요청의 `c=글자` 를 400으로 막아버린다
+ *    (`c=1` 같은 숫자만 통과). 2026-07-30에 실제로 걸려서 이름을 바꿨다.
  */
 
 // QR 대시보드에서 처음 한 번 입력할 암호. 바꾸고 싶으면 이 줄만 고치세요.
@@ -94,7 +98,7 @@ function code_(v) {
 /* ── 손님이 QR을 찍었을 때 ────────────────────────── */
 
 function go_(p) {
-  var c = code_(p.c);
+  var c = code_(p.code);
   if (!c) return { ok: false, error: 'NO_CODE', url: FALLBACK };
 
   var sh = links_();
@@ -186,7 +190,7 @@ function scanStats_() {
 }
 
 function save_(p) {
-  var c = code_(p.c);
+  var c = code_(p.code);
   if (!c) return { ok: false, error: 'NO_CODE' };
   if (!/^[a-z0-9][a-z0-9-]*$/.test(c)) return { ok: false, error: 'BAD_CODE' };
 
@@ -221,7 +225,7 @@ function save_(p) {
 
 // 링크 줄만 지운다. 스캔 기록은 남겨 둔다(지난 성과까지 사라지면 곤란하므로).
 function del_(p) {
-  var c = code_(p.c);
+  var c = code_(p.code);
   var sh = links_();
   var n = sh.getLastRow() - 1;
   var rows = n > 0 ? sh.getRange(2, 1, n, 1).getValues() : [];
