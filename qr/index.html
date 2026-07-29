@@ -59,14 +59,24 @@
   .sec{border-top:1px solid var(--line);margin-top:16px;padding-top:14px}
   .danger{color:#f87171;border-color:#4a2020;background:#2a1616}
   .empty{text-align:center;color:var(--dim);font-size:13.5px;padding:34px 10px;line-height:1.7}
+  .top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+  .sheet{flex-shrink:0;padding:9px 13px;background:var(--card);border:1px solid var(--line);
+         border-radius:9px;color:var(--fg);text-decoration:none;font-size:13px;font-weight:650;
+         white-space:nowrap}
+  .sheet:hover{background:#20242b}
   .foot{color:var(--dim);font-size:11.5px;line-height:1.7;margin-top:26px;text-align:center}
   a{color:var(--dim)}
 </style>
 </head>
 <body>
 <div class="w">
-  <h1>QR 관리</h1>
-  <p class="sub">인쇄한 QR은 그대로 두고 목적지만 바꿉니다</p>
+  <div class="top">
+    <div>
+      <h1>QR 관리</h1>
+      <p class="sub">인쇄한 QR은 그대로 두고 목적지만 바꿉니다</p>
+    </div>
+    <a class="sheet" id="sheet" href="https://docs.google.com/spreadsheets/u/0/" target="_blank" rel="noopener" hidden>📊 구글시트</a>
+  </div>
 
   <div id="msg" class="msg"></div>
 
@@ -166,6 +176,8 @@ function boot() {
   var connected = !!(cfg.api && cfg.key);
   document.getElementById("setup").hidden = connected;
   document.getElementById("mk").hidden = !connected;
+  document.getElementById("sheet").hidden = !connected;
+  if (cfg.sheet) document.getElementById("sheet").href = cfg.sheet;
   if (connected) refresh();
 }
 
@@ -181,6 +193,14 @@ function refresh() {
       }
       state.links = j.links || [];
       state.dates = j.dates || [];
+
+      /* 시트 주소는 앱스스크립트가 알려준다. 한 번 받으면 이 기기에 저장해 두고,
+         못 받은 경우(옛 버전)에는 구글시트 목록으로 보낸다 — 버튼이 죽지 않게. */
+      if (j.sheet && j.sheet !== cfg.sheet) {
+        cfg.sheet = j.sheet;
+        save();
+        document.getElementById("sheet").href = j.sheet;
+      }
       render();
       document.getElementById("foot").textContent =
         "QR " + state.links.length + "개 · 전체 스캔 " + (j.total || 0) + "회";

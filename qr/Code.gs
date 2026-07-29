@@ -170,7 +170,14 @@ function list_() {
       };
     });
 
-  return { ok: true, links: items, dates: stat.dates, total: stat.total };
+  // 시트 주소를 함께 넘긴다 — 대시보드의 "구글시트 열기" 버튼이 이 값을 쓴다.
+  return {
+    ok: true,
+    links: items,
+    dates: stat.dates,
+    total: stat.total,
+    sheet: SpreadsheetApp.getActiveSpreadsheet().getUrl()
+  };
 }
 
 // 최근 30일치만 날짜별로 쪼갠다. 총합과 마지막 스캔은 전체 기간 기준.
