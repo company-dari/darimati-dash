@@ -199,7 +199,7 @@
       </div>
     </div>
     <div class="meta">
-      <span class="divpill" id="divPill">1부</span>
+      <span class="divpill" id="divPill">1부 · 10–12시</span>
       <span class="clock" id="clock">--:--</span>
     </div>
   </header>
@@ -254,6 +254,9 @@
   // ?local=1 → 인터넷 없이 같은 브라우저 안에서만 동기화 (에그 먹통 대비)
   var api = qs.get("local") ? "" : (qs.get("api") || API_URL || localStorage.getItem("rex_api"));
   if (qs.get("api")) localStorage.setItem("rex_api", qs.get("api"));
+
+  // 부별 진행 시간대 (8/1 현장 운영표) — 바뀌면 이 줄만 고치면 기록판·운영 양쪽에 반영됩니다.
+  var DIV_TIME = { "1": "10–12시", "2": "13–15시", "3": "16–18시" };
 
   var forcedDiv = qs.get("div");
   var view = { rows: [], cfg: { sort: "asc", live: "1", cut: "", cutlabel: "경품 대상", qr: "" } };
@@ -411,7 +414,8 @@
     var rows = ranked(shownDiv);
     var wait = pendingOf(shownDiv);
 
-    document.getElementById("divPill").textContent = shownDiv + "부";
+    document.getElementById("divPill").textContent =
+      shownDiv + "부" + (DIV_TIME[shownDiv] ? " · " + DIV_TIME[shownDiv] : "");
 
     // 1위 밴드
     var lead = document.getElementById("leader");

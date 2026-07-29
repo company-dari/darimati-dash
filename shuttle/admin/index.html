@@ -113,7 +113,7 @@
           <input id="fPhone" data-num inputmode="tel" placeholder="010-0000-0000" />
 
           <label for="fDiv">부</label>
-          <select id="fDiv"><option value="1">1부</option><option value="2">2부</option><option value="3">3부</option></select>
+          <select id="fDiv"><option value="1">1부 (10~12시)</option><option value="2">2부 (13~15시)</option><option value="3">3부 (16~18시)</option></select>
 
           <label for="fTime">기록 (나중에 입력해도 됨)</label>
           <input id="fTime" data-num inputmode="numeric" placeholder="18:04" />
@@ -127,7 +127,7 @@
         <legend>기록판 화면</legend>
         <label for="cLive">지금 TV에 띄울 부</label>
         <select id="cLive">
-          <option value="1">1부</option><option value="2">2부</option><option value="3">3부</option>
+          <option value="1">1부 (10~12시)</option><option value="2">2부 (13~15시)</option><option value="3">3부 (16~18시)</option>
           <option value="rotate">자동 순환 (20초마다)</option>
         </select>
         <label for="cSort">순위 기준</label>
@@ -158,7 +158,7 @@
     <div>
       <div class="toolbar">
         <input id="search" placeholder="이름 · 연락처 검색" aria-label="검색" />
-        <select id="filterDiv"><option value="all">전체 부</option><option value="1">1부</option><option value="2">2부</option><option value="3">3부</option></select>
+        <select id="filterDiv"><option value="all">전체 부</option><option value="1">1부 (10~12시)</option><option value="2">2부 (13~15시)</option><option value="3">3부 (16~18시)</option></select>
         <span class="chip" id="cntChip">0명</span>
         <span class="chip warn" id="queueChip" hidden>전송 대기 0</span>
         <button type="button" class="btn sm" id="exportBtn">CSV</button>
@@ -457,7 +457,12 @@
   elSearch.addEventListener("input", render);
   elFilter.addEventListener("change", render);
 
-  document.getElementById("cLive").addEventListener("change", function () { cfg.live = this.value; pushCfg(); toast("기록판: " + (this.value === "rotate" ? "자동 순환" : this.value + "부")); });
+  // 부별 진행 시간대 (8/1 현장 운영표)
+  var DIV_TIME = { "1": "10~12시", "2": "13~15시", "3": "16~18시" };
+  document.getElementById("cLive").addEventListener("change", function () {
+    cfg.live = this.value; pushCfg();
+    toast("기록판: " + (this.value === "rotate" ? "자동 순환" : this.value + "부 (" + DIV_TIME[this.value] + ")"));
+  });
   document.getElementById("cSort").addEventListener("change", function () { cfg.sort = this.value; pushCfg(); toast("순위 기준 변경됨"); });
 
   ["cCut", "cCutLabel", "cQr"].forEach(function (id) {
