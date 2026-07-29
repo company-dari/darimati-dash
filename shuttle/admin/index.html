@@ -165,9 +165,9 @@
     <legend>연결 설정</legend>
     <label for="sApi">구글시트 주소 (Apps Script 웹앱 URL)</label>
     <input id="sApi" placeholder="https://script.google.com/macros/s/.../exec" />
-    <p class="hint">비워두면 이 브라우저 안에서만 저장됩니다 (같은 노트북에서 기록판을 띄울 때 사용)</p>
-    <label for="sKey">암호</label>
-    <input id="sKey" type="password" placeholder="dari1!" />
+    <p class="hint">이미 연결돼 있습니다. 건드리지 않아도 됩니다.</p>
+    <label for="sKey">암호 <span style="text-transform:none;letter-spacing:0">— 이 기기에서 처음 한 번만</span></label>
+    <input id="sKey" type="password" placeholder="dari1!" autocomplete="off" />
     <button type="button" class="btn solid wide" id="saveSetup">저장</button>
     <button type="button" class="btn wide" id="closeSetup">닫기</button>
   </fieldset>
@@ -179,12 +179,12 @@
 (function () {
   "use strict";
 
-  var API_URL = "";                    // 배포 후 여기에 주소를 넣으면 설정 없이 바로 붙습니다
+  var API_URL = "https://script.google.com/macros/s/AKfycbwDiOVHDIHlFRYEgdNJSDohbYrk23cPJtZxBDwiJsYbvoqdWD2Couq0VAWOO6lWa_0-/exec";
   var LKEY = "rextreme_shuttle_v1";    // 로컬 모드 저장소 (기록판과 공유)
   var QKEY = "rextreme_queue_v1";
   var BOARD_URL = location.href.replace(/admin\/?(\?.*)?$/, "");
 
-  var api = localStorage.getItem("rex_api") || API_URL;
+  var api = API_URL || localStorage.getItem("rex_api");
   var key = localStorage.getItem("rex_key") || "";
   var rows = [];                       // 화면에 그릴 명단
   var queue = [];

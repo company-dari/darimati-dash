@@ -241,14 +241,14 @@
 
   /* 배포된 Apps Script 웹앱 주소. 비어 있으면 같은 브라우저(로컬) 모드로 동작합니다.
      주소 없이 임시로 쓰려면 ?api=... 를 붙여도 됩니다. */
-  var API_URL = "";
+  var API_URL = "https://script.google.com/macros/s/AKfycbwDiOVHDIHlFRYEgdNJSDohbYrk23cPJtZxBDwiJsYbvoqdWD2Couq0VAWOO6lWa_0-/exec";
 
   var LKEY = "rextreme_shuttle_v1";   // 로컬 모드 저장소 (운영 페이지와 공유)
   var VKEY = "rextreme_board_view";   // 글자 크기 등 화면 설정
   var DIVS = ["1", "2", "3"];
 
   var qs = new URLSearchParams(location.search);
-  var api = qs.get("api") || localStorage.getItem("rex_api") || API_URL;
+  var api = qs.get("api") || API_URL || localStorage.getItem("rex_api");
   if (qs.get("api")) localStorage.setItem("rex_api", qs.get("api"));
 
   var forcedDiv = qs.get("div");
