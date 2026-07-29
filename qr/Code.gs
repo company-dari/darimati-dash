@@ -95,6 +95,24 @@ function code_(v) {
   return String(v || '').trim().toLowerCase();
 }
 
+/* 시트에서 읽은 값을 날짜로 바꾼다.
+   `v instanceof Date` 는 여기서 믿을 수 없다 — 실제로 시트가 돌려준 날짜값이
+   instanceof 를 통과하지 못해 최근 스캔·30일 그래프가 통째로 비었다(2026-07-30).
+   그래서 "getTime 을 가진 물건이면 날짜"로 취급한다. */
+function asDate_(v) {
+  if (v && typeof v.getTime === 'function') return v;
+  if (v) {
+    var d = new Date(v);
+    if (!isNaN(d.getTime())) return d;
+  }
+  return null;
+}
+
+function ymd_(v) {
+  var d = asDate_(v);
+  return d ? Utilities.formatDate(d, TZ, 'yyyy-MM-dd') : '';
+}
+
 /* ── 손님이 QR을 찍었을 때 ────────────────────────── */
 
 function go_(p) {
@@ -175,8 +193,7 @@ function scanStats_() {
     for (var i = 0; i < rows.length; i++) {
       var c = code_(rows[i][1]);
       if (!c) continue;
-      var when = rows[i][0];
-      var key = when instanceof Date ? Utilities.formatDate(when, TZ, 'yyyy-MM-dd') : '';
+      var key = ymd_(rows[i][0]);
 
       if (!by[c]) by[c] = { total: 0, last: '', days: {} };
       by[c].total++;
@@ -239,6 +256,5 @@ function del_(p) {
 }
 
 function fmt_(v) {
-  if (v instanceof Date) return Utilities.formatDate(v, TZ, 'yyyy-MM-dd');
-  return String(v || '');
+  return ymd_(v) || String(v || '');
 }
