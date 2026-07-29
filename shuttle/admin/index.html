@@ -64,6 +64,7 @@
   .chip { display: inline-block; font-family: var(--font-num); font-size: .7rem; letter-spacing: .06em;
     padding: .18rem .5rem; border: 1px solid var(--rule); border-radius: 999px; color: var(--muted); white-space: nowrap; }
   .chip.warn { border-color: var(--signal); color: var(--signal); }
+  .chip[hidden] { display: none; }
 
   .tbl-wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 5px; }
   table { width: 100%; border-collapse: collapse; font-size: .92rem; min-width: 560px; }
@@ -115,7 +116,7 @@
 
           <label for="fTime">기록 (나중에 입력해도 됨)</label>
           <input id="fTime" data-num inputmode="numeric" placeholder="18:04" />
-          <p class="hint" id="fTimeHint">분:초 · 1804 처럼 숫자만 쳐도 됩니다</p>
+          <p class="hint" id="fTimeHint">분:초 (예: 13:48) · 1348 처럼 붙여 써도 됩니다</p>
 
           <button type="submit" class="btn solid wide">등록</button>
         </fieldset>
@@ -224,9 +225,9 @@
     var mm, ss;
     if (s.indexOf(":") > -1) { var a = s.split(":"); mm = parseInt(a[0], 10); ss = parseInt(a[1], 10); }
     else {
-      if (!/^\d{1,6}$/.test(s)) return null;
-      if (s.length <= 2) { mm = 0; ss = parseInt(s, 10); }
-      else { ss = parseInt(s.slice(-2), 10); mm = parseInt(s.slice(0, -2), 10); }
+      // 숫자만 입력한 경우는 반드시 3자리 이상 — "1", "18" 같은 입력 중간값을 기록으로 잘못 저장하지 않기 위함
+      if (!/^\d{3,6}$/.test(s)) return null;
+      ss = parseInt(s.slice(-2), 10); mm = parseInt(s.slice(0, -2), 10);
     }
     if (isNaN(mm) || isNaN(ss) || mm < 0 || ss < 0 || ss > 59) return null;
     return mm * 60 + ss;
@@ -346,7 +347,16 @@
   var elSearch = document.getElementById("search");
   var elFilter = document.getElementById("filterDiv");
 
+  var renderPending = false;
+  function editing() {
+    var a = document.activeElement;
+    return !!(a && a.matches && a.matches("input[data-id]") && tbody.contains(a));
+  }
+
   function render() {
+    // 기록을 치고 있는 중이면 표를 다시 그리지 않습니다 (입력 중간값이 저장되던 문제)
+    if (editing()) { renderPending = true; return; }
+    renderPending = false;
     var q = elSearch.value.trim().toLowerCase();
     var f = elFilter.value;
     var list = rows.filter(function (r) {
@@ -398,7 +408,7 @@
   var fTime = document.getElementById("fTime"), fHint = document.getElementById("fTimeHint");
   fTime.addEventListener("input", function () {
     var v = fTime.value.trim();
-    if (!v) { fHint.className = "hint"; fHint.textContent = "분:초 · 1804 처럼 숫자만 쳐도 됩니다"; return; }
+    if (!v) { fHint.className = "hint"; fHint.textContent = "분:초 (예: 13:48) · 1348 처럼 붙여 써도 됩니다"; return; }
     var t = parseTime(v);
     if (t === null) { fHint.className = "hint"; fHint.textContent = "형식을 확인하세요 (예: 18:04)"; }
     else { fHint.className = "hint ok"; fHint.textContent = "→ " + fmt(t); }
@@ -414,7 +424,7 @@
     addAthlete({ name: name, phone: document.getElementById("fPhone").value.trim(), div: document.getElementById("fDiv").value, time: t });
     document.getElementById("fName").value = "";
     document.getElementById("fPhone").value = "";
-    fTime.value = ""; fHint.className = "hint"; fHint.textContent = "분:초 · 1804 처럼 숫자만 쳐도 됩니다";
+    fTime.value = ""; fHint.className = "hint"; fHint.textContent = "분:초 (예: 13:48) · 1348 처럼 붙여 써도 됩니다";
     document.getElementById("fName").focus();
     toast(name + " 등록" + (t !== null ? " · " + fmt(t) : ""));
   });
@@ -430,6 +440,11 @@
     toast("기록 " + fmt(t) + " 저장");
   });
   tbody.addEventListener("keydown", function (e) { if (e.key === "Enter" && e.target.matches("input[data-id]")) e.target.blur(); });
+  tbody.addEventListener("focusout", function (e) {
+    if (!e.target.matches("input[data-id]")) return;
+    // 입력이 끝난 뒤 밀려 있던 새로고침을 처리합니다
+    setTimeout(function () { if (renderPending && !editing()) render(); }, 60);
+  });
   tbody.addEventListener("click", function (e) {
     var b = e.target.closest("[data-del]");
     if (!b) return;
