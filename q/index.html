@@ -49,7 +49,13 @@
   var SNAP = CFG.map || {};
   var HOME = "https://www.darimati.us";
   var CK = "qr.cache";
-  var TIMEOUT = 3500;
+
+  /* 실시간 조회를 얼마나 기다릴지. 실측 응답이 0.32초라 0.7초면 거의 항상 실시간 값이 이긴다.
+     이게 곧 "대시보드에서 목적지를 바꾸면 즉시 반영된다"는 약속이다.
+     신호가 나쁘면 0.7초에 저장된 값으로 넘어가므로 부스에서 손님을 세워두지 않는다.
+     ⚠️ 이 값을 0 으로 만들거나 스냅샷 우선으로 바꾸면 목적지 교체가 배포 전까지 안 먹는다 —
+     당일 사고 때 1초 복구가 불가능해지므로 그렇게 하지 말 것. */
+  var TIMEOUT = 700;
 
   var code = (function () {
     var m = location.search.match(/[?&]code=([^&]+)/) || location.search.match(/[?&]c=([^&]+)/);
@@ -96,25 +102,6 @@
   var device = /iPad|Tablet/i.test(navigator.userAgent) ? "태블릿"
              : /Mobi|Android|iPhone/i.test(navigator.userAgent) ? "모바일" : "PC";
 
-  // 스캔 집계 핑(GET, best-effort) — 응답을 기다리지 않는다.
-  function ping() {
-    if (!API) return;
-    try {
-      new Image().src = API + (API.indexOf("?") > -1 ? "&" : "?") +
-        "a=go&code=" + encodeURIComponent(code) +
-        "&d=" + encodeURIComponent(device) +
-        "&r=" + encodeURIComponent(document.referrer || "") +
-        "&_=" + new Date().getTime();
-    } catch (e) {}
-  }
-
-  // ── 빠른 경로 ──────────────────────────────────────────────
-  // 스냅샷(links.js)에 목적지가 있으면 구글 실시간 조회를 기다리지 않고 "즉시" 이동한다.
-  // 인쇄된 QR은 목적지가 고정이라 대기(최대 3.5초)가 불필요 — 부스에서 즉시 열림.
-  // 목적지를 바꾸려면 시트 수정 후 배포(스냅샷 재생성). 스냅샷에 없는 코드는 아래 실시간 조회로.
-  if (SNAP[code]) { ping(); go(SNAP[code]); return; }
-
-  // ── 실시간 조회(스냅샷에 없는 동적 코드) ──────────────────
   if (!API) { backup(); return; }
 
   var timer = setTimeout(backup, TIMEOUT);
