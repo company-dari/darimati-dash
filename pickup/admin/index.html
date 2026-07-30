@@ -222,6 +222,12 @@
     fetch(a + (a.indexOf("?") > -1 ? "&" : "?") + "a=ping&key=" + encodeURIComponent(k) + "&_=" + new Date().getTime(), { cache: "no-store" })
       .then(function (r) { return r.json(); })
       .then(function (j) {
+        // 셔틀런·QR 스크립트도 암호가 같아서 ok를 돌려준다 → 레디키트 스크립트인지까지 확인
+        if (j && j.ok && j.app !== "pickup") {
+          $("sMsg").className = "hint bad";
+          $("sMsg").textContent = "다른 스크립트(셔틀런·QR)에 연결됐습니다. 레디키트 배포 주소인지 확인해주세요.";
+          return;
+        }
         if (j && j.ok) {
           api = a; key = k;
           localStorage.setItem("pk_api", a); localStorage.setItem("pk_key", k);
