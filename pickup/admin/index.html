@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>레디키트 수령 · 운영</title>
+<style>
+  :root {
+    --ground: #0a0e10; --panel: #121a1e; --panel-2: #182126; --rule: #243036;
+    --text: #eef3f5; --muted: #8697a0; --dim: #56666f;
+    --lime: #d4ff3f; --warn: #ff5a28; --live: #4ade80;
+    --font-ui: system-ui, -apple-system, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif;
+    --font-num: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ground); color: var(--text); font-family: var(--font-ui);
+    -webkit-font-smoothing: antialiased; padding: 1.1rem clamp(.8rem, 3vw, 2rem) 4rem; }
+  header.top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+    gap: .6rem 1rem; padding-bottom: .9rem; border-bottom: 1px solid var(--rule); }
+  h1 { margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -.02em; }
+  h1 span { color: var(--lime); }
+  .sub { font-family: var(--font-num); font-size: .68rem; letter-spacing: .18em; text-transform: uppercase; color: var(--dim); margin: .25rem 0 0; }
+  .conn { display: flex; align-items: center; gap: .45em; font-family: var(--font-num); font-size: .68rem;
+    letter-spacing: .12em; text-transform: uppercase; color: var(--dim); }
+  .dot { width: .5em; height: .5em; border-radius: 50%; background: var(--dim); }
+  .conn.ok .dot { background: var(--live); }
+  .conn.bad .dot { background: var(--warn); }
+
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: .7rem; margin: 1.1rem 0 1.3rem; }
+  .kpi { border: 1px solid var(--rule); border-radius: 6px; background: var(--panel); padding: .75rem .9rem; }
+  .kpi b { display: block; font-family: var(--font-num); font-size: 1.75rem; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+  .kpi span { font-family: var(--font-num); font-size: .62rem; letter-spacing: .16em; text-transform: uppercase; color: var(--dim); }
+  .kpi.hi b { color: var(--lime); }
+  .kpi.warn b { color: var(--warn); }
+
+  .cols { display: grid; grid-template-columns: minmax(250px, 310px) 1fr; gap: 1.5rem; align-items: start; }
+  @media (max-width: 900px) { .cols { grid-template-columns: 1fr; } }
+
+  fieldset { border: 1px solid var(--rule); border-radius: 5px; padding: .5rem 1rem 1.1rem; margin: 0 0 1rem; }
+  legend { font-family: var(--font-num); font-size: .66rem; letter-spacing: .2em; text-transform: uppercase; color: var(--lime); padding: 0 .4rem; }
+  label { display: block; font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: .85rem 0 .3rem; }
+  input, select { width: 100%; background: var(--ground); border: 1px solid var(--rule); color: var(--text);
+    font-family: var(--font-ui); font-size: 1rem; padding: .55rem .6rem; border-radius: 4px; }
+  input[data-num] { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+  input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
+  .hint { font-family: var(--font-num); font-size: .74rem; color: var(--dim); margin: .35rem 0 0; min-height: 1.1em; }
+  .hint.ok { color: var(--lime); }
+  .hint.bad { color: var(--warn); }
+  .chk { display: flex; align-items: center; gap: .5rem; margin: .9rem 0 0; font-size: .88rem; color: var(--text); }
+  .chk input { width: auto; }
+
+  .btn { appearance: none; border: 1px solid var(--rule); background: var(--panel-2); color: var(--text);
+    font-family: var(--font-ui); font-size: .85rem; font-weight: 700; padding: .55rem 1rem; border-radius: 4px; cursor: pointer; }
+  .btn:hover { border-color: var(--dim); }
+  .btn.solid { background: var(--lime); border-color: var(--lime); color: #0d1200; }
+  .btn.wide { width: 100%; margin-top: 1rem; padding: .75rem; font-size: .95rem; }
+  .btn.sm { font-size: .78rem; padding: .38rem .65rem; }
+  .btn.danger:hover { border-color: var(--warn); color: var(--warn); }
+
+  .toolbar { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; margin-bottom: .7rem; }
+  .toolbar input { flex: 1 1 180px; width: auto; }
+  .toolbar select { width: auto; }
+  .chip { display: inline-block; font-family: var(--font-num); font-size: .7rem; letter-spacing: .06em;
+    padding: .18rem .5rem; border: 1px solid var(--rule); border-radius: 999px; color: var(--muted); white-space: nowrap; }
+  .chip.on { border-color: rgba(212,255,63,.5); color: var(--lime); }
+  .chip.off { border-color: var(--warn); color: var(--warn); }
+
+  .tbl-wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 5px; }
+  table { width: 100%; border-collapse: collapse; font-size: .92rem; min-width: 640px; }
+  th { text-align: left; font-family: var(--font-num); font-size: .64rem; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--dim); font-weight: 400; padding: .5rem .6rem; border-bottom: 1px solid var(--rule); background: var(--panel); position: sticky; top: 0; }
+  td { padding: .42rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: middle; white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  tr.done { background: rgba(212,255,63,.05); }
+  td.nm { font-weight: 700; font-size: 1rem; }
+  td.mono { font-family: var(--font-num); color: var(--muted); font-size: .84rem; }
+  td.no { font-family: var(--font-num); font-weight: 700; color: var(--lime); }
+  .empty { padding: 1.4rem .8rem; color: var(--dim); font-size: .88rem; text-align: center; }
+
+  .setup { max-width: 460px; margin: 3rem auto; }
+  .toast { position: fixed; left: 50%; bottom: 1.1rem; transform: translate(-50%, 160%); background: var(--lime);
+    color: #0d1200; font-weight: 700; font-size: .9rem; padding: .6rem 1.2rem; border-radius: 4px; z-index: 90; transition: transform .25s ease; }
+  .toast[data-show="true"] { transform: translate(-50%, 0); }
+  .code { font-family: var(--font-num); font-size: 2rem; letter-spacing: .18em; color: var(--lime); margin: .3rem 0 0; }
+  section[hidden], div[hidden], fieldset[hidden] { display: none !important; }
+  @media (prefers-reduced-motion: reduce) { * { transition-duration: .01ms !important; } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div>
+    <h1>레디키트 <span>/</span> 수령 운영</h1>
+    <p class="sub">참가자가 직접 확인 · 여기선 지켜보기만</p>
+  </div>
+  <div style="display:flex;gap:.7rem;align-items:center;flex-wrap:wrap">
+    <span class="conn" id="conn"><span class="dot"></span><span id="connText">확인 중</span></span>
+    <button type="button" class="btn sm" id="syncBtn" title="Klaviyo 사전신청 명단을 지금 가져옵니다">↺ 명단 동기화</button>
+    <button type="button" class="btn sm" id="csvBtn">CSV</button>
+    <button type="button" class="btn sm" id="setupBtn">설정</button>
+  </div>
+</header>
+
+<div id="app" hidden>
+  <div class="kpis">
+    <div class="kpi"><b id="kTotal">–</b><span>사전신청</span></div>
+    <div class="kpi hi"><b id="kGot">–</b><span>수령 완료</span></div>
+    <div class="kpi"><b id="kLeft">–</b><span>남은 수량</span></div>
+    <div class="kpi"><b id="kSelf">–</b><span>본인확인 비중</span></div>
+  </div>
+
+  <div class="cols">
+    <div>
+      <fieldset>
+        <legend>부스 안내판</legend>
+        <p class="hint" style="margin-top:.6rem">참가자가 이 코드를 입력해야 수령 확인됩니다.<br />부스에 크게 붙여두세요.</p>
+        <p class="code" id="codeShow">––––</p>
+        <label for="cCode">코드 바꾸기</label>
+        <input id="cCode" data-num maxlength="6" placeholder="8888" />
+        <div class="chk"><input type="checkbox" id="cCodeOn" /><label for="cCodeOn" style="margin:0;text-transform:none;letter-spacing:0;font-size:.88rem;color:var(--text)">코드 입력 요구</label></div>
+        <div class="chk"><input type="checkbox" id="cOpen" /><label for="cOpen" style="margin:0;text-transform:none;letter-spacing:0;font-size:.88rem;color:var(--text)">수령 확인 받는 중</label></div>
+        <label for="cLimit">선착순 수량</label>
+        <input id="cLimit" data-num placeholder="100" />
+        <label for="cNotice">패스 화면 안내문구</label>
+        <input id="cNotice" placeholder="이 화면을 포토존 부스 직원에게 보여주세요" />
+        <button type="button" class="btn solid wide" id="cfgSave">설정 저장</button>
+        <p class="hint" id="cfgMsg"></p>
+      </fieldset>
+
+      <fieldset>
+        <legend>현장 등록 (명단에 없는 사람)</legend>
+        <label for="aName">이름</label>
+        <input id="aName" autocomplete="off" />
+        <label for="aPhone">연락처</label>
+        <input id="aPhone" data-num inputmode="tel" placeholder="010-0000-0000" />
+        <div class="chk"><input type="checkbox" id="aNow" checked /><label for="aNow" style="margin:0;text-transform:none;letter-spacing:0;font-size:.88rem;color:var(--text)">바로 수령 처리</label></div>
+        <button type="button" class="btn wide" id="addBtn">명단에 추가</button>
+        <p class="hint" id="addMsg"></p>
+      </fieldset>
+
+      <fieldset>
+        <legend>참가자 화면</legend>
+        <p class="hint" style="margin-top:.6rem">QR이 여는 주소입니다.</p>
+        <button type="button" class="btn wide" id="openUser">참가자 화면 열기</button>
+        <button type="button" class="btn wide" id="openPoster">인쇄용 QR 포스터</button>
+      </fieldset>
+    </div>
+
+    <div>
+      <div class="toolbar">
+        <input id="q" placeholder="이름 · 번호 검색" autocomplete="off" />
+        <select id="filter">
+          <option value="all">전체</option>
+          <option value="no">미수령</option>
+          <option value="yes">수령 완료</option>
+        </select>
+        <span class="chip" id="syncChip">동기화 –</span>
+        <span class="chip" id="openChip">–</span>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th>#</th><th>이름</th><th>연락처</th><th>인스타</th><th>유입</th><th>수령</th><th>방법</th><th></th>
+          </tr></thead>
+          <tbody id="tb"></tbody>
+        </table>
+      </div>
+      <p class="hint" id="listMsg"></p>
+    </div>
+  </div>
+</div>
+
+<section class="setup" id="setup" hidden>
+  <h1 style="margin-bottom:.4rem">운영 화면 연결</h1>
+  <p class="hint" style="margin-bottom:1.2rem">이 기기에서 한 번만 하면 됩니다.</p>
+  <label for="sApi">Apps Script 웹앱 주소</label>
+  <input id="sApi" placeholder="https://script.google.com/macros/s/…/exec" />
+  <label for="sKey">암호</label>
+  <input id="sKey" type="text" placeholder="dari1!" autocomplete="off" autocapitalize="off" spellcheck="false" />
+  <button type="button" class="btn solid wide" id="sSave">연결</button>
+  <p class="hint" id="sMsg"></p>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  /* ── 배포 후 이 한 줄을 채우면 설정 화면 없이 바로 열립니다 ── */
+  var API_URL = "";
+  var USER_PAGE = "../";
+  var POSTER_PAGE = "../qr/";
+
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+
+  var api = API_URL || (localStorage.getItem("pk_api") || "");
+  var key = (localStorage.getItem("pk_key") || "").trim();
+  var rows = [], cfg = {}, stat = {}, lastSync = 0, dirty = false;
+
+  function toast(t) { var el = $("toast"); el.textContent = t; el.dataset.show = "true"; setTimeout(function () { el.dataset.show = "false"; }, 2000); }
+  function conn(ok, txt) { $("conn").className = "conn " + (ok ? "ok" : "bad"); $("connText").textContent = txt; }
+
+  function call(params) {
+    var u = api + (api.indexOf("?") > -1 ? "&" : "?");
+    var parts = ["key=" + encodeURIComponent(key)];
+    Object.keys(params).forEach(function (k) {
+      parts.push(encodeURIComponent(k) + "=" + encodeURIComponent(params[k] == null ? "" : params[k]));
+    });
+    parts.push("_=" + new Date().getTime());
+    return fetch(u + parts.join("&"), { cache: "no-store" }).then(function (r) { return r.json(); });
+  }
+
+  /* ── 설정(연결) ── */
+  function openSetup() { $("app").hidden = true; $("setup").hidden = false; $("sApi").value = api; $("sKey").value = key; }
+  $("setupBtn").addEventListener("click", openSetup);
+  $("sSave").addEventListener("click", function () {
+    var a = $("sApi").value.trim(), k = $("sKey").value.trim();
+    if (!a || !k) { $("sMsg").className = "hint bad"; $("sMsg").textContent = "주소와 암호를 넣어주세요."; return; }
+    $("sMsg").className = "hint"; $("sMsg").textContent = "확인 중…";
+    fetch(a + (a.indexOf("?") > -1 ? "&" : "?") + "a=ping&key=" + encodeURIComponent(k) + "&_=" + new Date().getTime(), { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (j && j.ok) {
+          api = a; key = k;
+          localStorage.setItem("pk_api", a); localStorage.setItem("pk_key", k);
+          $("setup").hidden = true; $("app").hidden = false;
+          refresh(); toast("연결됐습니다");
+        } else { $("sMsg").className = "hint bad"; $("sMsg").textContent = "암호가 맞지 않습니다."; }
+      })
+      .catch(function () { $("sMsg").className = "hint bad"; $("sMsg").textContent = "주소를 열 수 없습니다. 배포 주소인지 확인해주세요."; });
+  });
+
+  /* ── 목록 ── */
+  function refresh() {
+    if (!api || !key) { openSetup(); return; }
+    call({ a: "list" }).then(function (j) {
+      if (!j || !j.ok) { conn(false, j && j.error === "BAD_KEY" ? "암호 오류" : "오류"); return; }
+      conn(true, "연결됨");
+      rows = j.rows || []; cfg = j.cfg || {}; stat = j.stat || {};
+      render();
+      if (!dirty) syncCfgInputs();
+    }).catch(function () { conn(false, "연결 끊김"); });
+  }
+
+  function pretty(p) { return String(p || ""); }
+
+  function render() {
+    var q = $("q").value.trim().toLowerCase();
+    var qd = q.replace(/[^0-9]/g, "");
+    var f = $("filter").value;
+    var got = rows.filter(function (r) { return r.got; }).length;
+    var self = rows.filter(function (r) { return r.how === "본인"; }).length;
+    var limit = Number(cfg.limit) || 0;
+
+    $("kTotal").textContent = rows.length;
+    $("kGot").textContent = got;
+    $("kLeft").textContent = limit ? Math.max(0, limit - got) : "–";
+    $("kSelf").textContent = got ? Math.round((self / got) * 100) + "%" : "–";
+    $("codeShow").textContent = String(cfg.boothcode_on) === "1" ? (cfg.boothcode || "––––") : "사용 안 함";
+    var oc = $("openChip");
+    oc.textContent = String(cfg.open) === "1" ? "수령 받는 중" : "수령 마감";
+    oc.className = "chip " + (String(cfg.open) === "1" ? "on" : "off");
+
+    var list = rows.filter(function (r) {
+      if (f === "yes" && !r.got) return false;
+      if (f === "no" && r.got) return false;
+      if (!q) return true;
+      if (String(r.name).toLowerCase().indexOf(q) > -1) return true;
+      if (qd && String(r.phone).replace(/[^0-9]/g, "").indexOf(qd) > -1) return true;
+      return false;
+    }).sort(function (a, b) {
+      if (a.got && b.got) return (b.no || 0) - (a.no || 0);
+      if (a.got !== b.got) return a.got ? -1 : 1;
+      return String(a.name).localeCompare(String(b.name), "ko");
+    });
+
+    if (!list.length) {
+      $("tb").innerHTML = '<tr><td colspan="8"><div class="empty">' +
+        (rows.length ? "조건에 맞는 사람이 없습니다." : "명단이 비어 있습니다 — ↺ 명단 동기화를 눌러보세요.") + "</div></td></tr>";
+    } else {
+      $("tb").innerHTML = list.map(function (r) {
+        var over = limit && r.no && r.no > limit;
+        return '<tr class="' + (r.got ? "done" : "") + '">' +
+          '<td class="no">' + (r.no ? r.no + (over ? "!" : "") : "") + "</td>" +
+          '<td class="nm">' + esc(r.name) + "</td>" +
+          '<td class="mono">' + esc(pretty(r.phone)) + "</td>" +
+          '<td class="mono">' + esc(r.insta || "") + "</td>" +
+          '<td class="mono">' + esc(r.src || "") + "</td>" +
+          '<td class="mono">' + esc(r.got ? r.got.slice(11, 16) : "") + "</td>" +
+          '<td class="mono">' + esc(r.how || "") + "</td>" +
+          "<td>" + (r.got
+            ? '<button class="btn sm danger" data-un="' + esc(r.id) + '">취소</button>'
+            : '<button class="btn sm solid" data-ck="' + esc(r.id) + '">수령 확인</button>') +
+          "</td></tr>";
+      }).join("");
+    }
+
+    $("listMsg").textContent = "표시 " + list.length + "명 / 전체 " + rows.length + "명" +
+      (stat.kst ? " · 시트 시각 " + stat.kst.slice(11, 16) : "");
+
+    Array.prototype.forEach.call($("tb").querySelectorAll("[data-ck]"), function (b) {
+      b.addEventListener("click", function () {
+        b.disabled = true;
+        call({ a: "aclaim", id: b.getAttribute("data-ck"), how: "매니저" })
+          .then(function (j) { toast(j && j.ok ? "수령 처리됨" : "실패"); refresh(); })
+          .catch(function () { b.disabled = false; toast("연결 실패"); });
+      });
+    });
+    Array.prototype.forEach.call($("tb").querySelectorAll("[data-un]"), function (b) {
+      b.addEventListener("click", function () {
+        b.disabled = true;
+        call({ a: "unclaim", id: b.getAttribute("data-un") })
+          .then(function (j) { toast(j && j.ok ? "수령 취소됨" : "실패"); refresh(); })
+          .catch(function () { b.disabled = false; toast("연결 실패"); });
+      });
+    });
+  }
+
+  $("q").addEventListener("input", render);
+  $("filter").addEventListener("change", render);
+
+  /* ── 설정 저장 ── */
+  function syncCfgInputs() {
+    $("cCode").value = cfg.boothcode || "";
+    $("cCodeOn").checked = String(cfg.boothcode_on) === "1";
+    $("cOpen").checked = String(cfg.open) === "1";
+    $("cLimit").value = cfg.limit || "";
+    $("cNotice").value = cfg.notice || "";
+  }
+  ["cCode", "cLimit", "cNotice"].forEach(function (id) {
+    $(id).addEventListener("input", function () { dirty = true; });
+  });
+  $("cfgSave").addEventListener("click", function () {
+    var p = {
+      a: "cfg",
+      boothcode: $("cCode").value.trim() || "8888",
+      boothcode_on: $("cCodeOn").checked ? "1" : "0",
+      open: $("cOpen").checked ? "1" : "0",
+      limit: ($("cLimit").value || "").replace(/[^0-9]/g, "") || "0",
+      notice: $("cNotice").value.trim()
+    };
+    $("cfgMsg").className = "hint"; $("cfgMsg").textContent = "저장 중…";
+    call(p).then(function (j) {
+      if (j && j.ok) { cfg = j.cfg; dirty = false; $("cfgMsg").className = "hint ok"; $("cfgMsg").textContent = "저장됐습니다"; render(); syncCfgInputs(); }
+      else { $("cfgMsg").className = "hint bad"; $("cfgMsg").textContent = "실패 " + ((j && j.error) || ""); }
+    }).catch(function () { $("cfgMsg").className = "hint bad"; $("cfgMsg").textContent = "연결 실패"; });
+  });
+  // 체크박스는 누르는 즉시 반영 (현장에서 빨리 켜고 끌 수 있게)
+  ["cCodeOn", "cOpen"].forEach(function (id) {
+    $(id).addEventListener("change", function () { $("cfgSave").click(); });
+  });
+
+  /* ── 현장 등록 ── */
+  $("addBtn").addEventListener("click", function () {
+    var n = $("aName").value.trim(), p = $("aPhone").value.trim();
+    if (!n || p.replace(/[^0-9]/g, "").length < 4) { $("addMsg").className = "hint bad"; $("addMsg").textContent = "이름과 연락처를 넣어주세요."; return; }
+    $("addBtn").disabled = true; $("addMsg").className = "hint"; $("addMsg").textContent = "등록 중…";
+    call({ a: "add", name: n, phone: p, now: $("aNow").checked ? "1" : "0" }).then(function (j) {
+      $("addBtn").disabled = false;
+      if (j && j.ok) {
+        $("addMsg").className = "hint ok";
+        $("addMsg").textContent = j.dup || j.already ? "이미 있는 번호 — 기록 확인하세요" : "등록됐습니다";
+        $("aName").value = ""; $("aPhone").value = "";
+        refresh();
+      } else { $("addMsg").className = "hint bad"; $("addMsg").textContent = "실패 " + ((j && j.error) || ""); }
+    }).catch(function () { $("addBtn").disabled = false; $("addMsg").className = "hint bad"; $("addMsg").textContent = "연결 실패"; });
+  });
+
+  /* ── Klaviyo 동기화 ── */
+  function doSync(manual) {
+    if (manual) { $("syncBtn").disabled = true; $("syncChip").textContent = "동기화 중…"; }
+    return call({ a: "sync" }).then(function (j) {
+      lastSync = new Date().getTime();
+      $("syncBtn").disabled = false;
+      if (j && j.ok) {
+        $("syncChip").className = "chip on";
+        $("syncChip").textContent = "동기화 " + (j.at || "").slice(11, 16) + " · 신규 " + j.added;
+        if (manual) toast("가져옴 " + j.fetched + "명 · 새로 " + j.added + "명");
+        refresh();
+      } else {
+        $("syncChip").className = "chip off";
+        $("syncChip").textContent = j && j.error === "NO_KLAVIYO_KEY" ? "Klaviyo 키 없음" : "동기화 실패";
+        if (manual) toast(j && j.error === "NO_KLAVIYO_KEY" ? "시트 설정에 Klaviyo 키를 넣어주세요" : "동기화 실패");
+      }
+    }).catch(function () { $("syncBtn").disabled = false; $("syncChip").className = "chip off"; $("syncChip").textContent = "동기화 실패"; });
+  }
+  $("syncBtn").addEventListener("click", function () { doSync(true); });
+
+  /* ── 기타 ── */
+  $("csvBtn").addEventListener("click", function () {
+    var head = ["순번", "이름", "연락처", "인스타", "유입", "신청시각", "수령시각", "방법"];
+    var lines = [head.join(",")].concat(rows.map(function (r) {
+      return [r.no || "", r.name, r.phone, r.insta, r.src, r.at, r.got, r.how].map(function (v) {
+        return '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"';
+      }).join(",");
+    }));
+    var blob = new Blob(["﻿" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "레디키트-수령명단.csv";
+    a.click();
+  });
+  $("openUser").addEventListener("click", function () { window.open(USER_PAGE, "_blank"); });
+  $("openPoster").addEventListener("click", function () { window.open(POSTER_PAGE, "_blank"); });
+
+  /* ── 시작 ── */
+  if (!api || !key) { openSetup(); }
+  else {
+    $("app").hidden = false;
+    refresh();
+    doSync(false);
+  }
+  setInterval(function () { if (!$("app").hidden) refresh(); }, 5000);
+  setInterval(function () { if (!$("app").hidden) doSync(false); }, 300000);
+})();
+</script>
+</body>
+</html>

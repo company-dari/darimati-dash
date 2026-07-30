@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>레디키트 수령 QR · 인쇄용</title>
+<style>
+  :root {
+    --ink: #0d1114; --sub: #5b6a72; --line: #d5dde1; --lime: #b8e400;
+    --font-ui: system-ui, -apple-system, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif;
+    --font-num: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #eef1f2; color: var(--ink); font-family: var(--font-ui); -webkit-font-smoothing: antialiased; }
+  .sheet { width: 210mm; min-height: 297mm; margin: 12px auto; background: #fff; padding: 18mm 16mm; display: flex; flex-direction: column; }
+  .bar { display: flex; align-items: baseline; justify-content: space-between; border-bottom: 2px solid var(--ink); padding-bottom: 6mm; }
+  .bar b { font-size: 15pt; font-weight: 800; letter-spacing: -.01em; }
+  .bar span { font-family: var(--font-num); font-size: 8pt; letter-spacing: .2em; text-transform: uppercase; color: var(--sub); }
+
+  h1 { font-size: 34pt; line-height: 1.12; letter-spacing: -.035em; margin: 12mm 0 4mm; font-weight: 800; }
+  h1 em { font-style: normal; background: var(--lime); padding: 0 .12em; }
+  .lead { font-size: 12pt; color: var(--sub); margin: 0 0 8mm; line-height: 1.5; }
+
+  .mid { display: flex; gap: 10mm; align-items: flex-start; }
+  .qr { flex: 0 0 auto; text-align: center; }
+  .qr canvas { display: block; width: 72mm; height: 72mm; border: 1px solid var(--line); }
+  .qr p { font-family: var(--font-num); font-size: 7.5pt; color: var(--sub); margin: 3mm 0 0; word-break: break-all; max-width: 72mm; }
+
+  ol { margin: 0; padding: 0; list-style: none; counter-reset: s; }
+  ol li { counter-increment: s; position: relative; padding-left: 12mm; margin-bottom: 6mm; font-size: 13pt; font-weight: 700; line-height: 1.35; }
+  ol li::before { content: counter(s); position: absolute; left: 0; top: -1mm; width: 8.5mm; height: 8.5mm; border-radius: 50%;
+    background: var(--ink); color: #fff; font-family: var(--font-num); font-size: 9pt; display: grid; place-items: center; }
+  ol li small { display: block; font-size: 10pt; font-weight: 400; color: var(--sub); margin-top: 1.5mm; }
+
+  .code { margin-top: auto; border: 2px solid var(--ink); border-radius: 3mm; padding: 6mm 8mm; display: flex; align-items: center; justify-content: space-between; gap: 6mm; }
+  .code .lbl { font-size: 11pt; font-weight: 800; }
+  .code .lbl small { display: block; font-weight: 400; font-size: 9pt; color: var(--sub); margin-top: 1.5mm; }
+  .code .val { font-family: var(--font-num); font-size: 40pt; font-weight: 700; letter-spacing: .12em; line-height: 1; }
+  .code .val.blank { color: var(--line); }
+  .foot { font-family: var(--font-num); font-size: 7.5pt; letter-spacing: .16em; text-transform: uppercase; color: var(--sub); margin: 6mm 0 0; text-align: center; }
+
+  .tools { max-width: 210mm; margin: 12px auto; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 13px; color: #43535c; }
+  .tools input { flex: 1 1 220px; padding: 7px 9px; border: 1px solid #c3ccd1; border-radius: 4px; font-size: 13px; }
+  .tools button { padding: 7px 14px; border: 1px solid #0d1114; background: #0d1114; color: #fff; border-radius: 4px; font-weight: 700; cursor: pointer; }
+  @media print {
+    body { background: #fff; }
+    .tools { display: none; }
+    .sheet { margin: 0; width: auto; min-height: auto; padding: 14mm; }
+    @page { size: A4 portrait; margin: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="tools">
+  <label>부스 코드 <input id="tCode" maxlength="6" placeholder="8888 (비우면 손으로 적기)" /></label>
+  <label style="flex:2 1 300px">QR 주소 <input id="tUrl" /></label>
+  <button type="button" id="tGo">적용</button>
+  <button type="button" id="tPrint">인쇄</button>
+</div>
+
+<div class="sheet">
+  <div class="bar"><b>DARIMATI</b><span>REXTREME 2026 · READY KIT</span></div>
+
+  <h1>레디키트<br /><em>직접 수령 확인</em>하세요</h1>
+  <p class="lead">사전신청하신 분은 휴대폰으로 30초면 끝납니다.<br />확인 화면을 포토존 직원에게 보여주시면 레디키트를 드립니다.</p>
+
+  <div class="mid">
+    <div class="qr">
+      <canvas id="qr"></canvas>
+      <p id="qrUrl"></p>
+    </div>
+    <ol>
+      <li>QR 코드를 카메라로 스캔<small>카카오톡·네이버 앱 스캔도 됩니다</small></li>
+      <li>이름 + 전화번호 뒷 4자리 입력<small>사전신청할 때 쓴 이름 그대로</small></li>
+      <li>아래 부스 코드 넣고 [수령 확인]<small>현장에 오신 분만 확인되도록 하는 코드입니다</small></li>
+      <li>완료 화면을 직원에게 보여주기<small>이름과 수령 순번이 뜹니다</small></li>
+    </ol>
+  </div>
+
+  <div class="code">
+    <div class="lbl">부스 코드<small>이 숫자를 화면에 입력하세요</small></div>
+    <div class="val blank" id="codeVal">– – – –</div>
+  </div>
+  <p class="foot">문의 · 부스 직원 또는 인스타그램 @darimati_official</p>
+</div>
+
+<script src="qrcode.js"></script>
+<script>
+(function () {
+  var DEFAULT_URL = "https://company-dari.github.io/darimati-dash/pickup/";
+  var qs = new URLSearchParams(location.search);
+  var url = qs.get("url") || DEFAULT_URL;
+  var code = qs.get("code") || "";
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  function draw() {
+    try {
+      var q = qrcode(0, "M");
+      q.addData(url);
+      q.make();
+      var n = q.getModuleCount(), px = 8, cv = $("qr");
+      cv.width = cv.height = n * px;
+      var ctx = cv.getContext("2d");
+      ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, cv.width, cv.height);
+      ctx.fillStyle = "#000";
+      for (var r = 0; r < n; r++) for (var c = 0; c < n; c++) if (q.isDark(r, c)) ctx.fillRect(c * px, r * px, px, px);
+      $("qrUrl").textContent = url;
+    } catch (e) { $("qrUrl").textContent = "QR 생성 실패 — 주소를 확인하세요"; }
+    $("codeVal").textContent = code ? code : "– – – –";
+    $("codeVal").className = "val" + (code ? "" : " blank");
+    $("tUrl").value = url; $("tCode").value = code;
+  }
+
+  $("tGo").addEventListener("click", function () {
+    url = $("tUrl").value.trim() || DEFAULT_URL;
+    code = $("tCode").value.trim();
+    draw();
+  });
+  $("tPrint").addEventListener("click", function () { window.print(); });
+  draw();
+})();
+</script>
+</body>
+</html>

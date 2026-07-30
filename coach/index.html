@@ -201,23 +201,63 @@
     params.set('phone', f.phone);
     params.set('source', new URLSearchParams(location.search).get('utm_source') || 'qr');
 
-    /* no-cors 라 응답을 읽을 수 없다 — 그래서 성공했다고 보고 완료화면을 띄운다.
-       현장에서 사람을 붙잡아 두지 않는 게 더 중요하다. */
-    fetch(ENDPOINT, {
+    send(params.toString());
+  });
+
+  /* 부스는 사람이 몰려 신호가 약하다. 전송이 실패했는데 "접수됐습니다"를 띄우면
+     코치는 등록됐다고 믿고 가버리고 우리는 그 리드를 잃은 줄도 모른다.
+     no-cors 라 서버 응답 내용은 못 읽지만 "보내기 자체가 실패했는지"는 알 수 있으므로,
+     그때는 완료화면을 띄우지 않고 다시 시도하게 한다. */
+  function send(body, quiet) {
+    var ctl = typeof AbortController === 'function' ? new AbortController() : null;
+    var killed = false;
+    var timer = setTimeout(function(){ killed = true; if (ctl) ctl.abort(); }, 8000);
+
+    return fetch(ENDPOINT, {
       method: 'POST',
       mode: 'no-cors',
       headers: {'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
-      body: params.toString()
-    }).catch(function(){});
+      body: body,
+      signal: ctl ? ctl.signal : undefined
+    }).then(function(){
+      clearTimeout(timer);
+      if (killed) throw new Error('timeout');
+      pending(null);
+      if (!quiet) succeed();
+      return true;
+    }).catch(function(){
+      clearTimeout(timer);
+      pending(body);            // 다음 방문 때 자동으로 한 번 더 보낸다
+      if (!quiet) retry();
+      return false;
+    });
+  }
 
-    setTimeout(function(){
-      form.hidden = true;
-      done.hidden = false;
-      window.scrollTo({top:0, behavior:'smooth'});
-    }, 450);
-
+  function succeed() {
+    form.hidden = true;
+    done.hidden = false;
+    window.scrollTo({top:0, behavior:'smooth'});
     try{ if(typeof fbq === 'function') fbq('track','Lead'); }catch(_){}
-  });
+  }
+
+  function retry() {
+    btn.disabled = false;
+    btn.textContent = '다시 시도';
+    show('전송이 안 됐습니다. 신호가 약한 것 같아요. 잠시 뒤 다시 눌러 주세요.');
+  }
+
+  function pending(body) {
+    try {
+      if (body) localStorage.setItem('dmPending', body);
+      else localStorage.removeItem('dmPending');
+    } catch (e) {}
+  }
+
+  // 지난번에 못 보낸 게 남아 있으면 조용히 재전송한다(중복은 시트에서 눈으로 걸러진다).
+  try {
+    var left = localStorage.getItem('dmPending');
+    if (left) send(left, true);
+  } catch (e) {}
 })();
 </script>
 </body>
