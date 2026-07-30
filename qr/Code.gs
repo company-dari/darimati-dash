@@ -27,7 +27,6 @@ var LINK_SHEET = '링크';
 var LOG_SHEET = '스캔';
 var LINK_HEADERS = ['코드', '이름', '목적지', '메모', '생성일', '상태'];
 var LOG_HEADERS = ['시각', '코드', '기기', '유입'];
-var TZ = 'Asia/Seoul';
 
 /* ── 진입점 ───────────────────────────────────────── */
 
@@ -40,7 +39,7 @@ function doGet(e) {
 
     if (!auth_(p)) return out({ ok: false, error: 'BAD_KEY' });
 
-    if (action === 'list') return out(list_());
+    if (action === 'list') return out(list_(p));
     if (action === 'save') return out(locked_(function () { return save_(p); }));
     if (action === 'del') return out(locked_(function () { return del_(p); }));
     if (action === 'ping') return out({ ok: true, pong: true });
@@ -108,9 +107,17 @@ function asDate_(v) {
   return null;
 }
 
+/* 날짜를 yyyy-MM-dd 로 만든다.
+   ⚠️ Utilities.formatDate 를 쓰지 않는다 — 앱스스크립트에서 이 호출은 서비스 경계를 넘어가
+   하나에 수십 ms 씩 먹는다. 목록 조회가 30번 넘게 부르며 3초를 잡아먹고 있었다(2026-07-30).
+   한국시간은 UTC+9 로 고정(서머타임 없음)이라 UTC 게터로 정확히 계산할 수 있고,
+   스크립트 시간대 설정과 무관하게 같은 값이 나온다. */
 function ymd_(v) {
   var d = asDate_(v);
-  return d ? Utilities.formatDate(d, TZ, 'yyyy-MM-dd') : '';
+  if (!d) return '';
+  var k = new Date(d.getTime() + 9 * 3600 * 1000);
+  var m = k.getUTCMonth() + 1, day = k.getUTCDate();
+  return k.getUTCFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day;
 }
 
 /* ── 손님이 QR을 찍었을 때 ────────────────────────── */
@@ -146,7 +153,7 @@ function logScan_(c, p) {
 
 /* ── 대시보드용 ───────────────────────────────────── */
 
-function list_() {
+function list_(p) {
   var sh = links_();
   var n = sh.getLastRow() - 1;
   var rows = n > 0 ? sh.getRange(2, 1, n, LINK_HEADERS.length).getValues() : [];
@@ -170,14 +177,14 @@ function list_() {
       };
     });
 
-  // 시트 주소를 함께 넘긴다 — 대시보드의 "구글시트 열기" 버튼이 이 값을 쓴다.
-  return {
-    ok: true,
-    links: items,
-    dates: stat.dates,
-    total: stat.total,
-    sheet: SpreadsheetApp.getActiveSpreadsheet().getUrl()
-  };
+  var res = { ok: true, links: items, dates: stat.dates, total: stat.total };
+
+  /* 시트 주소는 요청받을 때만 넘긴다 — getUrl() 도 느린 호출이라
+     대시보드가 이미 갖고 있으면 부르지 않는다. */
+  if (p && String(p.sheet) === '1') {
+    res.sheet = SpreadsheetApp.getActiveSpreadsheet().getUrl();
+  }
+  return res;
 }
 
 // 최근 30일치만 날짜별로 쪼갠다. 총합과 마지막 스캔은 전체 기간 기준.
@@ -189,8 +196,7 @@ function scanStats_() {
   var dates = [];
   var today = new Date();
   for (var d = 29; d >= 0; d--) {
-    var t = new Date(today.getTime() - d * 86400000);
-    dates.push(Utilities.formatDate(t, TZ, 'yyyy-MM-dd'));
+    dates.push(ymd_(new Date(today.getTime() - d * 86400000)));
   }
   var window = {};
   dates.forEach(function (k) { window[k] = true; });
@@ -241,7 +247,7 @@ function save_(p) {
     String(p.name || ''),
     url,
     String(p.memo || ''),
-    Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd'),
+    ymd_(new Date()),
     String(p.active) === '0' ? '중지' : '활성'
   ]);
   return { ok: true, created: true, code: c };

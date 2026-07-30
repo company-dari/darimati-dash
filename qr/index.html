@@ -186,8 +186,19 @@ function boot() {
   if (connected) refresh();
 }
 
+/* 지난번 목록을 먼저 그려두고 뒤에서 갱신한다.
+   구글 조회가 3초쯤 걸려서, 기다리는 동안 빈 화면을 보는 게 느림의 정체였다. */
 function refresh() {
-  api("list", {})
+  if (cfg.cache && cfg.cache.links) {
+    state.links = cfg.cache.links;
+    state.dates = cfg.cache.dates || [];
+    render();
+    document.getElementById("foot").textContent =
+      "QR " + state.links.length + "개 · 전체 스캔 " + (cfg.cache.total || 0) + "회 · 갱신 중…";
+  }
+
+  // 시트 주소는 없을 때만 달라고 한다(구글 쪽에서 느린 호출이라).
+  api("list", cfg.sheet ? {} : { sheet: 1 })
     .then(function (j) {
       if (!j.ok) {
         if (j.error === "BAD_KEY") {
@@ -206,6 +217,8 @@ function refresh() {
       }
       state.links = j.links || [];
       state.dates = j.dates || [];
+      cfg.cache = { links: state.links, dates: state.dates, total: j.total || 0 };
+      save();
 
       /* 시트 주소는 앱스스크립트가 알려준다. 한 번 받으면 이 기기에 저장해 두고,
          못 받은 경우(옛 버전)에는 구글시트 목록으로 보낸다 — 버튼이 죽지 않게. */
