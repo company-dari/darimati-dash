@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>코치 협업 제안 · 다리마티</title>
+<meta property="og:title" content="다리마티 × 코치 협업 제안">
+<meta property="og:description" content="연락처를 남겨주시면 담당자가 직접 연락드립니다.">
+<!-- 쇼피파이로 옮길 때는 ~/rextreme-coach/page.coach.liquid 을 테마 템플릿으로 올리면 된다.
+     QR은 /q/?code=coach 를 거치므로 주소가 바뀌어도 인쇄물은 그대로 쓴다. -->
+<style>*{box-sizing:border-box}body{margin:0}</style>
+</head>
+<body>
+<div class="dm-coach">
+  <div class="dm-coach-in">
+
+    <div class="dm-eyebrow">다리마티 × 코치</div>
+    <h1 class="dm-h1">코치님께<br>협업을 제안드립니다</h1>
+    <p class="dm-sub">
+      현장에서 만나 뵙게 되어 반갑습니다.<br>
+      아래에 연락처를 남겨주시면 담당자가 직접 연락드려
+      협업 방식을 함께 조율하겠습니다.
+    </p>
+
+    <!-- 접수 폼 -->
+    <form class="dm-form" id="dmForm" novalidate>
+      <label class="dm-field">
+        <span>성함 <b>*</b></span>
+        <input type="text" name="name" autocomplete="name" placeholder="홍길동" required>
+      </label>
+
+      <label class="dm-field">
+        <span>센터명 <b>*</b></span>
+        <input type="text" name="center" autocomplete="organization" placeholder="소속 센터 · 지점명" required>
+      </label>
+
+      <label class="dm-field">
+        <span>연락처 <b>*</b></span>
+        <input type="tel" name="phone" id="dmPhone" inputmode="numeric"
+               autocomplete="tel" placeholder="010-0000-0000" required>
+      </label>
+
+      <label class="dm-check">
+        <input type="checkbox" id="dmAgree" required>
+        <span>협업 제안 연락을 위한 개인정보 수집·이용에 동의합니다. <b>*</b></span>
+      </label>
+
+      <button type="submit" class="dm-submit" id="dmSubmit">연락처 남기기</button>
+      <p class="dm-err" id="dmErr" hidden></p>
+    </form>
+
+    <!-- 완료 화면 -->
+    <div class="dm-done" id="dmDone" hidden>
+      <div class="dm-done-mark">✓</div>
+      <h2>접수됐습니다</h2>
+      <p>담당자가 남겨주신 번호로 연락드리겠습니다.<br>그 사이 다리마티 소식을 먼저 받아보세요.</p>
+      <a class="dm-kakao" href="https://pf.kakao.com/_PsxdxhX" target="_blank" rel="noopener">💬 카카오톡 채널 추가</a>
+      <a class="dm-insta" href="https://www.instagram.com/darimati_official/" target="_blank" rel="noopener">📷 인스타그램 팔로우</a>
+    </div>
+
+    <!-- EXAMPLE — 협업 형태 예시. 나중에 교체할 블록. -->
+    <div class="dm-example">
+      <div class="dm-ex-label">협업 형태 예시</div>
+      <a class="dm-ex-card" href="https://company-dari.github.io/darimati-f45-proposal/"
+         target="_blank" rel="noopener">
+        <div class="dm-ex-txt">
+          <b>F45 코치진 파트너십 제안서</b>
+          <span>실제로 진행 중인 협업 사례입니다. 협업 방식은 센터·코치님 상황에 맞춰 조율합니다.</span>
+        </div>
+        <div class="dm-ex-go">보기 →</div>
+      </a>
+    </div>
+
+    <div class="dm-collect">
+      <h3>수집하는 정보</h3>
+      <ul>
+        <li>성함 · 센터명 · 연락처</li>
+      </ul>
+      <p class="dm-collect-note">
+        협업 제안 연락 목적으로만 사용하며, 목적 달성 후 지체 없이 파기합니다.
+        동의를 거부하실 수 있으나 이 경우 연락이 어렵습니다.
+        문의 <b>company@darimati.us</b>
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  .dm-coach{background:#F2F3F5;color:#14161A;padding:clamp(72px,15vw,110px) 20px 72px;min-height:100vh;
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic","Segoe UI",sans-serif;}
+  .dm-coach-in{max-width:460px;margin:0 auto;}
+
+  .dm-eyebrow{font-size:12px;font-weight:800;letter-spacing:.14em;color:#8B929B;margin-bottom:12px;}
+  .dm-h1{font-size:clamp(26px,7vw,32px);font-weight:800;letter-spacing:-.025em;line-height:1.28;margin:0 0 14px;}
+  .dm-sub{font-size:15px;color:#4C535C;line-height:1.68;margin:0 0 28px;}
+
+  .dm-form{display:flex;flex-direction:column;gap:16px;}
+  .dm-field{display:flex;flex-direction:column;gap:7px;}
+  .dm-field>span{font-size:13.5px;font-weight:600;color:#2A2F36;}
+  .dm-field>span b,.dm-check b{color:#C0392B;}
+  .dm-field input{border:1px solid #D7DBE0;border-radius:8px;padding:14px;font-size:16px;
+    background:#fff;color:#14161A;width:100%;}
+  .dm-field input:focus{outline:none;border-color:#14161A;box-shadow:0 0 0 3px rgba(20,22,26,.08);}
+  .dm-field input.bad{border-color:#C0392B;background:#FDF5F4;}
+
+  .dm-check{display:flex;align-items:flex-start;gap:9px;font-size:13.5px;color:#4C535C;
+    line-height:1.5;cursor:pointer;background:#fff;border:1px solid #E3E6EA;border-radius:10px;padding:14px;}
+  .dm-check input{margin-top:2px;width:17px;height:17px;flex:0 0 auto;accent-color:#14161A;}
+
+  .dm-submit{background:#14161A;color:#fff;border:0;border-radius:8px;padding:17px;
+    font-size:16px;font-weight:700;cursor:pointer;}
+  .dm-submit:hover{opacity:.92;}
+  .dm-submit:disabled{opacity:.5;cursor:default;}
+  .dm-err{background:#FBEAEA;border:1px solid #E7B9B9;color:#9A2A2A;border-radius:8px;
+    padding:12px 14px;font-size:13.5px;margin:0;}
+
+  .dm-done{text-align:center;background:#fff;border:1px solid #E3E6EA;border-radius:12px;padding:34px 22px;}
+  .dm-done-mark{width:46px;height:46px;line-height:46px;margin:0 auto 14px;border-radius:50%;
+    background:#14161A;color:#fff;font-size:22px;font-weight:700;}
+  .dm-done h2{font-size:22px;font-weight:800;margin:0 0 8px;}
+  .dm-done p{font-size:14px;color:#4C535C;line-height:1.6;margin:0 0 18px;}
+  .dm-kakao,.dm-insta{display:block;text-decoration:none;font-weight:700;font-size:15px;
+    padding:15px;border-radius:8px;margin-top:10px;}
+  .dm-kakao{background:#FEE500;color:#191600;}
+  .dm-insta{background:#14161A;color:#fff;}
+
+  .dm-example{margin-top:34px;}
+  .dm-ex-label{font-size:12px;font-weight:800;letter-spacing:.1em;color:#8B929B;margin-bottom:10px;}
+  .dm-ex-card{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid #E3E6EA;
+    border-radius:12px;padding:18px;text-decoration:none;color:inherit;}
+  .dm-ex-card:hover{border-color:#C9CFD6;}
+  .dm-ex-txt b{display:block;font-size:15px;font-weight:700;margin-bottom:5px;}
+  .dm-ex-txt span{display:block;font-size:13px;color:#6B727B;line-height:1.6;}
+  .dm-ex-go{flex:0 0 auto;font-size:13px;font-weight:700;color:#14161A;}
+
+  .dm-collect{margin-top:30px;padding-top:22px;border-top:1px solid #E3E6EA;}
+  .dm-collect h3{font-size:14px;font-weight:700;margin:0 0 8px;}
+  .dm-collect ul{margin:0 0 12px;padding-left:18px;font-size:13.5px;color:#2A2F36;}
+  .dm-collect-note{font-size:12.5px;color:#8B929B;line-height:1.7;margin:0;}
+  .dm-collect-note b{color:#4C535C;}
+</style>
+
+<script>
+(function(){
+  /* 접수를 받는 구글 앱스스크립트 주소. 이 한 줄이 연결 지점이다.
+     비어 있으면 폼이 사람을 속이지 않도록 제출을 막고 안내를 띄운다. */
+  var ENDPOINT = 'https://script.google.com/macros/s/AKfycbwdYDjEZn09Est4nKsGxfvrr1191fEvLBJNfjX5XqHFyW49-AHTczk-Jcdld-EjXksK3w/exec';
+
+  var form = document.getElementById('dmForm');
+  var done = document.getElementById('dmDone');
+  var btn  = document.getElementById('dmSubmit');
+  var err  = document.getElementById('dmErr');
+  var phone = document.getElementById('dmPhone');
+
+  function show(msg){ err.textContent = msg; err.hidden = false; }
+
+  // 전화번호 자동 하이픈 — 현장에서 폰으로 빨리 적게 한다.
+  phone.addEventListener('input', function(){
+    var d = this.value.replace(/[^0-9]/g,'').slice(0,11);
+    this.value = d.length < 4 ? d
+      : d.length < 8 ? d.slice(0,3) + '-' + d.slice(3)
+      : d.slice(0,3) + '-' + d.slice(3,7) + '-' + d.slice(7);
+  });
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    err.hidden = true;
+
+    var f = {
+      name:   form.name.value.trim(),
+      center: form.center.value.trim(),
+      phone:  phone.value.trim()
+    };
+    var digits = f.phone.replace(/[^0-9]/g,'');
+
+    [['name', f.name], ['center', f.center]].forEach(function(p){
+      form[p[0]].classList.toggle('bad', !p[1]);
+    });
+    phone.classList.toggle('bad', digits.length < 10);
+
+    if(!f.name || !f.center){ show('성함과 센터명을 입력해 주세요.'); return; }
+    if(digits.length < 10){ show('연락처를 정확히 입력해 주세요.'); return; }
+    if(!document.getElementById('dmAgree').checked){ show('개인정보 수집·이용 동의가 필요합니다.'); return; }
+
+    if(!ENDPOINT){
+      show('접수처가 아직 연결되지 않았습니다. 현장 담당자에게 알려주세요.');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '보내는 중…';
+
+    var params = new URLSearchParams();
+    params.set('name', f.name);
+    params.set('center', f.center);
+    params.set('phone', f.phone);
+    params.set('source', new URLSearchParams(location.search).get('utm_source') || 'qr');
+
+    /* no-cors 라 응답을 읽을 수 없다 — 그래서 성공했다고 보고 완료화면을 띄운다.
+       현장에서 사람을 붙잡아 두지 않는 게 더 중요하다. */
+    fetch(ENDPOINT, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+      body: params.toString()
+    }).catch(function(){});
+
+    setTimeout(function(){
+      form.hidden = true;
+      done.hidden = false;
+      window.scrollTo({top:0, behavior:'smooth'});
+    }, 450);
+
+    try{ if(typeof fbq === 'function') fbq('track','Lead'); }catch(_){}
+  });
+})();
+</script>
+</body>
+</html>
