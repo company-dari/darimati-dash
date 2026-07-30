@@ -262,10 +262,10 @@
       cfg = j.cfg || cfg;
       if (j.found === 1) { say("m1", ""); openRec(j.rec, l4); return; }
       if (j.found > 1) {
-        say("m1", "같은 이름이 여러 건입니다. 신청한 시각을 보고 본인을 골라주세요.");
+        say("m1", "같은 이름이 여러 건입니다. 본인 전화번호를 보고 골라주세요.");
         $("pickBox").innerHTML = j.list.map(function (it) {
           return '<button type="button" class="pick" data-id="' + esc(it.id) + '"><span>' + esc(it.name) +
-            "</span><small>" + (it.reg ? esc(it.reg) + " 신청" : "") +
+            "</span><small>" + esc(it.ph || "") +
             (it.claimed ? " · 이미 확인됨" : "") + "</small></button>";
         }).join("");
         Array.prototype.forEach.call($("pickBox").querySelectorAll(".pick"), function (b) {
@@ -364,6 +364,7 @@
     $("pOver").hidden = !over;
     if (over) $("pOver").textContent = "선착순 수량(" + (cfg.limit || "") + "개)을 넘은 순번입니다. 재고에 따라 지급이 어려울 수 있어요.";
     show("s3");
+    stat();
   }
 
   // 스크린샷과 구분되도록 초가 흐르는 시계
