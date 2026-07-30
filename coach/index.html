@@ -96,6 +96,9 @@
   .dm-h1{font-size:clamp(26px,7vw,32px);font-weight:800;letter-spacing:-.025em;line-height:1.28;margin:0 0 14px;}
   .dm-sub{font-size:15px;color:#4C535C;line-height:1.68;margin:0 0 28px;}
 
+  /* hidden 속성이 반드시 이기게 한다 — .dm-form 의 display:flex 가 브라우저 기본
+     [hidden]{display:none} 을 덮어써서, 제출 후에도 폼이 그대로 남아 있었다(2026-07-30). */
+  .dm-coach [hidden]{display:none !important;}
   .dm-form{display:flex;flex-direction:column;gap:16px;}
   .dm-field{display:flex;flex-direction:column;gap:7px;}
   .dm-field>span{font-size:13.5px;font-weight:600;color:#2A2F36;}
