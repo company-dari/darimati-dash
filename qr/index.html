@@ -60,6 +60,7 @@
   .danger{color:#f87171;border-color:#4a2020;background:#2a1616}
   .empty{text-align:center;color:var(--dim);font-size:13.5px;padding:34px 10px;line-height:1.7}
   .top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+  .tools{display:flex;flex-direction:column;gap:7px;align-items:stretch}
   .sheet{flex-shrink:0;padding:9px 13px;background:var(--card);border:1px solid var(--line);
          border-radius:9px;color:var(--fg);text-decoration:none;font-size:13px;font-weight:650;
          white-space:nowrap}
@@ -75,7 +76,10 @@
       <h1>QR 관리</h1>
       <p class="sub">인쇄한 QR은 그대로 두고 목적지만 바꿉니다</p>
     </div>
-    <a class="sheet" id="sheet" href="https://docs.google.com/spreadsheets/u/0/" target="_blank" rel="noopener" hidden>📊 구글시트</a>
+    <div class="tools">
+      <a class="sheet" id="sheet" href="https://docs.google.com/spreadsheets/u/0/" target="_blank" rel="noopener" hidden>📊 구글시트</a>
+      <button class="sheet" id="reconn" hidden>🔌 연결 바꾸기</button>
+    </div>
   </div>
 
   <div id="msg" class="msg"></div>
@@ -177,6 +181,7 @@ function boot() {
   document.getElementById("setup").hidden = connected;
   document.getElementById("mk").hidden = !connected;
   document.getElementById("sheet").hidden = !connected;
+  document.getElementById("reconn").hidden = !connected;
   if (cfg.sheet) document.getElementById("sheet").href = cfg.sheet;
   if (connected) refresh();
 }
@@ -189,6 +194,14 @@ function refresh() {
           cfg = {}; save(); boot();
           msg("암호가 맞지 않습니다. 다시 연결해 주세요.", "err");
         } else msg("불러오지 못했습니다 (" + j.error + ")", "err");
+        return;
+      }
+
+      /* 다른 앱스스크립트(셔틀런 등)에 연결돼도 ok 는 돌아온다 — 그러면 QR이 0개로 보이고
+         저장은 UNKNOWN_ACTION 으로 실패한다. 그 혼동을 여기서 끊는다. */
+      if (!Array.isArray(j.links)) {
+        msg("이 주소는 QR 스크립트가 아닙니다. 다른 앱스스크립트(예: 셔틀런)에 연결됐습니다. " +
+            "오른쪽 위 '연결 바꾸기'로 QR 시트 주소를 넣어 주세요.", "err");
         return;
       }
       state.links = j.links || [];
@@ -354,14 +367,30 @@ document.getElementById("bConn").addEventListener("click", function () {
   var api_ = document.getElementById("sApi").value.trim();
   var key = document.getElementById("sKey").value.trim();
   if (!api_ || !key) { msg("주소와 암호를 모두 입력해 주세요.", "err"); return; }
-  fetch(api_ + (api_.indexOf("?") > -1 ? "&" : "?") + "a=ping&key=" + encodeURIComponent(key) +
+  /* ping 이 아니라 list 로 확인한다 — ping 은 다른 스크립트도 통과시켜 버리므로
+     "QR 링크표가 있는 스크립트인가"까지 봐야 잘못된 연결을 막을 수 있다. */
+  fetch(api_ + (api_.indexOf("?") > -1 ? "&" : "?") + "a=list&key=" + encodeURIComponent(key) +
         "&_=" + new Date().getTime(), { cache: "no-store" })
     .then(function (r) { return r.json(); })
     .then(function (j) {
       if (!j.ok) { msg(j.error === "BAD_KEY" ? "암호가 맞지 않습니다." : "연결 거절: " + j.error, "err"); return; }
+      if (!Array.isArray(j.links)) {
+        msg("이 주소는 QR 스크립트가 아닙니다. 다른 용도의 앱스스크립트(예: 셔틀런) 주소입니다.", "err");
+        return;
+      }
       cfg.api = api_; cfg.key = key; save(); boot(); msg("연결됐습니다");
     })
     .catch(function () { msg("주소가 맞는지 확인해 주세요. …/exec 로 끝나야 합니다.", "err"); });
+});
+
+// 연결만 지운다. 시트의 QR 목록은 건드리지 않는다.
+document.getElementById("reconn").addEventListener("click", function () {
+  cfg = {}; save();
+  state = { links: [], dates: [], open: "", armed: "" };
+  document.getElementById("list").innerHTML = "";
+  document.getElementById("foot").textContent = "";
+  boot();
+  msg("연결을 지웠습니다. QR 시트의 앱스스크립트 주소를 넣어 주세요.");
 });
 
 document.getElementById("bNew").addEventListener("click", function () {
