@@ -79,7 +79,7 @@
     transition: background .3s ease, border-color .3s ease;
   }
   .slot .sn {
-    font-size: calc(6.2 * var(--u) * var(--s)); font-weight: 800; letter-spacing: -.02em;
+    font-size: calc(8 * var(--u) * var(--s)); font-weight: 800; letter-spacing: -.02em;
     color: var(--text); line-height: 1; white-space: nowrap;
   }
   .slot .sr {
@@ -96,7 +96,7 @@
     display: block; font-size: calc(4.6 * var(--u) * var(--s)); font-weight: 800; letter-spacing: -.02em;
   }
   /* 방법·시상을 함께 띄우면 폭이 좁아지므로 그때는 원래 크기로 */
-  :root.side .slot .sn { font-size: calc(4.4 * var(--u) * var(--s)); }
+  :root.side .slot .sn { font-size: calc(5 * var(--u) * var(--s)); }
   :root.side .slot .sr { font-size: calc(8.4 * var(--u) * var(--s) * var(--pf, 1)); }
   :root.side .slot .sst b { font-size: calc(3.6 * var(--u) * var(--s)); }
 
@@ -223,9 +223,9 @@
   :root.pt .slot .sst { grid-column: 2; grid-row: 1; }
   :root.pt .slot .sr  { grid-column: 1 / -1; grid-row: 2; align-self: center; }
 
-  :root.pt .slot .sn { font-size: calc(6.6 * var(--u) * var(--s)); }
+  :root.pt .slot .sn { font-size: calc(10.5 * var(--u) * var(--s)); }
   :root.pt .slot .sst b { font-size: calc(5.4 * var(--u) * var(--s)); }
-  :root.pt.side .slot .sn { font-size: calc(4.4 * var(--u) * var(--s)); }
+  :root.pt.side .slot .sn { font-size: calc(5.6 * var(--u) * var(--s)); }
   :root.pt.side .slot .sst b { font-size: calc(4 * var(--u) * var(--s)); }
   /* 폭을 다 쓰므로 크게 잡아두고 autofit 에 맡긴다 */
   :root.pt .slot .sr { font-size: calc(26 * var(--u) * var(--s) * var(--pf, 1)); }
