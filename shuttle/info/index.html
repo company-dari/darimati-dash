@@ -53,7 +53,7 @@
   }
   .meta { display: flex; align-items: center; gap: clamp(.9rem, 2vw, 2.2rem); flex: none; }
   .nowpill {
-    font-size: calc(2.6 * var(--u) * var(--s)); font-weight: 800; letter-spacing: -.02em;
+    font-size: calc(3.3 * var(--u) * var(--s)); font-weight: 800; letter-spacing: -.02em;
     background: var(--signal); color: #170500; padding: .35em .7em; border-radius: 3px; line-height: 1;
     white-space: nowrap;
   }
@@ -65,7 +65,7 @@
 
   /* ── 본문: 왼쪽 타임표(주인공) / 오른쪽 방법·시상 ── */
   .grid {
-    flex: 1; min-height: 0; display: grid; grid-template-columns: 1.35fr 1fr;
+    flex: 1; min-height: 0; display: grid; grid-template-columns: 1.45fr 1fr;
     gap: calc(2.4 * var(--u)); padding: calc(2 * var(--u)) 0;
   }
 
@@ -102,7 +102,7 @@
   .slot .sst span:empty { display: none; }
 
   /* 지난 타임 — 있었다는 것만 알아보게 죽인다 */
-  .slot[data-state="done"] { opacity: .38; }
+  .slot[data-state="done"] { opacity: .45; }
   .slot[data-state="done"] .sst b { color: var(--dim); }
 
   /* 다음 타임 */
@@ -116,7 +116,8 @@
   .slot[data-state="live"] .sn { color: var(--signal); }
   .slot[data-state="live"] .sr { font-size: calc(10.6 * var(--u) * var(--s) * var(--pf, 1)); }
   .slot[data-state="live"] .sst b { color: var(--signal); }
-  .slot[data-state="live"] .sst span { color: var(--text); }
+  /* 남은 시간은 "지금 참가해도 되나?"를 판단하는 값이라 흐리게 두지 않는다 */
+  .slot[data-state="live"] .sst span { color: var(--text); font-size: calc(3 * var(--u) * var(--s)); }
 
   /* 진행 막대 — 그 타임이 얼마나 남았는지 */
   .slot .bar {
@@ -213,6 +214,8 @@
   :root.pt .slot .sn { font-size: calc(4.4 * var(--u) * var(--s)); }
   :root.pt .slot .sst b { font-size: calc(4 * var(--u) * var(--s)); }
   :root.pt .slot .sst span { font-size: calc(3 * var(--u) * var(--s)); }
+  :root.pt .slot[data-state="live"] .sst span { font-size: calc(3.4 * var(--u) * var(--s)); }
+  :root.pt .nowpill { font-size: calc(4 * var(--u) * var(--s)); }
   :root.pt .slot .sr { font-size: calc(9.6 * var(--u) * var(--s) * var(--pf, 1)); }
   :root.pt .slot[data-state="live"] .sr { font-size: calc(12 * var(--u) * var(--s) * var(--pf, 1)); }
   :root.pt .foot .msg { font-size: calc(3.2 * var(--u) * var(--s)); white-space: normal; line-height: 1.25;
