@@ -82,7 +82,9 @@
   }
   .slot .sr {
     font-family: var(--font-num); font-variant-numeric: tabular-nums;
-    font-size: calc(8.4 * var(--u) * var(--s)); font-weight: 700; letter-spacing: -.045em; line-height: 1;
+    font-size: calc(8.4 * var(--u) * var(--s) * var(--pf, 1)); font-weight: 700; letter-spacing: -.045em; line-height: 1;
+    /* 시간은 절대 두 줄로 접히면 안 된다 — 넘치면 아래 autofit 이 글자를 줄인다 */
+    white-space: nowrap; min-width: 0; overflow: hidden;
   }
   .slot .sst {
     text-align: right; line-height: 1.15; white-space: nowrap;
@@ -109,7 +111,7 @@
     border-color: var(--signal);
   }
   .slot[data-state="live"] .sn { color: var(--signal); }
-  .slot[data-state="live"] .sr { font-size: calc(10.6 * var(--u) * var(--s)); }
+  .slot[data-state="live"] .sr { font-size: calc(10.6 * var(--u) * var(--s) * var(--pf, 1)); }
   .slot[data-state="live"] .sst b { color: var(--signal); }
   .slot[data-state="live"] .sst span { color: var(--text); }
 
@@ -199,8 +201,8 @@
   :root.pt .challenge { font-size: calc(5.8 * var(--u) * var(--s)); }
   :root.pt .side { flex-direction: row; }
   :root.pt .card { flex: 1; }
-  :root.pt .slot .sr { font-size: calc(9.6 * var(--u) * var(--s)); }
-  :root.pt .slot[data-state="live"] .sr { font-size: calc(12 * var(--u) * var(--s)); }
+  :root.pt .slot .sr { font-size: calc(9.6 * var(--u) * var(--s) * var(--pf, 1)); }
+  :root.pt .slot[data-state="live"] .sr { font-size: calc(12 * var(--u) * var(--s) * var(--pf, 1)); }
   :root.pt .foot .msg { font-size: calc(3.2 * var(--u) * var(--s)); white-space: normal; line-height: 1.25;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 
@@ -379,6 +381,26 @@
 
     var d = kst();
     document.getElementById("clock").textContent = two(d.getUTCHours()) + ":" + two(d.getUTCMinutes());
+
+    autofit();
+  }
+
+  /* 화면이 좁아 "13:00 – 15:00" 이 옆으로 잘리면(=두 줄로 접히려 하면) 세 줄 글자를 함께 줄입니다.
+     세 줄을 같은 비율로 줄여야 숫자 크기가 어긋나 보이지 않습니다. */
+  function autofit() {
+    var root = document.documentElement;
+    function over() {
+      return els.some(function (el) {
+        var s = el.querySelector(".sr");
+        return s.scrollWidth > s.clientWidth + 1;
+      });
+    }
+    var f = 1, guard = 0;
+    root.style.setProperty("--pf", f);
+    while (over() && f > 0.45 && guard++ < 30) {
+      f = Math.round((f - 0.04) * 100) / 100;
+      root.style.setProperty("--pf", f);
+    }
   }
 
   /* ── 바닥 롤링 안내 ────────────────────────── */
@@ -426,7 +448,7 @@
   if (ROTS.indexOf(vs.rot) < 0) vs.rot = 0;
 
   function saveView() { try { localStorage.setItem(VKEY, JSON.stringify(vs)); } catch (e) {} }
-  function applyScale() { document.documentElement.style.setProperty("--s", vs.scale); }
+  function applyScale() { document.documentElement.style.setProperty("--s", vs.scale); autofit(); }
   function setPortrait() {
     var portrait = vs.rot !== 0 ? window.innerWidth >= window.innerHeight : window.innerHeight > window.innerWidth;
     document.documentElement.classList.toggle("pt", portrait);
@@ -437,6 +459,7 @@
     h.classList.toggle("r90", vs.rot === 90);
     h.classList.toggle("r270", vs.rot === 270);
     setPortrait();
+    autofit();
   }
 
   document.getElementById("rotBtn").addEventListener("click", function () {
@@ -452,7 +475,7 @@
     if (!document.fullscreenElement) { (document.documentElement.requestFullscreen || function () {}).call(document.documentElement); }
     else { document.exitFullscreen(); }
   });
-  window.addEventListener("resize", setPortrait);
+  window.addEventListener("resize", function () { setPortrait(); autofit(); });
 
   applyRot(); applyScale(); paint();
   setInterval(paint, 1000);
