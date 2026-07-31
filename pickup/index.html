@@ -356,7 +356,7 @@
     $("pTtl").textContent = already ? "이미 수령 확인된 신청" : "수령 확인 완료";
     $("pName").textContent = rec.name;
     $("pNo").innerHTML = rec.no ? "수령 순번 <b>" + rec.no + "</b>" : "";
-    $("pWhen").textContent = rec.at ? "확인 " + rec.at : "";
+    $("pWhen").textContent = rec.at ? "확인 " + String(rec.at).slice(5, 16) : "";
     $("pNotice").textContent = already
       ? "이미 확인된 신청입니다. 직원에게 보여주세요."
       : (cfg.notice || "이 화면을 포토존 부스 직원에게 보여주세요");
