@@ -17,8 +17,10 @@
     --signal: #ff5a28;
     --gold: #f0cf7a;
     --silver: #c2ccd2;
-    --bronze: #bf7f45;
+    --bronze: #d99a5c;
     --live: #4ade80;
+    --men: #4aa8ff;      /* 남자부 강조색 */
+    --women: #ffb03a;    /* 여자부 강조색 */
     --font-ui: system-ui, -apple-system, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif;
     --font-num: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
     /* 크기의 기준 단위 = 화면의 짧은 변의 1%.
@@ -26,7 +28,6 @@
        (가로 화면에서는 1vh 와 완전히 같은 값이라 기존 화면이 그대로다) */
     --u: 1vmin;
     --s: 1;          /* 전체 배율 (A+ / A−) */
-    --rowfs: calc(4.4 * var(--u));  /* 목록 글자 크기 — 자동으로 줄어듭니다 */
     color-scheme: dark;
   }
   * { box-sizing: border-box; }
@@ -42,7 +43,7 @@
   /* ── 브랜드 밴드 ─────────────────────────────── */
   .brand {
     display: flex; align-items: center; justify-content: space-between;
-    gap: 2rem; padding: calc(5.5 * var(--u)) 0 calc(2.4 * var(--u)); border-bottom: 1px solid var(--rule-strong);
+    gap: 2rem; padding: calc(3.6 * var(--u)) 0 calc(2 * var(--u)); border-bottom: 1px solid var(--rule-strong);
   }
   .lockup { display: flex; align-items: center; gap: clamp(.8rem, 1.8vw, 1.8rem); min-width: 0; }
   .mark { height: calc(calc(10 * var(--u)) * var(--s)); width: auto; color: var(--signal); flex: none; }
@@ -67,64 +68,62 @@
     font-size: calc(calc(2.9 * var(--u)) * var(--s)); font-weight: 700; color: var(--muted);
   }
 
-  /* ── 1위 밴드 ────────────────────────────────── */
-  .leader {
-    display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto;
-    align-items: baseline; column-gap: clamp(1rem, 2.5vw, 2.5rem); row-gap: .6vh;
-    padding: calc(2 * var(--u)) 0 calc(2 * var(--u));
-    border-bottom: 1px solid var(--rule-strong);
-    background: linear-gradient(90deg, rgba(255,90,40,.13), rgba(255,90,40,0) 72%);
-    margin: 0 calc(-1 * clamp(1rem, 2.6vw, 3rem)); padding-left: clamp(1rem, 2.6vw, 3rem); padding-right: clamp(1rem, 2.6vw, 3rem);
-  }
-  .leader .label {
-    grid-column: 1 / -1; font-family: var(--font-num); font-size: calc(calc(1.9 * var(--u)) * var(--s));
-    font-weight: 700; letter-spacing: .3em; text-transform: uppercase; color: var(--signal); line-height: 1;
-  }
-  .leader .who { grid-column: 1; font-size: calc(calc(9 * var(--u)) * var(--s)); font-weight: 800; letter-spacing: -.035em;
-    line-height: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .leader .rec { grid-column: 2; font-family: var(--font-num); font-variant-numeric: tabular-nums;
-    font-size: calc(calc(9 * var(--u)) * var(--s)); font-weight: 700; letter-spacing: -.04em; line-height: 1; color: var(--gold); }
-  .leader.idle .who { font-size: calc(calc(3.6 * var(--u)) * var(--s)); font-weight: 700; color: var(--dim); letter-spacing: -.01em; }
-  .leader.idle { background: none; }
+  /* ── 남자부 / 여자부 반반 ─────────────────────
+     시상이 매 부마다 남·여 따로라, 화면을 위아래로 갈라 각각 순위를 보여준다.
+     위 = 남자, 아래 = 여자. 각 칸에 시상 대상인 1·2·3위만 크게 띄운다. */
+  .halves { flex: 1; min-height: 0; display: grid; grid-template-rows: 1fr 1fr; }
+  .half { min-height: 0; display: flex; flex-direction: column; }
+  .half + .half { border-top: 2px solid var(--rule-strong); }
+  .half[data-sex="M"] { --accent: var(--men); }
+  .half[data-sex="F"] { --accent: var(--women); }
 
-  /* ── 목록 ────────────────────────────────────── */
-  .colhead, .row { display: grid; grid-template-columns: 2.6em 1fr auto; align-items: baseline; gap: .9em; }
-  .colhead {
-    font-family: var(--font-num); font-size: calc(calc(1.4 * var(--u)) * var(--s)); letter-spacing: .24em;
-    text-transform: uppercase; color: var(--dim); padding: calc(1.4 * var(--u)) 0 .8vh;
+  /* ── 시상대 (1·2·3위) ─────────────────────────
+     시상이 남/여 각각 1·2·3위라 화면에도 딱 세 명만 크게 띄운다. */
+  .hlabel {
+    display: flex; align-items: center; gap: .7em; padding: calc(1.4 * var(--u)) 0 calc(.6 * var(--u));
   }
-  .colhead .t { text-align: right; }
+  .hlabel .sexchip {
+    font-size: calc(calc(3.2 * var(--u)) * var(--s)); font-weight: 800; letter-spacing: -.01em; line-height: 1;
+    background: var(--accent); color: #10131a; padding: .3em .65em; border-radius: 3px;
+  }
+  .hlabel em {
+    font-style: normal; font-family: var(--font-num); font-size: calc(calc(1.7 * var(--u)) * var(--s));
+    font-weight: 700; letter-spacing: .3em; text-transform: uppercase; color: var(--accent);
+  }
 
-  .scroller { flex: 1; min-height: 0; overflow: hidden; font-size: var(--rowfs); }
-  .list { display: block; }
-  .list.split { display: grid; grid-auto-flow: column; column-gap: clamp(2rem, 5vw, 5rem); }
+  .podium { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center;
+    gap: calc(1.1 * var(--u)); overflow: hidden; }
+  .pod {
+    display: grid; grid-template-columns: 1.15em 1fr auto; align-items: baseline;
+    column-gap: .45em; line-height: 1;
+  }
+  .pod .pk { font-family: var(--font-num); font-variant-numeric: tabular-nums; font-weight: 700; font-size: .62em; }
+  .pod .pn { font-weight: 800; letter-spacing: -.035em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pod .pt { font-family: var(--font-num); font-variant-numeric: tabular-nums; font-weight: 700; letter-spacing: -.04em; }
 
-  .row { padding: .3em .35em; margin-left: -.35em; border-bottom: 1px solid var(--rule); }
-  .row .rank { font-family: var(--font-num); font-variant-numeric: tabular-nums;
-    font-size: .58em; font-weight: 700; color: var(--dim); }
-  .row .name { font-size: 1em; font-weight: 700; letter-spacing: -.02em; line-height: 1.15;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .row .time { font-family: var(--font-num); font-variant-numeric: tabular-nums;
-    font-size: 1em; font-weight: 700; letter-spacing: -.02em; }
-  .row.p2 .rank { color: var(--silver); }
-  .row.p3 .rank { color: var(--bronze); }
-  .row.cutin .time { color: var(--live); }
-  .row.flash { animation: flash 1.8s ease-out; }
+  .pod.p1 { font-size: calc(calc(9 * var(--u)) * var(--s) * var(--pf, 1)); }
+  .pod.p2, .pod.p3 { font-size: calc(calc(5.4 * var(--u)) * var(--s) * var(--pf, 1)); }
+  .pod.p1 .pk { color: var(--accent); }
+  .pod.p1 .pt { color: var(--gold); }
+  .pod.p2 .pk, .pod.p2 .pt { color: var(--silver); }
+  .pod.p3 .pk, .pod.p3 .pt { color: var(--bronze); }
+  .pod.p2 .pn, .pod.p3 .pn { color: #d7e0e5; }
+
+  /* 1위 줄만 은은한 배경 — 어느 쪽이 남/여인지 멀리서도 구분되게 */
+  .pod.p1 { margin: 0 calc(-1 * clamp(1rem, 2.6vw, 3rem)); padding: .2em clamp(1rem, 2.6vw, 3rem); }
+  .half[data-sex="M"] .pod.p1 { background: linear-gradient(90deg, rgba(74,168,255,.16), rgba(74,168,255,0) 75%); }
+  .half[data-sex="F"] .pod.p1 { background: linear-gradient(90deg, rgba(255,176,58,.16), rgba(255,176,58,0) 75%); }
+
+  .pod.flash { animation: flash 1.8s ease-out; }
   @keyframes flash { from { background: rgba(255,90,40,.32); } to { background: transparent; } }
 
-  .cutline {
-    display: flex; align-items: center; gap: .8em; padding: .55em .35em; margin-left: -.35em;
-    font-family: var(--font-num); font-size: .44em; letter-spacing: .18em; text-transform: uppercase; color: var(--live);
-  }
-  .cutline::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--live), transparent); opacity: .5; }
-
-  .empty { padding: calc(3 * var(--u)) 0; color: var(--dim); font-size: .6em; }
+  .empty { color: var(--dim); font-size: calc(calc(3 * var(--u)) * var(--s)); font-weight: 700; }
 
   /* ── 하단 안내 롤링 배너 ─────────────────────── */
   .notice {
     display: flex; align-items: center; gap: 1.2em; overflow: hidden;
     margin: 0 calc(-1 * clamp(1rem, 2.6vw, 3rem));
-    padding: calc(2.6 * var(--u)) clamp(1rem, 2.6vw, 3rem);
+    padding: calc(2.1 * var(--u)) clamp(1rem, 2.6vw, 3rem);
     background: rgba(255, 90, 40, .09);
     border-top: 1px solid var(--rule-strong);
   }
@@ -223,13 +222,32 @@
   :root.pt .challenge { font-size: calc(calc(6.2 * var(--u)) * var(--s)); }
   :root.pt .meta { justify-content: space-between; }
 
-  /* 1위 밴드: 이름 아래 기록 (옆으로 나란히 두면 폭이 모자람) */
-  :root.pt .leader { grid-template-columns: 1fr; }
-  :root.pt .leader .who, :root.pt .leader .rec { grid-column: 1; }
-  :root.pt .leader .rec { font-size: calc(11 * var(--u) * var(--s)); }
-
-  /* 세로는 위아래로 길어서 2단으로 쪼갤 이유가 없다 */
-  :root.pt .list.split { display: block; }
+  /* 세로 화면(=TV를 세워 쓰는 실제 현장)에서는 위아래가 넉넉하므로 전부 키운다.
+     가로 폭이 한계라 1위 글자는 이 이상 못 키운다 — 넘치면 아래 autofit 이 자동으로 줄인다. */
+  :root.pt .hlabel { padding: calc(1.6 * var(--u)) 0 calc(.8 * var(--u)); }
+  :root.pt .hlabel .sexchip { font-size: calc(calc(4.4 * var(--u)) * var(--s)); }
+  :root.pt .hlabel em { font-size: calc(calc(2.3 * var(--u)) * var(--s)); }
+  :root.pt .podium { gap: calc(2 * var(--u)); }
+  /* 순위 숫자 칸을 세 줄 모두 같은 폭으로 — 1·2·3위 이름 시작점이 딱 맞아야 읽기 편하다 */
+  :root.pt .pod { grid-template-columns: calc(6.5 * var(--u)) 1fr auto; column-gap: calc(1.4 * var(--u)); }
+  /* 1위는 이름 아래 기록 — 옆으로 나란히 두면 폭이 모자라 글자를 크게 못 키운다 */
+  :root.pt .pod.p1 {
+    grid-template-columns: calc(6.5 * var(--u)) 1fr; row-gap: .1em;
+    font-size: calc(calc(13 * var(--u)) * var(--s) * var(--pf, 1));
+  }
+  :root.pt .pod.p1 .pk { grid-column: 1; grid-row: 1; }
+  :root.pt .pod.p1 .pn { grid-column: 2; grid-row: 1; }
+  :root.pt .pod.p1 .pt { grid-column: 2; grid-row: 2; font-size: .8em; }
+  :root.pt .pod.p2, :root.pt .pod.p3 { font-size: calc(calc(7.2 * var(--u)) * var(--s) * var(--pf, 1)); }
+  :root.pt .notice .msg { font-size: calc(calc(4.4 * var(--u)) * var(--s)); }
+  :root.pt .notice .tag { font-size: calc(calc(2.2 * var(--u)) * var(--s)); }
+  :root.pt .divpill { font-size: calc(calc(3.4 * var(--u)) * var(--s)); }
+  :root.pt .clock { font-size: calc(calc(3.6 * var(--u)) * var(--s)); }
+  :root.pt .conn, :root.pt .waiting .lbl { font-size: calc(calc(1.8 * var(--u)) * var(--s)); }
+  :root.pt .waiting .names { font-size: calc(calc(2.6 * var(--u)) * var(--s)); }
+  :root.pt .qr canvas { width: calc(calc(11 * var(--u)) * var(--s)); height: calc(calc(11 * var(--u)) * var(--s)); }
+  :root.pt .qr .cap b { font-size: calc(calc(2.6 * var(--u)) * var(--s)); }
+  :root.pt .qr .cap span { font-size: calc(calc(1.7 * var(--u)) * var(--s)); }
 
   /* 바닥: 접속상태 + QR 한 줄, 기록 대기는 그 아래 한 줄 */
   :root.pt .foot { grid-template-columns: 1fr auto; gap: calc(1 * var(--u)) 1.4rem; }
@@ -274,14 +292,16 @@
     </div>
   </header>
 
-  <section class="leader idle" id="leader">
-    <span class="label" id="leaderLabel">현재 1위</span>
-    <span class="who" id="leaderName">첫 기록을 기다립니다</span>
-    <span class="rec" id="leaderTime"></span>
-  </section>
-
-  <div class="colhead"><span>#</span><span>NAME</span><span class="t">TIME</span></div>
-  <div class="scroller" id="scroller"><div class="list" id="list"></div></div>
+  <div class="halves">
+    <section class="half" data-sex="M">
+      <div class="hlabel"><i class="sexchip">남자</i><em>Men · Top 3</em></div>
+      <div class="podium"></div>
+    </section>
+    <section class="half" data-sex="F">
+      <div class="hlabel"><i class="sexchip">여자</i><em>Women · Top 3</em></div>
+      <div class="podium"></div>
+    </section>
+  </div>
 
   <div class="notice" id="notice" hidden>
     <span class="tag">안내</span>
@@ -335,11 +355,11 @@
   var DIV_TIME = { "1": "10–12시", "2": "13–15시", "3": "16–18시" };
 
   var forcedDiv = qs.get("div");
-  var view = { rows: [], cfg: { sort: "asc", live: "1", cut: "", cutlabel: "경품 대상", qr: "" } };
+  var view = { rows: [], cfg: { sort: "asc", live: "1", qr: "" } };
   var shownDiv = forcedDiv || "1";
   var rotateAt = 0, lastSig = "", lastOkAt = null;
   var seen = {};              // 이미 본 기록 (연출 중복 방지)
-  var leaderKey = null;       // 현재 1위
+  var leaderKey = { M: null, F: null };   // 현재 1위 (남/여 각각)
   var primed = false;         // 첫 로딩에는 연출을 띄우지 않음
   var flashKeys = {};
 
@@ -349,6 +369,19 @@
     var n = Number(sec); return Math.floor(n / 60) + ":" + two(n % 60);
   }
   function keyOf(r) { return r.d + "|" + r.n + "|" + r.s; }
+
+  /* ── 부 + 성별 ──────────────────────────────
+     시상이 매 부마다 남/여 따로라, 운영 페이지가 "부" 값에 성별을 붙여 보냅니다 ("1남", "2여").
+     성별이 없는 옛 기록("1")은 어느 쪽에도 안 들어갑니다 — 운영 페이지가 빨간 칩으로 알려줍니다. */
+  function divOf(d) { var m = String(d == null ? "" : d).match(/\d+/); return m ? m[0] : "1"; }
+  function sexOf(d) {
+    var s = String(d == null ? "" : d);
+    if (s.indexOf("여") > -1 || /F$/i.test(s)) return "F";
+    if (s.indexOf("남") > -1 || /M$/i.test(s)) return "M";
+    return "";
+  }
+  var SEXES = ["M", "F"];
+  var SEX_KO = { M: "남자", F: "여자" };
 
   /* ── 데이터 ────────────────────────────────── */
 
@@ -422,18 +455,25 @@
       if (seen[k] !== r.t) { if (primed && seen[k] === undefined || (primed && seen[k] !== r.t)) fresh.push(r); seen[k] = r.t; }
     });
 
-    var top = ranked(pickDiv())[0];
-    var newLeaderKey = top ? keyOf(top.a) + "@" + top.a.t : null;
+    // 1위는 남/여 각각 따로 — 어느 쪽이든 새 1위가 나오면 전체화면 연출
+    var d = pickDiv();
+    var tops = {}, keys = {};
+    SEXES.forEach(function (sx) {
+      var t = ranked(d, sx)[0];
+      tops[sx] = t ? t.a : null;
+      keys[sx] = t ? keyOf(t.a) + "@" + t.a.t : null;
+    });
 
-    if (!primed) { primed = true; leaderKey = newLeaderKey; return; }
+    if (!primed) { primed = true; leaderKey = keys; return; }
 
-    if (newLeaderKey && newLeaderKey !== leaderKey) {
-      leaderKey = newLeaderKey;
-      showTakeover(top.a);
+    var changed = SEXES.filter(function (sx) { return keys[sx] && keys[sx] !== leaderKey[sx]; });
+    if (changed.length) {
+      leaderKey = keys;
+      showTakeover(tops[changed[0]]);
       fresh.forEach(function (r) { flashKeys[keyOf(r)] = 1; });
       return;
     }
-    leaderKey = newLeaderKey;
+    leaderKey = keys;
 
     if (fresh.length) {
       var last = fresh[fresh.length - 1];
@@ -445,10 +485,12 @@
   var tkTimer, bnTimer;
   function showTakeover(a) {
     var el = document.getElementById("takeover");
+    var sx = sexOf(a.d);
     document.getElementById("tkName").textContent = a.n;
     document.getElementById("tkTime").textContent = fmt(a.t);
-    document.getElementById("tkKicker").textContent = "새 1위 · New Leader";
-    document.getElementById("tkSub").textContent = a.d + "부 · DARIMATI 셔틀런 챌린지";
+    document.getElementById("tkKicker").textContent = (SEX_KO[sx] || "") + " 새 1위 · New Leader";
+    document.getElementById("tkSub").textContent =
+      divOf(a.d) + "부 " + (SEX_KO[sx] || "") + " · DARIMATI 셔틀런 챌린지";
     el.dataset.show = "true";
     clearTimeout(tkTimer);
     tkTimer = setTimeout(function () { el.dataset.show = "false"; }, 5000);
@@ -456,8 +498,9 @@
 
   function showBanner(a) {
     var el = document.getElementById("banner");
-    var r = ranked(a.d).filter(function (x) { return keyOf(x.a) === keyOf(a); })[0];
-    document.getElementById("bnName").textContent = a.n + (r ? "  " + r.rank + "위" : "");
+    var r = ranked(divOf(a.d), sexOf(a.d)).filter(function (x) { return keyOf(x.a) === keyOf(a); })[0];
+    document.getElementById("bnName").textContent =
+      a.n + " " + (SEX_KO[sexOf(a.d)] || "") + (r ? "  " + r.rank + "위" : "");
     document.getElementById("bnTime").textContent = fmt(a.t);
     el.dataset.show = "true";
     clearTimeout(bnTimer);
@@ -468,10 +511,13 @@
 
   function asc() { return String(view.cfg.sort || "asc") !== "desc"; }
 
-  function ranked(div) {
+  function ranked(div, sex) {
     var up = asc();
     var done = view.rows
-      .filter(function (a) { return a.d === div && a.t !== null && a.t !== undefined && a.t !== ""; })
+      .filter(function (a) {
+        return divOf(a.d) === div && sexOf(a.d) === sex &&
+          a.t !== null && a.t !== undefined && a.t !== "";
+      })
       .sort(function (a, b) { return up ? (a.t - b.t || a.s - b.s) : (b.t - a.t || a.s - b.s); });
     var rank = 0, prev = null, out = [];
     done.forEach(function (a, i) {
@@ -481,12 +527,10 @@
     return out;
   }
   function pendingOf(div) {
-    return view.rows.filter(function (a) { return a.d === div && (a.t === null || a.t === undefined || a.t === ""); });
-  }
-  function passesCut(t) {
-    var c = Number(view.cfg.cut);
-    if (!view.cfg.cut || isNaN(c) || c <= 0) return null;
-    return asc() ? t <= c : t >= c;
+    return view.rows.filter(function (a) {
+      return divOf(a.d) === div && SEXES.indexOf(sexOf(a.d)) > -1 &&
+        (a.t === null || a.t === undefined || a.t === "");
+    });
   }
 
   // 시계로 지금 진행 중인 부를 판단합니다 (1부 ~12:59 / 2부 ~15:59 / 3부 그 이후)
@@ -502,7 +546,7 @@
     var live = String(view.cfg.live || "1");
     if (live === "auto") return divByClock();
     if (live !== "rotate") return DIVS.indexOf(live) > -1 ? live : "1";
-    var have = DIVS.filter(function (d) { return view.rows.some(function (r) { return r.d === d; }); });
+    var have = DIVS.filter(function (d) { return view.rows.some(function (r) { return divOf(r.d) === d; }); });
     if (!have.length) return "1";
     var now = new Date().getTime();
     if (now > rotateAt) { rotateAt = now + 20000; shownDiv = have[(have.indexOf(shownDiv) + 1) % have.length]; }
@@ -511,70 +555,24 @@
 
   /* ── 렌더 ──────────────────────────────────── */
 
-  var elList = document.getElementById("list");
-  var elScroller = document.getElementById("scroller");
+  // 남/여 두 칸의 화면 요소를 미리 잡아둡니다
+  var halves = {};
+  SEXES.forEach(function (sx) {
+    var el = document.querySelector('.half[data-sex="' + sx + '"]');
+    halves[sx] = { box: el, podium: el.querySelector(".podium") };
+  });
 
   function render() {
     shownDiv = pickDiv();
-    var rows = ranked(shownDiv);
     var wait = pendingOf(shownDiv);
 
     document.getElementById("divPill").textContent =
       shownDiv + "부" + (DIV_TIME[shownDiv] ? " · " + DIV_TIME[shownDiv] : "");
 
-    // 1위 밴드
-    var lead = document.getElementById("leader");
-    if (rows.length) {
-      lead.classList.remove("idle");
-      document.getElementById("leaderLabel").textContent = "현재 1위 · Leader";
-      document.getElementById("leaderName").textContent = rows[0].a.n;
-      document.getElementById("leaderTime").textContent = fmt(rows[0].a.t);
-    } else {
-      lead.classList.add("idle");
-      document.getElementById("leaderLabel").textContent = "지금 도전하세요";
-      document.getElementById("leaderName").textContent = wait.length ? "등록 " + wait.length + "명 · 첫 기록을 기다립니다" : "누구나 참여 · 부스에서 신청";
-      document.getElementById("leaderTime").textContent = "";
-    }
-
-    // 2위부터 목록
-    var rest = rows.slice(1);
-    elList.innerHTML = "";
-    if (!rest.length) {
-      var p = document.createElement("p");
-      p.className = "empty";
-      p.textContent = rows.length ? "다음 도전자를 기다립니다" : "";
-      elList.appendChild(p);
-      elList.classList.remove("split");
-      elList.style.gridTemplateRows = "";
-    } else {
-      var cutDrawn = false;
-      rest.forEach(function (r) {
-        var ok = passesCut(r.a.t);
-        if (ok === false && !cutDrawn) {
-          cutDrawn = true;
-          var cl = document.createElement("div");
-          cl.className = "cutline";
-          cl.textContent = "커트라인 " + fmt(Number(view.cfg.cut)) + " · " + (view.cfg.cutlabel || "경품 대상");
-          elList.appendChild(cl);
-        }
-        var k = keyOf(r.a);
-        var div = document.createElement("div");
-        div.className = "row" + (r.rank <= 3 ? " p" + r.rank : "") + (ok ? " cutin" : "") + (flashKeys[k] ? " flash" : "");
-        div.innerHTML = "<span class='rank'>" + r.rank + "</span><span class='name'></span><span class='time'>" + fmt(r.a.t) + "</span>";
-        div.querySelector(".name").textContent = r.a.n;
-        elList.appendChild(div);
-      });
-      if (rest.length >= 12) {
-        elList.classList.add("split");
-        elList.style.gridTemplateRows = "repeat(" + Math.ceil(elList.children.length / 2) + ", auto)";
-      } else {
-        elList.classList.remove("split");
-        elList.style.gridTemplateRows = "";
-      }
-    }
+    SEXES.forEach(function (sx) { renderHalf(sx, ranked(shownDiv, sx), wait); });
     flashKeys = {};
 
-    // 기록 대기
+    // 기록 대기 (남·여 합쳐서 한 줄)
     var wb = document.getElementById("waitBox");
     wb.hidden = wait.length === 0;
     document.getElementById("waitNames").textContent = wait.map(function (a) { return a.n; }).join("  ·  ");
@@ -582,19 +580,50 @@
     autofit();
   }
 
-  // 목록이 한 화면에 들어오도록 글자 크기를 자동으로 줄입니다
+  // 시상 대상인 1·2·3위만 큼직하게. 4위 아래는 화면에 띄우지 않습니다.
+  function renderHalf(sx, rows, waitAll) {
+    var h = halves[sx];
+    var wait = waitAll.filter(function (a) { return sexOf(a.d) === sx; });
+    var top3 = rows.slice(0, 3);
+    var box = h.podium;
+    box.innerHTML = "";
+
+    if (!top3.length) {
+      var p = document.createElement("p");
+      p.className = "empty";
+      p.textContent = wait.length ? "등록 " + wait.length + "명 · 첫 기록을 기다립니다" : "누구나 참여 · 부스에서 신청";
+      box.appendChild(p);
+      return;
+    }
+    top3.forEach(function (r, i) {
+      var k = keyOf(r.a);
+      var el = document.createElement("div");
+      el.className = "pod p" + (i + 1) + (flashKeys[k] ? " flash" : "");
+      el.innerHTML = "<span class='pk'>" + r.rank + "</span><span class='pn'></span><span class='pt'>" + fmt(r.a.t) + "</span>";
+      el.querySelector(".pn").textContent = r.a.n;
+      box.appendChild(el);
+    });
+  }
+
+  // 세 줄이 위아래로 넘치거나 긴 이름이 옆으로 잘릴 때, 그 칸의 글자만 줄입니다
   function autofit() {
-    // 단위는 --u 가 쥐고 있다 (가로=1vh, 세로=1vw). 여기서는 배수만 줄인다.
-    function put(v) {
-      document.documentElement.style.setProperty("--rowfs", "calc(" + v + " * var(--u))");
+    function put(v) { SEXES.forEach(function (sx) { halves[sx].box.style.setProperty("--pf", v); }); }
+    function anyOver() { return SEXES.some(function (sx) { return podOverflows(halves[sx]); }); }
+    var f = 1, guard = 0;
+    put(f);
+    while (anyOver() && f > 0.4 && guard++ < 30) {
+      f = Math.round((f - 0.04) * 100) / 100;
+      put(f);
     }
-    var base = 4.4, size = base;
-    put(size);
-    var guard = 0;
-    while (elList.scrollHeight > elScroller.clientHeight && size > 1.4 && guard++ < 40) {
-      size = Math.round((size - 0.15) * 100) / 100;
-      put(size);
+  }
+
+  function podOverflows(h) {
+    if (h.podium.scrollHeight > h.podium.clientHeight + 1) return true;
+    var names = h.podium.querySelectorAll(".pn");
+    for (var i = 0; i < names.length; i++) {
+      if (names[i].scrollWidth > names[i].clientWidth + 1) return true;   // 이름이 …으로 잘리는 중
     }
+    return false;
   }
 
   /* ── 하단 안내 롤링 배너 ───────────────────── */
@@ -602,7 +631,8 @@
   // 운영 페이지에서 안 바꾸면 이 문구가 나옵니다. 여러 개면 6초마다 돌아갑니다.
   var DEFAULT_NOTICE = [
     "각 시간대별 행사가 종료되면 결과와 경품 안내를 개별 연락드립니다",
-    "참가 신청은 다리마티 부스에서 받습니다"
+    "대기줄 입구의 QR코드로 선수 정보를 먼저 제출해 주세요",
+    "시상은 매 부마다 남자 · 여자 각각 진행합니다"
   ];
   var noticeList = [], noticeIdx = 0, noticeTimer = null;
 

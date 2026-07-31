@@ -16,6 +16,8 @@
     --dim: #56666f;
     --signal: #ff5a28;
     --live: #4ade80;
+    --men: #4aa8ff;
+    --women: #ffb03a;
     --font-ui: system-ui, -apple-system, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif;
     --font-num: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
     color-scheme: dark;
@@ -78,6 +80,21 @@
   .x { appearance: none; background: none; border: 0; color: var(--dim); cursor: pointer; font-size: 1rem; padding: .2rem .4rem; }
   .x:hover { color: var(--signal); }
 
+  /* ── 성별 선택 (등록 폼) — 부스에서 한 손으로 누르게 큼직하게 ── */
+  .segs { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+  .seg { appearance: none; border: 1px solid var(--rule); background: var(--panel-2); color: var(--muted);
+    font-family: var(--font-ui); font-size: 1.05rem; font-weight: 800; padding: .7rem .4rem; border-radius: 4px; cursor: pointer; }
+  .seg:hover { border-color: var(--dim); }
+  .seg[aria-pressed="true"][data-sex="M"] { background: var(--men); border-color: var(--men); color: #04121f; }
+  .seg[aria-pressed="true"][data-sex="F"] { background: var(--women); border-color: var(--women); color: #1f1200; }
+  .seg small { display: block; font-family: var(--font-num); font-size: .6rem; letter-spacing: .16em; font-weight: 400; opacity: .75; margin-top: .15rem; }
+
+  .chip.men { border-color: var(--men); color: var(--men); }
+  .chip.women { border-color: var(--women); color: var(--women); }
+  .chip.none { border-color: var(--signal); color: var(--signal); }
+  button.chip { background: none; cursor: pointer; font-weight: 700; }
+  button.chip:hover { filter: brightness(1.35); }
+
   .setup { max-width: 460px; margin: 3rem auto; }
   .toast { position: fixed; left: 50%; bottom: 1.1rem; transform: translate(-50%, 160%); background: var(--signal);
     color: #170500; font-weight: 700; font-size: .9rem; padding: .6rem 1.2rem; border-radius: 4px; z-index: 90; transition: transform .25s ease; }
@@ -113,6 +130,13 @@
           <label for="fPhone">연락처 <span style="text-transform:none;letter-spacing:0">(기록판에 안 뜸)</span></label>
           <input id="fPhone" data-num inputmode="tel" placeholder="010-0000-0000" />
 
+          <label>성별 <span style="text-transform:none;letter-spacing:0">— 시상이 남/여 따로라 꼭 골라야 합니다</span></label>
+          <div class="segs" id="fSex">
+            <button type="button" class="seg" data-sex="M" aria-pressed="false">남자<small>MEN</small></button>
+            <button type="button" class="seg" data-sex="F" aria-pressed="false">여자<small>WOMEN</small></button>
+          </div>
+          <p class="hint" id="fSexHint">고르지 않으면 등록되지 않습니다</p>
+
           <label for="fDiv">부</label>
           <select id="fDiv"><option value="1">1부 (10~12시)</option><option value="2">2부 (13~15시)</option><option value="3">3부 (16~18시)</option></select>
 
@@ -139,13 +163,6 @@
           <option value="desc">기록이 클수록 1위</option>
         </select>
 
-        <label for="cCut">커트라인 <span style="text-transform:none;letter-spacing:0">(비우면 표시 안 함)</span></label>
-        <input id="cCut" data-num inputmode="numeric" placeholder="15:00" />
-        <p class="hint" id="cCutHint">이 기록 안에 든 사람은 초록색으로 표시되고, 목록에 선이 그어집니다</p>
-
-        <label for="cCutLabel">커트라인 문구</label>
-        <input id="cCutLabel" placeholder="경품 대상" />
-
         <label for="cQr">화면 구석 QR 주소 <span style="text-transform:none;letter-spacing:0">(비우면 QR 없음)</span></label>
         <input id="cQr" inputmode="url" placeholder="https://www.darimati.us/pages/rextreme-2026" />
 
@@ -166,14 +183,16 @@
       <div class="toolbar">
         <input id="search" placeholder="이름 · 연락처 검색" aria-label="검색" />
         <select id="filterDiv"><option value="all">전체 부</option><option value="1">1부 (10~12시)</option><option value="2">2부 (13~15시)</option><option value="3">3부 (16~18시)</option></select>
+        <select id="filterSex"><option value="all">남·여 전체</option><option value="M">남자만</option><option value="F">여자만</option></select>
         <span class="chip" id="cntChip">0명</span>
+        <span class="chip none" id="noSexChip" hidden>성별 미지정 0</span>
         <span class="chip warn" id="queueChip" hidden>전송 대기 0</span>
         <button type="button" class="btn sm" id="exportBtn">CSV</button>
       </div>
       <div class="tbl-wrap">
         <table>
           <thead><tr>
-            <th style="width:3.4rem">부</th><th>이름</th><th style="width:9rem">연락처</th><th style="width:7.5rem">기록</th><th style="width:2.6rem"></th>
+            <th style="width:3.4rem">부</th><th style="width:4rem">성별</th><th>이름</th><th style="width:9rem">연락처</th><th style="width:7.5rem">기록</th><th style="width:2.6rem"></th>
           </tr></thead>
           <tbody id="tbody"></tbody>
         </table>
@@ -226,6 +245,22 @@
     if (sec === null || sec === undefined || sec === "") return "";
     var n = Number(sec); return Math.floor(n / 60) + ":" + two(n % 60);
   }
+
+  /* ── 부 + 성별 ─────────────────────────────────
+     시상이 매 부 × 남/여 로 나뉘므로 성별을 반드시 함께 저장해야 합니다.
+     시트의 "부" 칸 하나에 "1남" / "1여" 처럼 붙여서 넣습니다.
+     (구글 시트 스크립트를 다시 배포하지 않아도 되게 만든 방식 — 시트에서도 그대로 읽힙니다.)
+     옛날에 성별 없이 등록된 줄은 "1" 처럼 숫자만 있고, 성별 = "" 로 취급합니다. */
+  function divOf(d) { var m = String(d == null ? "" : d).match(/\d+/); return m ? m[0] : "1"; }
+  function sexOf(d) {
+    var s = String(d == null ? "" : d);
+    if (s.indexOf("여") > -1 || /F$/i.test(s)) return "F";
+    if (s.indexOf("남") > -1 || /M$/i.test(s)) return "M";
+    return "";
+  }
+  function mkDiv(div, sex) { return String(div) + (sex === "F" ? "여" : sex === "M" ? "남" : ""); }
+  var SEX_KO = { M: "남자", F: "여자", "": "미지정" };
+
   function parseTime(input) {
     var s = String(input || "").trim();
     if (!s) return null;
@@ -348,7 +383,7 @@
   }
 
   function pushCfg() {
-    if (api) enqueue({ a: "cfg", sort: cfg.sort, live: cfg.live, cut: cfg.cut || "", cutlabel: cfg.cutlabel || "", qr: cfg.qr || "", notice: cfg.notice || "" });
+    if (api) enqueue({ a: "cfg", sort: cfg.sort, live: cfg.live, qr: cfg.qr || "", notice: cfg.notice || "" });
     else { saveLocal(); }
   }
 
@@ -357,6 +392,7 @@
   var tbody = document.getElementById("tbody");
   var elSearch = document.getElementById("search");
   var elFilter = document.getElementById("filterDiv");
+  var elFilterSex = document.getElementById("filterSex");
 
   var renderPending = false;
   function editing() {
@@ -370,24 +406,36 @@
     renderPending = false;
     var q = elSearch.value.trim().toLowerCase();
     var f = elFilter.value;
+    var fs = elFilterSex.value;
     var list = rows.filter(function (r) {
-      if (f !== "all" && r.div !== f) return false;
+      if (f !== "all" && divOf(r.div) !== f) return false;
+      if (fs !== "all" && sexOf(r.div) !== fs) return false;
       if (!q) return true;
       return (r.name + " " + (r.phone || "")).toLowerCase().indexOf(q) > -1;
     }).sort(function (x, y) { return String(x.div).localeCompare(String(y.div)) || (y.seq - x.seq); });
 
     document.getElementById("cntChip").textContent = list.length + "명";
+
+    // 성별이 안 들어간 줄은 기록판에 아예 안 나오므로 눈에 띄게 알려줍니다
+    var noSex = rows.filter(function (r) { return !sexOf(r.div); }).length;
+    var nsChip = document.getElementById("noSexChip");
+    nsChip.hidden = noSex === 0;
+    nsChip.textContent = "성별 미지정 " + noSex + "명 · 기록판에 안 나옴";
     tbody.innerHTML = "";
     if (!list.length) {
       var tr0 = document.createElement("tr");
-      tr0.innerHTML = "<td colspan='5' style='color:var(--dim);padding:1.4rem .6rem'>아직 등록된 선수가 없습니다</td>";
+      tr0.innerHTML = "<td colspan='6' style='color:var(--dim);padding:1.4rem .6rem'>아직 등록된 선수가 없습니다</td>";
       tbody.appendChild(tr0);
       renderQueue(); return;
     }
     list.forEach(function (r) {
+      var sx = sexOf(r.div);
       var tr = document.createElement("tr");
       tr.innerHTML =
-        "<td><span class='chip'>" + r.div + "부</span></td>" +
+        "<td><span class='chip'>" + divOf(r.div) + "부</span></td>" +
+        "<td><button type='button' class='chip " + (sx === "M" ? "men" : sx === "F" ? "women" : "none") + "'" +
+          " data-sex-id='" + r.id + "'" + (r.tmp ? " disabled" : "") +
+          " title='눌러서 성별을 바꿉니다'>" + SEX_KO[sx] + "</button></td>" +
         "<td class='nm'></td><td class='ph'></td>" +
         "<td><input data-id='" + r.id + "' placeholder='18:04' value='" + fmt(r.time) + "'" + (r.tmp ? " disabled" : "") + " /></td>" +
         "<td><button type='button' class='x' data-del='" + r.id + "' title='삭제'>✕</button></td>";
@@ -418,8 +466,6 @@
     document.getElementById("cSort").value = cfg.sort || "asc";
     liveHint();
     if (cfgDirty) return;  // 사용자가 고치는 중이면 덮어쓰지 않습니다
-    document.getElementById("cCut").value = cfg.cut ? fmt(Number(cfg.cut)) : "";
-    document.getElementById("cCutLabel").value = cfg.cutlabel || "";
     document.getElementById("cQr").value = cfg.qr || "";
     document.getElementById("cNotice").value = cfg.notice || "";
   }
@@ -435,19 +481,59 @@
     else { fHint.className = "hint ok"; fHint.textContent = "→ " + fmt(t); }
   });
 
+  /* 성별 고르기 — 잘못 누르면 시상이 틀어지므로 기본값 없이 반드시 고르게 합니다 */
+  var pickedSex = "";
+  var sexBox = document.getElementById("fSex"), fSexHint = document.getElementById("fSexHint");
+  function paintSex() {
+    [].forEach.call(sexBox.querySelectorAll(".seg"), function (b) {
+      b.setAttribute("aria-pressed", b.dataset.sex === pickedSex ? "true" : "false");
+    });
+    fSexHint.className = pickedSex ? "hint ok" : "hint";
+    fSexHint.textContent = pickedSex ? "→ " + SEX_KO[pickedSex] + " 부문으로 등록됩니다" : "고르지 않으면 등록되지 않습니다";
+  }
+  sexBox.addEventListener("click", function (e) {
+    var b = e.target.closest(".seg");
+    if (!b) return;
+    pickedSex = b.dataset.sex; paintSex();
+  });
+  paintSex();
+
   document.getElementById("regForm").addEventListener("submit", function (e) {
     e.preventDefault();
     var name = document.getElementById("fName").value.trim();
     if (!name) return;
+    if (!pickedSex) { toast("남자 / 여자를 골라주세요"); sexBox.querySelector(".seg").focus(); return; }
     var raw = fTime.value.trim();
     var t = raw ? parseTime(raw) : null;
     if (raw && t === null) { toast("기록 형식을 확인하세요 (예: 18:04)"); return; }
-    addAthlete({ name: name, phone: document.getElementById("fPhone").value.trim(), div: document.getElementById("fDiv").value, time: t });
+    addAthlete({
+      name: name,
+      phone: document.getElementById("fPhone").value.trim(),
+      div: mkDiv(document.getElementById("fDiv").value, pickedSex),
+      time: t
+    });
     document.getElementById("fName").value = "";
     document.getElementById("fPhone").value = "";
     fTime.value = ""; fHint.className = "hint"; fHint.textContent = "분:초 (예: 13:48) · 1348 처럼 붙여 써도 됩니다";
+    var doneSex = SEX_KO[pickedSex];
+    pickedSex = ""; paintSex();          // 다음 사람에게 앞사람 성별이 딸려가지 않게 매번 초기화
     document.getElementById("fName").focus();
-    toast(name + " 등록" + (t !== null ? " · " + fmt(t) : ""));
+    toast(name + " 등록 · " + doneSex + (t !== null ? " · " + fmt(t) : ""));
+  });
+
+  /* 표에서 성별 칩을 누르면 남↔여 변경.
+     구글시트 스크립트에 "부 수정" 기능이 없어서, 지우고 같은 정보로 다시 넣는 방식입니다. */
+  tbody.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-sex-id]");
+    if (!b) return;
+    var r = rows.filter(function (x) { return x.id === b.dataset.sexId; })[0];
+    if (!r) return;
+    var cur = sexOf(r.div);
+    var next = cur === "M" ? "F" : "M";
+    if (!confirm(r.name + " 선수를 " + SEX_KO[next] + "로 바꿀까요?")) return;
+    removeAthlete(r.id);
+    addAthlete({ name: r.name, phone: r.phone, div: mkDiv(divOf(r.div), next), time: r.time });
+    toast(r.name + " → " + SEX_KO[next]);
   });
 
   tbody.addEventListener("change", function (e) {
@@ -476,6 +562,7 @@
 
   elSearch.addEventListener("input", render);
   elFilter.addEventListener("change", render);
+  elFilterSex.addEventListener("change", render);
 
   // 부별 진행 시간대 (8/1 현장 운영표)
   var DIV_TIME = { "1": "10~12시", "2": "13~15시", "3": "16~18시" };
@@ -499,31 +586,13 @@
   });
   document.getElementById("cSort").addEventListener("change", function () { cfg.sort = this.value; pushCfg(); toast("순위 기준 변경됨"); });
 
-  ["cCut", "cCutLabel", "cQr", "cNotice"].forEach(function (id) {
+  ["cQr", "cNotice"].forEach(function (id) {
     document.getElementById(id).addEventListener("input", function () { cfgDirty = true; });
   });
 
-  document.getElementById("cCut").addEventListener("input", function () {
-    var h = document.getElementById("cCutHint");
-    var v = this.value.trim();
-    if (!v) { h.className = "hint"; h.textContent = "비워두면 커트라인 선이 안 나옵니다"; return; }
-    var t = parseTime(v);
-    if (t === null) { h.className = "hint"; h.textContent = "형식을 확인하세요 (예: 15:00)"; }
-    else { h.className = "hint ok"; h.textContent = "→ " + fmt(t) + " 안에 들면 초록색 표시"; }
-  });
-
   document.getElementById("applyCfg").addEventListener("click", function () {
-    var cutRaw = document.getElementById("cCut").value.trim();
-    var cutSec = "";
-    if (cutRaw) {
-      var t = parseTime(cutRaw);
-      if (t === null) { toast("커트라인 형식을 확인하세요 (예: 15:00)"); return; }
-      cutSec = t;
-    }
     var url = document.getElementById("cQr").value.trim();
     if (url && !/^https?:\/\//i.test(url)) url = "https://" + url;
-    cfg.cut = cutSec;
-    cfg.cutlabel = document.getElementById("cCutLabel").value.trim();
     cfg.qr = url;
     cfg.notice = document.getElementById("cNotice").value.trim();
     document.getElementById("cQr").value = url;
@@ -549,15 +618,21 @@
     function esc(v) { var s = String(v == null ? "" : v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
     var asc = cfg.sort !== "desc";
     var rankMap = {};
+    // 시상이 부 × 남/여 별도라 순위도 그 단위로 매깁니다
     ["1", "2", "3"].forEach(function (d) {
-      rows.filter(function (r) { return r.div === d && r.time !== null && r.time !== undefined && r.time !== ""; })
-        .sort(function (a, b) { return asc ? a.time - b.time : b.time - a.time; })
-        .forEach(function (r, i) { rankMap[r.id] = i + 1; });
+      ["M", "F", ""].forEach(function (s) {
+        rows.filter(function (r) {
+          return divOf(r.div) === d && sexOf(r.div) === s &&
+            r.time !== null && r.time !== undefined && r.time !== "";
+        })
+          .sort(function (a, b) { return asc ? a.time - b.time : b.time - a.time; })
+          .forEach(function (r, i) { rankMap[r.id] = i + 1; });
+      });
     });
-    var lines = ["부,순위,이름,연락처,기록,기록(초)"];
+    var lines = ["부,성별,순위,이름,연락처,기록,기록(초)"];
     rows.slice().sort(function (x, y) { return String(x.div).localeCompare(String(y.div)) || (rankMap[x.id] || 999) - (rankMap[y.id] || 999); })
       .forEach(function (r) {
-        lines.push([r.div + "부", rankMap[r.id] || "", esc(r.name), esc(r.phone), fmt(r.time), r.time == null ? "" : r.time].join(","));
+        lines.push([divOf(r.div) + "부", SEX_KO[sexOf(r.div)], rankMap[r.id] || "", esc(r.name), esc(r.phone), fmt(r.time), r.time == null ? "" : r.time].join(","));
       });
     var blob = new Blob(["﻿" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
     var a = document.createElement("a");
