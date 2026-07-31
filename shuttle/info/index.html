@@ -212,12 +212,24 @@
   :root.pt .prow b { font-size: calc(2.9 * var(--u) * var(--s)); }
   :root.pt .card h2 { font-size: calc(2.8 * var(--u) * var(--s)); }
   :root.pt .divnote { font-size: calc(2.4 * var(--u) * var(--s)); }
+  /* 세로 화면에서 [타임][시간][상태]를 한 줄에 넣으면 폭이 모자라 시간이 작아진다.
+     위 줄에 타임·상태를 두고, 시간은 아래에서 폭을 통째로 써서 최대한 크게. */
+  :root.pt .slot {
+    grid-template-columns: 1fr auto; grid-template-rows: auto 1fr;
+    align-items: center; row-gap: calc(.6 * var(--u));
+    padding: calc(1.4 * var(--u)) calc(2 * var(--u));
+  }
+  :root.pt .slot .sn  { grid-column: 1; grid-row: 1; }
+  :root.pt .slot .sst { grid-column: 2; grid-row: 1; }
+  :root.pt .slot .sr  { grid-column: 1 / -1; grid-row: 2; align-self: center; }
+
   :root.pt .slot .sn { font-size: calc(6.6 * var(--u) * var(--s)); }
-  :root.pt .slot .sst b { font-size: calc(5 * var(--u) * var(--s)); }
+  :root.pt .slot .sst b { font-size: calc(5.4 * var(--u) * var(--s)); }
   :root.pt.side .slot .sn { font-size: calc(4.4 * var(--u) * var(--s)); }
   :root.pt.side .slot .sst b { font-size: calc(4 * var(--u) * var(--s)); }
-  :root.pt .slot .sr { font-size: calc(15 * var(--u) * var(--s) * var(--pf, 1)); }
-  :root.pt .slot[data-state="live"] .sr { font-size: calc(18.5 * var(--u) * var(--s) * var(--pf, 1)); }
+  /* 폭을 다 쓰므로 크게 잡아두고 autofit 에 맡긴다 */
+  :root.pt .slot .sr { font-size: calc(26 * var(--u) * var(--s) * var(--pf, 1)); }
+  :root.pt .slot[data-state="live"] .sr { font-size: calc(30 * var(--u) * var(--s) * var(--pf, 1)); }
   :root.pt.side .slot .sr { font-size: calc(9.6 * var(--u) * var(--s) * var(--pf, 1)); }
   :root.pt.side .slot[data-state="live"] .sr { font-size: calc(12 * var(--u) * var(--s) * var(--pf, 1)); }
   :root.pt .foot .msg { font-size: calc(3.2 * var(--u) * var(--s)); white-space: normal; line-height: 1.25;
@@ -390,8 +402,8 @@
     function over() {
       return els.some(function (el) {
         var s = el.querySelector(".sr");
-        if (s.scrollWidth > s.clientWidth + 1) return true;                     // 옆으로 잘림
-        return s.getBoundingClientRect().height > el.clientHeight - 2;          // 위아래로 넘침
+        if (s.scrollWidth > s.clientWidth + 1) return true;      // 옆으로 잘림
+        return el.scrollHeight > el.clientHeight + 2;            // 위아래로 넘침
       });
     }
     var f = 1, guard = 0;
