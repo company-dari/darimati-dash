@@ -294,8 +294,18 @@
   function hhmm(a) { return two(a[0]) + ":" + two(a[1]); }
   function mins(a) { return a[0] * 60 + a[1]; }
 
+  // 미리보기용 — 주소에 ?now=13:30 을 붙이면 그 시각인 것처럼 화면을 보여줍니다(현장에서는 쓰지 않음)
+  var fake = null;
+  (function () {
+    var m = String(qs.get("now") || "").match(/^(\d{1,2}):(\d{2})$/);
+    if (m) fake = Number(m[1]) * 60 + Number(m[2]);
+  })();
+
   // 한국 시각(UTC+9). skew 가 0이면 이 기기 시계 그대로.
-  function kst() { return new Date(Date.now() + skew + 9 * 3600 * 1000); }
+  function kst() {
+    if (fake !== null) return new Date(Date.UTC(2026, 7, 1, Math.floor(fake / 60), fake % 60, 0));
+    return new Date(Date.now() + skew + 9 * 3600 * 1000);
+  }
   function nowMin() { var d = kst(); return d.getUTCHours() * 60 + d.getUTCMinutes() + d.getUTCSeconds() / 60; }
 
   // "1시간 28분" · "12분" 처럼 사람이 읽는 꼴로
