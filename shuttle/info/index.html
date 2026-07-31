@@ -29,6 +29,9 @@
   body {
     margin: 0; background: var(--ground); color: var(--text);
     font-family: var(--font-ui); -webkit-font-smoothing: antialiased; overflow: hidden;
+    /* 한국어는 낱말 안에서 줄이 끊기면(“달립니 / 다”) 멀리서 읽는 속도가 확 떨어진다.
+       띄어쓰기에서만 끊기게 한다. */
+    word-break: keep-all;
   }
 
   .board { height: 100%; display: flex; flex-direction: column; padding: 0 clamp(1rem, 2.6vw, 3rem); }
@@ -77,8 +80,8 @@
     transition: background .3s ease, border-color .3s ease;
   }
   .slot .sn {
-    font-size: calc(3.2 * var(--u) * var(--s)); font-weight: 800; letter-spacing: -.02em;
-    color: var(--muted); line-height: 1; white-space: nowrap;
+    font-size: calc(3.8 * var(--u) * var(--s)); font-weight: 800; letter-spacing: -.02em;
+    color: #b7c3ca; line-height: 1; white-space: nowrap;
   }
   .slot .sr {
     font-family: var(--font-num); font-variant-numeric: tabular-nums;
@@ -90,13 +93,13 @@
     text-align: right; line-height: 1.15; white-space: nowrap;
   }
   .slot .sst b {
-    display: block; font-size: calc(3 * var(--u) * var(--s)); font-weight: 800; letter-spacing: -.02em;
+    display: block; font-size: calc(3.6 * var(--u) * var(--s)); font-weight: 800; letter-spacing: -.02em;
   }
   .slot .sst span {
-    display: block; font-family: var(--font-num); font-variant-numeric: tabular-nums;
-    font-size: calc(2.1 * var(--u) * var(--s)); font-weight: 700; letter-spacing: .04em; color: var(--muted);
-    margin-top: calc(.5 * var(--u));
+    display: block; font-size: calc(2.6 * var(--u) * var(--s)); font-weight: 700;
+    letter-spacing: -.01em; color: var(--muted); margin-top: calc(.6 * var(--u));
   }
+  .slot .sst span:empty { display: none; }
 
   /* 지난 타임 — 있었다는 것만 알아보게 죽인다 */
   .slot[data-state="done"] { opacity: .38; }
@@ -148,8 +151,8 @@
   .rules { flex: 1.05; }
   .rules ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: calc(1.3 * var(--u)); }
   .rules li {
-    display: grid; grid-template-columns: calc(3.4 * var(--u)) 1fr; align-items: baseline; column-gap: calc(1.2 * var(--u));
-    font-size: calc(2.9 * var(--u) * var(--s)); font-weight: 600; letter-spacing: -.02em; line-height: 1.25;
+    display: grid; grid-template-columns: calc(3.6 * var(--u)) 1fr; align-items: baseline; column-gap: calc(1.3 * var(--u));
+    font-size: calc(3.3 * var(--u) * var(--s)); font-weight: 600; letter-spacing: -.02em; line-height: 1.3;
   }
   .rules li i {
     font-style: normal; font-family: var(--font-num); font-size: .72em; font-weight: 700; color: var(--signal);
@@ -159,16 +162,16 @@
   .prize { flex: 1; }
   .prow {
     display: grid; grid-template-columns: calc(11 * var(--u)) 1fr; align-items: baseline;
-    column-gap: calc(1.4 * var(--u)); padding: calc(.9 * var(--u)) 0;
-    font-size: calc(3 * var(--u) * var(--s)); font-weight: 700; letter-spacing: -.025em; line-height: 1.15;
+    column-gap: calc(1.4 * var(--u)); padding: calc(1 * var(--u)) 0;
+    font-size: calc(3.4 * var(--u) * var(--s)); font-weight: 700; letter-spacing: -.025em; line-height: 1.15;
   }
   .prow + .prow { border-top: 1px solid var(--rule); }
-  .prow b { font-size: calc(2.7 * var(--u) * var(--s)); font-weight: 800; }
+  .prow b { font-size: calc(3 * var(--u) * var(--s)); font-weight: 800; }
   .prow.p1 b { color: var(--gold); }
   .prow.p1 span { color: var(--gold); }
   .prow.p2 b { color: var(--muted); }
   .divnote {
-    margin-top: calc(1.4 * var(--u)); font-size: calc(2 * var(--u) * var(--s)); font-weight: 600;
+    margin-top: calc(1.4 * var(--u)); font-size: calc(2.3 * var(--u) * var(--s)); font-weight: 600;
     color: var(--muted); letter-spacing: -.01em; line-height: 1.3;
   }
   .divnote b { color: var(--text); font-weight: 800; }
@@ -186,7 +189,7 @@
     border: 1px solid var(--signal); border-radius: 999px; padding: .45em .9em; line-height: 1;
   }
   .foot .msg {
-    font-size: calc(2.6 * var(--u) * var(--s)); font-weight: 700; letter-spacing: -.015em; line-height: 1.2;
+    font-size: calc(2.9 * var(--u) * var(--s)); font-weight: 700; letter-spacing: -.015em; line-height: 1.25;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     transition: opacity .4s ease, transform .4s ease;
   }
@@ -194,13 +197,22 @@
   .foot .msg.below { opacity: 0; transform: translateY(45%); }
 
   /* ── 세로로 길쭉한 화면 (눕혀 세운 TV) ────────── */
-  :root.pt .grid { grid-template-columns: 1fr; grid-template-rows: 1.25fr 1fr; }
+  :root.pt .grid { grid-template-columns: 1fr; grid-template-rows: 1.15fr 1fr; }
   :root.pt .brand { flex-direction: column; align-items: stretch; gap: calc(1.6 * var(--u)); }
   :root.pt .meta { justify-content: space-between; }
   :root.pt .mark { height: calc(12 * var(--u) * var(--s)); }
   :root.pt .challenge { font-size: calc(5.8 * var(--u) * var(--s)); }
-  :root.pt .side { flex-direction: row; }
+  /* 세로 화면에서 두 카드를 좌우로 나누면 폭이 반이 되어 한 줄짜리 문장이 3줄로 접힌다.
+     위아래로 쌓아 폭을 다 쓰고, 대신 글자를 키운다. */
   :root.pt .card { flex: 1; }
+  :root.pt .rules li { font-size: calc(3.9 * var(--u) * var(--s)); }
+  :root.pt .prow { font-size: calc(4 * var(--u) * var(--s)); }
+  :root.pt .prow b { font-size: calc(3.4 * var(--u) * var(--s)); }
+  :root.pt .card h2 { font-size: calc(3 * var(--u) * var(--s)); }
+  :root.pt .divnote { font-size: calc(2.7 * var(--u) * var(--s)); }
+  :root.pt .slot .sn { font-size: calc(4.4 * var(--u) * var(--s)); }
+  :root.pt .slot .sst b { font-size: calc(4 * var(--u) * var(--s)); }
+  :root.pt .slot .sst span { font-size: calc(3 * var(--u) * var(--s)); }
   :root.pt .slot .sr { font-size: calc(9.6 * var(--u) * var(--s) * var(--pf, 1)); }
   :root.pt .slot[data-state="live"] .sr { font-size: calc(12 * var(--u) * var(--s) * var(--pf, 1)); }
   :root.pt .foot .msg { font-size: calc(3.2 * var(--u) * var(--s)); white-space: normal; line-height: 1.25;
@@ -362,7 +374,8 @@
       } else {
         el.dataset.state = "next";
         st.textContent = (i === next) ? "다음" : "예정";
-        sub.textContent = (i === next) ? human(a - now) + " 뒤 시작" : hhmm(s.from) + " 시작";
+        // 시작 시각은 이미 그 줄에 크게 적혀 있다 — 다시 쓰지 않고, 바로 다음 타임만 남은 시간을 알려준다
+        sub.textContent = (i === next) ? human(a - now) + " 뒤" : "";
       }
     });
 
