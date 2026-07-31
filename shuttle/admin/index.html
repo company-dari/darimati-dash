@@ -640,16 +640,28 @@
     ".ac .empty{padding:.55rem .65rem;color:var(--muted,#9a9a9a);font-size:.82rem}";
   document.head.appendChild(st);
 
-  var cache = null, loading = false, items = [], sel = -1;
+  var cache = null, cacheAt = 0, loading = false, items = [], sel = -1;
+  var TTL = 60000;   // 60초 후 재조회 — 부스에서 방금 가입한 사람도 검색되게
+
+  // 같은 사람(이름+번호) 중복행 제거 — 시트에 중복이 쌓여도 드롭다운은 1건만
+  function dedupe(rows) {
+    var seen = {}, out = [];
+    (rows || []).forEach(function (r) {
+      var k = String(r.name || "").trim() + "|" + String(r.phone || "").replace(/[^0-9]/g, "");
+      if (seen[k]) return;
+      seen[k] = 1; out.push(r);
+    });
+    return out;
+  }
 
   function load(cb) {
-    if (cache) { cb(); return; }
-    if (loading) return;
+    if (cache && (Date.now() - cacheAt) < TTL) { cb(); return; }
+    if (loading) { if (cache) cb(); return; }   // 갱신 중엔 옛 캐시로라도 응답
     loading = true;
     fetch(SIGNUP_API + "?_=" + Date.now(), { cache: "no-store" })
       .then(function (r) { return r.json(); })
-      .then(function (j) { cache = (j && j.rows) ? j.rows : []; loading = false; cb(); })
-      .catch(function () { loading = false; cache = []; cb(); });
+      .then(function (j) { cache = dedupe(j && j.rows ? j.rows : []); cacheAt = Date.now(); loading = false; cb(); })
+      .catch(function () { loading = false; if (!cache) { cache = []; cacheAt = Date.now(); } cb(); });
   }
   function esc(s) { return String(s || "").replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   function mask(p) { p = String(p || "").replace(/[^0-9]/g, ""); return p.length >= 4 ? "010-••••-" + p.slice(-4) : (p || "번호없음"); }
