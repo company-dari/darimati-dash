@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>REXTREME 부스 안내 · 셔틀런 타임표</title>
+<style>
+  :root {
+    --ground: #06080a;
+    --panel: #0e1316;
+    --rule: #1c2429;
+    --rule-strong: #2b373e;
+    --text: #f2f6f8;
+    --muted: #7d8c95;
+    --dim: #4b585f;
+    --signal: #ff5a28;
+    --gold: #f0cf7a;
+    --live: #4ade80;
+    --font-ui: system-ui, -apple-system, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif;
+    --font-num: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    /* 기록판과 같은 단위 — 화면 짧은 변의 1%. 가로로 두든 눕혀 세우든 글자 크기가 같다. */
+    --u: 1vmin;
+    --s: 1;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; background: var(--ground); color: var(--text);
+    font-family: var(--font-ui); -webkit-font-smoothing: antialiased; overflow: hidden;
+  }
+
+  .board { height: 100%; display: flex; flex-direction: column; padding: 0 clamp(1rem, 2.6vw, 3rem); }
+
+  /* ── 브랜드 밴드 ─────────────────────────────── */
+  .brand {
+    display: flex; align-items: center; justify-content: space-between; gap: 2rem;
+    padding: calc(3 * var(--u)) 0 calc(1.8 * var(--u)); border-bottom: 1px solid var(--rule-strong);
+  }
+  .lockup { display: flex; align-items: center; gap: clamp(.8rem, 1.8vw, 1.8rem); min-width: 0; }
+  .mark { height: calc(9 * var(--u) * var(--s)); width: auto; color: var(--signal); flex: none; }
+  .challenge {
+    margin: 0; display: flex; flex-direction: column; align-items: flex-start; gap: calc(.9 * var(--u));
+    font-size: calc(4.4 * var(--u) * var(--s)); font-weight: 800; letter-spacing: -.035em; line-height: 1;
+  }
+  .challenge em {
+    font-style: normal; font-family: var(--font-num); font-weight: 700;
+    font-size: .34em; letter-spacing: .18em; color: var(--signal); text-transform: uppercase;
+  }
+  .meta { display: flex; align-items: center; gap: clamp(.9rem, 2vw, 2.2rem); flex: none; }
+  .nowpill {
+    font-size: calc(2.6 * var(--u) * var(--s)); font-weight: 800; letter-spacing: -.02em;
+    background: var(--signal); color: #170500; padding: .35em .7em; border-radius: 3px; line-height: 1;
+    white-space: nowrap;
+  }
+  .nowpill[data-off="true"] { background: var(--rule-strong); color: var(--muted); }
+  .clock {
+    font-family: var(--font-num); font-variant-numeric: tabular-nums;
+    font-size: calc(3.2 * var(--u) * var(--s)); font-weight: 700; color: var(--muted);
+  }
+
+  /* ── 본문: 왼쪽 타임표(주인공) / 오른쪽 방법·시상 ── */
+  .grid {
+    flex: 1; min-height: 0; display: grid; grid-template-columns: 1.35fr 1fr;
+    gap: calc(2.4 * var(--u)); padding: calc(2 * var(--u)) 0;
+  }
+
+  .times { min-height: 0; display: flex; flex-direction: column; gap: calc(1.6 * var(--u)); }
+
+  /* 한 타임 = 한 줄. 번호 · 시간 · 상태 세 칸. 시간을 가장 크게 둔다. */
+  .slot {
+    flex: 1; min-height: 0; position: relative; overflow: hidden;
+    display: grid; grid-template-columns: auto 1fr auto; align-items: center;
+    column-gap: calc(2 * var(--u)); padding: calc(1.2 * var(--u)) calc(2.2 * var(--u));
+    background: var(--panel); border: 1px solid var(--rule); border-radius: calc(1 * var(--u));
+    transition: background .3s ease, border-color .3s ease;
+  }
+  .slot .sn {
+    font-size: calc(3.2 * var(--u) * var(--s)); font-weight: 800; letter-spacing: -.02em;
+    color: var(--muted); line-height: 1; white-space: nowrap;
+  }
+  .slot .sr {
+    font-family: var(--font-num); font-variant-numeric: tabular-nums;
+    font-size: calc(8.4 * var(--u) * var(--s)); font-weight: 700; letter-spacing: -.045em; line-height: 1;
+  }
+  .slot .sst {
+    text-align: right; line-height: 1.15; white-space: nowrap;
+  }
+  .slot .sst b {
+    display: block; font-size: calc(3 * var(--u) * var(--s)); font-weight: 800; letter-spacing: -.02em;
+  }
+  .slot .sst span {
+    display: block; font-family: var(--font-num); font-variant-numeric: tabular-nums;
+    font-size: calc(2.1 * var(--u) * var(--s)); font-weight: 700; letter-spacing: .04em; color: var(--muted);
+    margin-top: calc(.5 * var(--u));
+  }
+
+  /* 지난 타임 — 있었다는 것만 알아보게 죽인다 */
+  .slot[data-state="done"] { opacity: .38; }
+  .slot[data-state="done"] .sst b { color: var(--dim); }
+
+  /* 다음 타임 */
+  .slot[data-state="next"] .sst b { color: var(--text); }
+
+  /* 지금 하는 타임 — 멀리서 이 줄만 보이면 된다 */
+  .slot[data-state="live"] {
+    background: linear-gradient(90deg, rgba(255,90,40,.20), rgba(255,90,40,.04) 70%);
+    border-color: var(--signal);
+  }
+  .slot[data-state="live"] .sn { color: var(--signal); }
+  .slot[data-state="live"] .sr { font-size: calc(10.6 * var(--u) * var(--s)); }
+  .slot[data-state="live"] .sst b { color: var(--signal); }
+  .slot[data-state="live"] .sst span { color: var(--text); }
+
+  /* 진행 막대 — 그 타임이 얼마나 남았는지 */
+  .slot .bar {
+    position: absolute; left: 0; right: 0; bottom: 0; height: calc(.7 * var(--u));
+    background: rgba(255,255,255,.06); display: none;
+  }
+  .slot[data-state="live"] .bar { display: block; }
+  .slot .bar i { display: block; height: 100%; width: 0; background: var(--signal); transition: width 1s linear; }
+
+  .dotlive {
+    display: none; width: .5em; height: .5em; border-radius: 50%; background: var(--signal);
+    margin-right: .4em; vertical-align: .05em; animation: pulse 1.6s ease-in-out infinite;
+  }
+  .slot[data-state="live"] .dotlive { display: inline-block; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
+
+  /* ── 오른쪽: 방법 · 시상 ─────────────────────── */
+  .side { min-height: 0; display: flex; flex-direction: column; gap: calc(2 * var(--u)); }
+  .card {
+    background: var(--panel); border: 1px solid var(--rule); border-radius: calc(1 * var(--u));
+    padding: calc(1.8 * var(--u)) calc(2.2 * var(--u)); display: flex; flex-direction: column;
+    justify-content: center; min-height: 0;
+  }
+  .card h2 {
+    margin: 0 0 calc(1.4 * var(--u)); display: flex; align-items: baseline; gap: .6em;
+    font-size: calc(2.6 * var(--u) * var(--s)); font-weight: 800; letter-spacing: -.02em; line-height: 1;
+  }
+  .card h2 em {
+    font-style: normal; font-family: var(--font-num); font-size: .52em; font-weight: 700;
+    letter-spacing: .2em; text-transform: uppercase; color: var(--signal);
+  }
+  .rules { flex: 1.05; }
+  .rules ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: calc(1.3 * var(--u)); }
+  .rules li {
+    display: grid; grid-template-columns: calc(3.4 * var(--u)) 1fr; align-items: baseline; column-gap: calc(1.2 * var(--u));
+    font-size: calc(2.9 * var(--u) * var(--s)); font-weight: 600; letter-spacing: -.02em; line-height: 1.25;
+  }
+  .rules li i {
+    font-style: normal; font-family: var(--font-num); font-size: .72em; font-weight: 700; color: var(--signal);
+  }
+  .rules li b { font-weight: 800; }
+
+  .prize { flex: 1; }
+  .prow {
+    display: grid; grid-template-columns: calc(11 * var(--u)) 1fr; align-items: baseline;
+    column-gap: calc(1.4 * var(--u)); padding: calc(.9 * var(--u)) 0;
+    font-size: calc(3 * var(--u) * var(--s)); font-weight: 700; letter-spacing: -.025em; line-height: 1.15;
+  }
+  .prow + .prow { border-top: 1px solid var(--rule); }
+  .prow b { font-size: calc(2.7 * var(--u) * var(--s)); font-weight: 800; }
+  .prow.p1 b { color: var(--gold); }
+  .prow.p1 span { color: var(--gold); }
+  .prow.p2 b { color: var(--muted); }
+  .divnote {
+    margin-top: calc(1.4 * var(--u)); font-size: calc(2 * var(--u) * var(--s)); font-weight: 600;
+    color: var(--muted); letter-spacing: -.01em; line-height: 1.3;
+  }
+  .divnote b { color: var(--text); font-weight: 800; }
+
+  /* ── 바닥 안내 ───────────────────────────────── */
+  .foot {
+    display: flex; align-items: center; gap: 1.2em; overflow: hidden;
+    margin: 0 calc(-1 * clamp(1rem, 2.6vw, 3rem));
+    padding: calc(1.8 * var(--u)) clamp(1rem, 2.6vw, 3rem);
+    background: rgba(255, 90, 40, .09); border-top: 1px solid var(--rule-strong);
+  }
+  .foot .tag {
+    flex: none; font-family: var(--font-num); font-size: calc(1.7 * var(--u) * var(--s));
+    font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: var(--signal);
+    border: 1px solid var(--signal); border-radius: 999px; padding: .45em .9em; line-height: 1;
+  }
+  .foot .msg {
+    font-size: calc(2.6 * var(--u) * var(--s)); font-weight: 700; letter-spacing: -.015em; line-height: 1.2;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    transition: opacity .4s ease, transform .4s ease;
+  }
+  .foot .msg.out { opacity: 0; transform: translateY(-45%); }
+  .foot .msg.below { opacity: 0; transform: translateY(45%); }
+
+  /* ── 세로로 길쭉한 화면 (눕혀 세운 TV) ────────── */
+  :root.pt .grid { grid-template-columns: 1fr; grid-template-rows: 1.25fr 1fr; }
+  :root.pt .brand { flex-direction: column; align-items: stretch; gap: calc(1.6 * var(--u)); }
+  :root.pt .meta { justify-content: space-between; }
+  :root.pt .mark { height: calc(12 * var(--u) * var(--s)); }
+  :root.pt .challenge { font-size: calc(5.8 * var(--u) * var(--s)); }
+  :root.pt .side { flex-direction: row; }
+  :root.pt .card { flex: 1; }
+  :root.pt .slot .sr { font-size: calc(9.6 * var(--u) * var(--s)); }
+  :root.pt .slot[data-state="live"] .sr { font-size: calc(12 * var(--u) * var(--s)); }
+  :root.pt .foot .msg { font-size: calc(3.2 * var(--u) * var(--s)); white-space: normal; line-height: 1.25;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+
+  /* ── 모니터를 눕혀 세운 경우 (회전 모드) ───────
+     기록판과 같은 방식. 우측 상단 ⟳ 또는 주소에 ?rotate=90 */
+  html.rot { overflow: hidden; }
+  html.rot body { position: absolute; top: 0; left: 0; width: 100vh; height: 100vw; transform-origin: 0 0; }
+  html.rot.r90 body  { transform: rotate(90deg) translateY(-100%); }
+  html.rot.r270 body { transform: rotate(-90deg) translateX(-100%); }
+
+  .ctl { position: fixed; right: .7rem; top: .7rem; display: flex; gap: .4rem; opacity: .92; z-index: 70; }
+  .ctl:hover, .ctl:focus-within { opacity: 1; }
+  .ctl button { appearance: none; background: rgba(20,26,31,.92); border: 1px solid var(--rule-strong); color: var(--text);
+    font-family: var(--font-ui); font-size: .95rem; font-weight: 700; padding: .6rem 1rem; border-radius: 6px; cursor: pointer;
+    backdrop-filter: blur(6px); }
+  button:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition-duration: .01ms !important; } }
+</style>
+</head>
+<body>
+
+<main class="board">
+  <header class="brand">
+    <div class="lockup">
+      <svg class="mark" viewBox="0 0 61 55" aria-hidden="true"><path fill="currentColor" d="M60.9 22.34V10.77H25.07L17.89 0H4.51l7.15 10.77H0v11.57h19.36l6.32 9.53H0v11.57h33.37l7.24 10.89h13.5l-7.26-10.89h14.04V31.87H39.14l-6.35-9.53z"/></svg>
+      <p class="challenge">셔틀런 챌린지 · 부스 안내 <em>Shuttle Run Challenge</em></p>
+    </div>
+    <div class="meta">
+      <span class="nowpill" id="nowPill">—</span>
+      <span class="clock" id="clock">--:--</span>
+    </div>
+  </header>
+
+  <div class="grid">
+    <section class="times" id="times"></section>
+
+    <aside class="side">
+      <div class="card rules">
+        <h2>참여 방법 <em>How to</em></h2>
+        <ul>
+          <li><i>01</i><span>10m 구간을 <b>7번 편도</b>로 달립니다</span></li>
+          <li><i>02</i><span>양 끝에서 <b>콘을 터치</b>해야 인정됩니다</span></li>
+          <li><i>03</i><span>총 소요 시간으로 <b>순위</b>를 매깁니다</span></li>
+        </ul>
+      </div>
+
+      <div class="card prize">
+        <h2>시상 <em>Prize</em></h2>
+        <div class="prow p1"><b>1등</b><span>BR-001 하이브리드화</span></div>
+        <div class="prow p2"><b>2·3등</b><span>다리마티 러닝 키트</span></div>
+        <p class="divnote">타임별로 <b>여성부 · 남성부</b> 각각 시상합니다</p>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="foot">
+    <span class="tag">안내</span>
+    <span class="msg" id="footMsg"></span>
+  </footer>
+</main>
+
+<div class="ctl">
+  <button type="button" id="fontDown">A−</button>
+  <button type="button" id="fontUp">A+</button>
+  <button type="button" id="rotBtn" title="모니터를 눕혀 세웠을 때 화면을 돌립니다">⟳ 회전</button>
+  <button type="button" id="fsBtn">전체화면</button>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* 타임표 — 바뀌면 이 줄만 고치면 화면 전체가 따라갑니다. [시작시, 시작분, 끝시, 끝분] */
+  var SLOTS = [
+    { name: "1타임", from: [10, 0], to: [12, 0] },
+    { name: "2타임", from: [13, 0], to: [15, 0] },
+    { name: "3타임", from: [16, 0], to: [18, 0] }
+  ];
+
+  /* 기록판이 쓰는 것과 같은 Apps Script. 여기서는 "한국 시각"만 빌려옵니다.
+     인터넷이 없거나 실패하면 이 기기 시계를 그대로 씁니다(화면은 계속 돕니다). */
+  var API_URL = "https://script.google.com/macros/s/AKfycbwDiOVHDIHlFRYEgdNJSDohbYrk23cPJtZxBDwiJsYbvoqdWD2Couq0VAWOO6lWa_0-/exec";
+  var VKEY = "rextreme_board_view";      // 기록판과 같은 키 — 회전·글자 크기 설정을 공유
+
+  var qs = new URLSearchParams(location.search);
+  var api = qs.get("local") ? "" : (qs.get("api") || API_URL);
+  var skew = 0;                          // 시트가 알려주는 한국 시각과 이 기기 시계의 차이
+
+  function two(n) { return n < 10 ? "0" + n : "" + n; }
+  function hhmm(a) { return two(a[0]) + ":" + two(a[1]); }
+  function mins(a) { return a[0] * 60 + a[1]; }
+
+  // 한국 시각(UTC+9). skew 가 0이면 이 기기 시계 그대로.
+  function kst() { return new Date(Date.now() + skew + 9 * 3600 * 1000); }
+  function nowMin() { var d = kst(); return d.getUTCHours() * 60 + d.getUTCMinutes() + d.getUTCSeconds() / 60; }
+
+  // "1시간 28분" · "12분" 처럼 사람이 읽는 꼴로
+  function human(m) {
+    m = Math.max(0, Math.ceil(m));
+    var h = Math.floor(m / 60), r = m % 60;
+    if (h && r) return h + "시간 " + r + "분";
+    if (h) return h + "시간";
+    return r + "분";
+  }
+
+  /* ── 타임표 그리기 ─────────────────────────── */
+
+  var box = document.getElementById("times");
+  var els = SLOTS.map(function (s) {
+    var el = document.createElement("div");
+    el.className = "slot";
+    el.innerHTML =
+      "<span class='sn'></span>" +
+      "<span class='sr'></span>" +
+      "<span class='sst'><b></b><span></span></span>" +
+      "<div class='bar'><i></i></div>";
+    el.querySelector(".sn").textContent = s.name;
+    el.querySelector(".sr").textContent = hhmm(s.from) + " – " + hhmm(s.to);
+    box.appendChild(el);
+    return el;
+  });
+
+  function paint() {
+    var now = nowMin();
+    var live = -1, next = -1;
+
+    SLOTS.forEach(function (s, i) {
+      var a = mins(s.from), b = mins(s.to);
+      if (now >= a && now < b) live = i;
+      else if (now < a && next < 0) next = i;
+    });
+
+    SLOTS.forEach(function (s, i) {
+      var a = mins(s.from), b = mins(s.to);
+      var el = els[i], st = el.querySelector(".sst b"), sub = el.querySelector(".sst span");
+
+      if (i === live) {
+        el.dataset.state = "live";
+        st.innerHTML = "<i class='dotlive'></i>진행중";
+        sub.textContent = human(b - now) + " 남음";
+        el.querySelector(".bar i").style.width = Math.min(100, Math.max(0, (now - a) / (b - a) * 100)) + "%";
+      } else if (now >= b) {
+        el.dataset.state = "done";
+        st.textContent = "종료";
+        sub.textContent = "";
+      } else {
+        el.dataset.state = "next";
+        st.textContent = (i === next) ? "다음" : "예정";
+        sub.textContent = (i === next) ? human(a - now) + " 뒤 시작" : hhmm(s.from) + " 시작";
+      }
+    });
+
+    // 헤더 알약 — 멀리서 이것만 봐도 지금 뭘 하는지 알게
+    var pill = document.getElementById("nowPill");
+    if (live > -1) {
+      pill.dataset.off = "false";
+      pill.textContent = SLOTS[live].name + " 진행중 · " + human(mins(SLOTS[live].to) - now) + " 남음";
+    } else if (next > -1) {
+      pill.dataset.off = "true";
+      pill.textContent = SLOTS[next].name + " " + hhmm(SLOTS[next].from) + " 시작 · " + human(mins(SLOTS[next].from) - now) + " 뒤";
+    } else {
+      pill.dataset.off = "true";
+      pill.textContent = "오늘 챌린지 종료";
+    }
+
+    var d = kst();
+    document.getElementById("clock").textContent = two(d.getUTCHours()) + ":" + two(d.getUTCMinutes());
+  }
+
+  /* ── 바닥 롤링 안내 ────────────────────────── */
+
+  var NOTICES = [
+    "매 타임 종료 후 시상자분께 개별 연락드립니다",
+    "부스에서 정보 제출과 사진 촬영을 마치시면 상품을 배송해 드립니다",
+    "참가 신청은 부스 대기줄 입구의 QR코드로 해주세요"
+  ];
+  var ni = 0;
+  document.getElementById("footMsg").textContent = NOTICES[0];
+  setInterval(function () {
+    var el = document.getElementById("footMsg");
+    el.classList.add("out");
+    setTimeout(function () {
+      ni = (ni + 1) % NOTICES.length;
+      el.style.transition = "none";
+      el.classList.remove("out"); el.classList.add("below");
+      el.textContent = NOTICES[ni];
+      void el.offsetWidth;
+      el.style.transition = "";
+      el.classList.remove("below");
+    }, 400);
+  }, 7000);
+
+  /* ── 한국 시각 맞추기 (실패해도 그냥 넘어감) ── */
+
+  function syncTime() {
+    if (!api) return;
+    fetch(api + (api.indexOf("?") > -1 ? "&" : "?") + "a=board&_=" + new Date().getTime(), { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (j && j.ts) { var t = Date.parse(j.ts); if (!isNaN(t)) { skew = t - Date.now(); paint(); } }
+      })
+      .catch(function () {});
+  }
+
+  /* ── 화면 설정 (기록판과 같은 조작) ────────── */
+
+  var vs = { scale: 1, rot: 0 };
+  try { vs = JSON.parse(localStorage.getItem(VKEY)) || vs; } catch (e) {}
+  if (typeof vs.scale !== "number") vs.scale = 1;
+  var ROTS = [0, 90, 270];
+  if (qs.get("rotate") !== null) vs.rot = Number(qs.get("rotate"));
+  if (ROTS.indexOf(vs.rot) < 0) vs.rot = 0;
+
+  function saveView() { try { localStorage.setItem(VKEY, JSON.stringify(vs)); } catch (e) {} }
+  function applyScale() { document.documentElement.style.setProperty("--s", vs.scale); }
+  function setPortrait() {
+    var portrait = vs.rot !== 0 ? window.innerWidth >= window.innerHeight : window.innerHeight > window.innerWidth;
+    document.documentElement.classList.toggle("pt", portrait);
+  }
+  function applyRot() {
+    var h = document.documentElement;
+    h.classList.toggle("rot", vs.rot !== 0);
+    h.classList.toggle("r90", vs.rot === 90);
+    h.classList.toggle("r270", vs.rot === 270);
+    setPortrait();
+  }
+
+  document.getElementById("rotBtn").addEventListener("click", function () {
+    vs.rot = ROTS[(ROTS.indexOf(vs.rot) + 1) % ROTS.length]; applyRot(); saveView();
+  });
+  document.getElementById("fontUp").addEventListener("click", function () {
+    vs.scale = Math.min(1.6, Math.round((vs.scale + 0.05) * 100) / 100); applyScale(); saveView();
+  });
+  document.getElementById("fontDown").addEventListener("click", function () {
+    vs.scale = Math.max(0.6, Math.round((vs.scale - 0.05) * 100) / 100); applyScale(); saveView();
+  });
+  document.getElementById("fsBtn").addEventListener("click", function () {
+    if (!document.fullscreenElement) { (document.documentElement.requestFullscreen || function () {}).call(document.documentElement); }
+    else { document.exitFullscreen(); }
+  });
+  window.addEventListener("resize", setPortrait);
+
+  applyRot(); applyScale(); paint();
+  setInterval(paint, 1000);
+  syncTime(); setInterval(syncTime, 120000);
+})();
+</script>
+</body>
+</html>
