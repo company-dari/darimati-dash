@@ -133,7 +133,8 @@
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
 
   /* ── 오른쪽: 방법 · 시상 ─────────────────────── */
-  .side { min-height: 0; display: flex; flex-direction: column; gap: calc(2 * var(--u)); }
+  /* 기본은 숨김 — ?side=1 일 때만 나온다 (숨김 규칙은 위쪽 .side{display:none} 과 짝) */
+  .side { min-height: 0; flex-direction: column; gap: calc(2 * var(--u)); }
   .card {
     background: var(--panel); border: 1px solid var(--rule); border-radius: calc(1 * var(--u));
     padding: calc(1.8 * var(--u)) calc(2.2 * var(--u)); display: flex; flex-direction: column;
