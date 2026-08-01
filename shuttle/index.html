@@ -45,18 +45,23 @@
     display: flex; align-items: center; justify-content: space-between;
     gap: 2rem; padding: calc(3.6 * var(--u)) 0 calc(2 * var(--u)); border-bottom: 1px solid var(--rule-strong);
   }
-  .lockup { display: flex; align-items: center; gap: clamp(.8rem, 1.8vw, 1.8rem); min-width: 0; }
-  .mark { height: calc(calc(10 * var(--u)) * var(--s)); width: auto; color: var(--signal); flex: none; }
-  /* DARIMATI 워드마크는 안 쓴다 — 마크와 챌린지 두 개만 남겨 헤더를 단순화 */
-  .wordmark { display: none; }
-  .lockup .stack { display: flex; flex-direction: column; gap: calc(1 * var(--u)); min-width: 0; }
-  .challenge {
-    display: flex; flex-direction: column; align-items: flex-start; gap: calc(.9 * var(--u));
-    font-size: calc(calc(4.6 * var(--u)) * var(--s)); font-weight: 800; letter-spacing: -.035em; line-height: 1;
+  /* 맨 위 = 선물 안내 롤링 배너 (브랜드·챌린지 락업 대신)
+     손님이 멀리서도 "뭘 주는 대회인지" 바로 알게 하는 자리.
+     문구는 스크립트 맨 아래 PRIZES 배열 한 곳만 고치면 됩니다. */
+  .prize { flex: 1; min-width: 0; overflow: hidden; }
+  .proll {
+    display: flex; align-items: center; gap: calc(1.4 * var(--u)); min-width: 0;
+    transition: opacity .7s ease, transform .7s ease;
   }
-  .challenge em {
-    font-style: normal; font-family: var(--font-num); font-weight: 700;
-    font-size: .34em; letter-spacing: .18em; color: var(--signal); text-transform: uppercase;
+  .proll.out { opacity: 0; transform: translateY(-38%); }
+  .proll.below { opacity: 0; transform: translateY(38%); }
+  .prize .ptag {
+    flex: none; font-size: calc(calc(2.6 * var(--u)) * var(--s)); font-weight: 800; line-height: 1;
+    background: var(--signal); color: #170500; padding: .38em .7em; border-radius: 3px; white-space: nowrap;
+  }
+  .prize .pmsg {
+    font-size: calc(calc(4.6 * var(--u)) * var(--s)); font-weight: 800; letter-spacing: -.035em; line-height: 1.14;
+    word-break: keep-all;   /* 한글이 낱말 안에서 끊기면 멀리서 읽는 속도가 뚝 떨어집니다 */
   }
   .meta { display: flex; align-items: center; gap: clamp(.9rem, 2vw, 2.2rem); flex: none; }
   .divpill {
@@ -216,10 +221,10 @@
      모니터를 눕혀 세워 회전시킨 경우도 여기에 걸린다(아래 회전 모드 참고).
      글자 크기는 --u 가 알아서 맞추므로, 여기서는 "가로로 늘어놓던 것"만 세로로 쌓는다. */
   :root.pt .brand { flex-direction: column; align-items: stretch; gap: calc(1.8 * var(--u)); }
-  /* 마크 옆에 챌린지 락업 — 세로 화면에서는 둘 다 키운다 */
-  :root.pt .lockup { gap: clamp(1rem, 2.4vw, 2.4rem); }
-  :root.pt .mark { height: calc(calc(13 * var(--u)) * var(--s)); }
-  :root.pt .challenge { font-size: calc(calc(6.2 * var(--u)) * var(--s)); }
+  /* 세로 화면은 폭이 좁아 선물 문구가 두 줄이 된다 — 태그를 위로 올려 폭을 다 쓴다 */
+  :root.pt .proll { flex-direction: column; align-items: flex-start; gap: calc(1 * var(--u)); }
+  :root.pt .prize .ptag { font-size: calc(calc(3.2 * var(--u)) * var(--s)); }
+  :root.pt .prize .pmsg { font-size: calc(calc(5.6 * var(--u)) * var(--s)); }
   :root.pt .meta { justify-content: space-between; }
 
   /* 세로 화면(=TV를 세워 쓰는 실제 현장)에서는 위아래가 넉넉하므로 전부 키운다.
@@ -277,13 +282,11 @@
 
 <main class="board">
   <header class="brand">
-    <div class="lockup">
-      <svg class="mark" viewBox="0 0 61 55" aria-hidden="true"><path fill="currentColor" d="M60.9 22.34V10.77H25.07L17.89 0H4.51l7.15 10.77H0v11.57h19.36l6.32 9.53H0v11.57h33.37l7.24 10.89h13.5l-7.26-10.89h14.04V31.87H39.14l-6.35-9.53z"/></svg>
-      <div class="stack">
-        <svg class="wordmark" viewBox="0 0 226 33" role="img" aria-label="DARIMATI">
-          <path fill="currentColor" d="M.01 0h14.75c11.71 0 16.59 5.64 16.59 15.78s-6.19 16.76-16.87 16.76H0V0zm9.76 7.97v16.59h4.01c5.7 0 7.87-2.6 7.87-8.79s-2.17-7.81-8.08-7.81h-3.8zM52.59 26.62h-10.9l-1.63 5.91H30.03L40.55 0h13.56l10.52 32.53H54.16zm-8.95-6.99h7.05l-1.08-4.01c-.66-2.44-1.3-4.88-1.85-7.26h-1.09c-.6 2.39-1.25 4.83-1.9 7.26l-1.14 4.01zM79.42 22.5h-3.58v10.03h-9.76V0h14.97c8.57 0 13.34 3.63 13.34 11.44 0 4.77-2.06 7.86-5.53 9.54l7.43 10.95v.6H84.96L79.43 22.5zM75.84 8.13v7.27h4.66c3.2 0 4.23-1.14 4.23-3.64 0-2.66-1.36-3.63-4.39-3.63zM98.38 32.53V0h9.76v32.53zM121.53 32.53h-8.95V0h15.62l2.92 10.84c.54 2 1.41 5.86 2.22 9.81h.71c.75-3.96 1.68-8.02 2.22-10.19L139.04 0h14.42v32.53h-9.77V20.6c0-4.12.22-8.73.38-12.74h-.71c-.97 4.39-2.17 9.38-3.74 14.53l-2.61 8.57h-8.78l-2.49-8.84c-1.52-5.42-2.66-9.98-3.63-14.26h-.71c.11 4.01.11 8.62.11 12.74v11.93zM177.47 26.62h-10.9l-1.63 5.91h-10.03L165.43 0h13.56l10.52 32.53h-10.47zm-8.95-6.99h7.05l-1.08-4.01c-.66-2.44-1.3-4.88-1.85-7.26h-1.09c-.6 2.39-1.25 4.83-1.9 7.26l-1.14 4.01zM185.59 0h26.89v8.95h-8.56v23.59h-9.77V8.95h-8.56zM215.35 32.53V0h9.76v32.53z"/>
-        </svg>
-        <p class="challenge">셔틀런 챌린지 <em>Shuttle Run Challenge</em></p>
+    <!-- 맨 위 = 선물 안내 롤링 배너 (천천히 계속 돌아갑니다) -->
+    <div class="prize">
+      <div class="proll" id="proll">
+        <span class="ptag" id="prizeTag"></span>
+        <span class="pmsg" id="prizeMsg"></span>
       </div>
     </div>
     <div class="meta">
@@ -673,6 +676,37 @@
     }, 400);
   }
 
+  /* ── 맨 위 선물 안내 롤링 배너 ─────────────────
+     화면 맨 위에서 천천히(9초마다) 계속 돌아갑니다.
+     ⭐ 문구를 바꾸려면 아래 PRIZES 배열만 고치면 됩니다. */
+  var PRIZES = [
+    { tag: "1등 선물", msg: "하이브리드화!" },
+    { tag: "2·3등 선물", msg: "러닝키트 (러닝벨트 + 러닝캡 + 러닝타월 + 슈백)" }
+  ];
+  var prizeIdx = 0;
+
+  function paintPrize() {
+    var p = PRIZES[prizeIdx];
+    document.getElementById("prizeTag").textContent = p.tag;
+    document.getElementById("prizeMsg").textContent = p.msg;
+  }
+
+  function rollPrize() {
+    var el = document.getElementById("proll");
+    el.classList.add("out");
+    setTimeout(function () {
+      prizeIdx = (prizeIdx + 1) % PRIZES.length;
+      el.style.transition = "none";
+      el.classList.remove("out");
+      el.classList.add("below");
+      paintPrize();
+      void el.offsetWidth;              // 아래에서 올라오도록 위치를 먼저 잡습니다
+      el.style.transition = "";
+      el.classList.remove("below");
+      autofit();                        // 문구 길이가 달라 헤더 높이가 바뀌면 순위 글자를 다시 맞춥니다
+    }, 700);
+  }
+
   /* ── QR ────────────────────────────────────── */
 
   function drawQR() {
@@ -747,6 +781,7 @@
   window.addEventListener("storage", function (e) { if (e.key === LKEY) poll(); });
   window.addEventListener("resize", function () { setPortrait(); autofit(); });
 
+  paintPrize(); if (PRIZES.length > 1) setInterval(rollPrize, 9000);
   applyRot(); applyScale(); setNotice(); tick(); setInterval(tick, 10000);
   poll();
 })();
