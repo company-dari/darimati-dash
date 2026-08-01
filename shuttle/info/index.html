@@ -109,8 +109,14 @@
     border: 1px solid var(--signal); border-radius: calc(1 * var(--u));
     color: var(--signal); font-size: calc(10.5 * var(--u) * var(--s));
     font-weight: 800; letter-spacing: -.03em; line-height: 1.1;
+    flex-direction: column; gap: calc(.8 * var(--u)); word-break: keep-all;
   }
   :root.side .meet { font-size: calc(5.4 * var(--u) * var(--s)); }
+  /* 둘째 줄(다시 시작 시각)은 첫 줄보다 작게 — 멀리서 "쉬는 시간"이 먼저 읽히게 */
+  .meet .meet-b { font-size: .52em; font-weight: 700; letter-spacing: -.02em; color: var(--text); }
+  .meet .meet-b:empty { display: none; }
+  /* 진행중일 땐 이 띠를 없애 타임 줄에 자리를 다 준다 */
+  .meet[hidden] { display: none; }
 
   /* 지난 타임 — 있었다는 것만 알아보게 죽인다 */
   .slot[data-state="done"] { opacity: .45; }
@@ -276,8 +282,8 @@
 
   <div class="grid">
     <section class="times" id="times">
-      <!-- 맨 위 안내 줄. 문구만 고치면 됩니다(없애려면 이 줄을 지우세요). -->
-      <div class="meet">오후 4시에 만나요!</div>
+      <!-- 맨 위 안내 줄. 아래 JS(paintMeet)가 시계를 보고 문구를 자동으로 바꿉니다. -->
+      <div class="meet" id="meet"><b class="meet-a"></b><span class="meet-b"></span></div>
     </section>
 
     <aside class="side">
@@ -321,7 +327,8 @@
     /* done: true 를 붙이면 시계와 상관없이 "종료"로 보입니다(일찍 끝낸 타임). 지우면 시계대로 돌아갑니다. */
     { name: "1타임", from: [10, 0], to: [12, 0], done: true },
     { name: "2타임", from: [13, 0], to: [15, 0], done: true },
-    { name: "3타임", from: [16, 0], to: [18, 0] }
+    { name: "3타임", from: [16, 0], to: [18, 0], done: true },
+    { name: "4타임", from: [17, 50], to: [19, 0] }
   ];
 
   /* 기록판이 쓰는 것과 같은 Apps Script. 여기서는 "한국 시각"만 빌려옵니다.
@@ -409,7 +416,25 @@
       }
     });
 
+    paintMeet(live, next);
     autofit();
+  }
+
+  /* 맨 윗줄 안내 띠 — 시계를 보고 스스로 바뀝니다.
+     진행중이면 감추고, 쉬는 중이면 "쉬는 시간 + 다시 시작 시각", 다 끝났으면 종료 문구. */
+  var meet = document.getElementById("meet");
+  var meetA = meet.querySelector(".meet-a");
+  var meetB = meet.querySelector(".meet-b");
+  function paintMeet(live, next) {
+    if (live >= 0) { meet.hidden = true; return; }   // 진행중 — 띠를 없애 타임 줄을 크게
+    meet.hidden = false;
+    if (next >= 0) {
+      meetA.textContent = "지금은 쉬는 시간입니다";
+      meetB.textContent = hhmm(SLOTS[next].from) + " 부스 다시 시작 · " + hhmm(SLOTS[next].to) + " 까지";
+    } else {
+      meetA.textContent = "오늘 부스 운영이 끝났습니다";
+      meetB.textContent = "찾아와 주셔서 감사합니다";
+    }
   }
 
   /* 화면이 좁아 "13:00 – 15:00" 이 옆으로 잘리면(=두 줄로 접히려 하면) 세 줄 글자를 함께 줄입니다.
