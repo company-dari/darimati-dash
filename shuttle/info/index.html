@@ -277,7 +277,7 @@
   <div class="grid">
     <section class="times" id="times">
       <!-- 1타임 자리를 대신하는 안내 줄. 문구만 고치면 됩니다(없애려면 이 줄을 지우세요). -->
-      <div class="meet">오후 1시에 만나요!</div>
+      <div class="meet">오후 4시에 만나요!</div>
     </section>
 
     <aside class="side">
@@ -321,7 +321,7 @@
     /* 1타임은 일찍 끝나서 줄 자체를 안내 문구로 바꿔 뒀습니다(위쪽 .meet 줄).
        다시 띄우려면 아래 줄의 // 를 지우세요.  done: true 를 붙이면 시계와 상관없이 "종료"로 보입니다. */
     // { name: "1타임", from: [10, 0], to: [12, 0] },
-    { name: "2타임", from: [13, 0], to: [15, 0] },
+    { name: "2타임", from: [13, 0], to: [15, 0], done: true },   // 일찍 끝나서 종료로 고정
     { name: "3타임", from: [16, 0], to: [18, 0] }
   ];
 
