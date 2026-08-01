@@ -141,8 +141,8 @@
           <select id="fDiv"><option value="1">1부 (10~12시)</option><option value="2">2부 (13~15시)</option><option value="3">3부 (16~18시)</option></select>
 
           <label for="fTime">기록 (나중에 입력해도 됨)</label>
-          <input id="fTime" data-num inputmode="numeric" placeholder="18:04" />
-          <p class="hint" id="fTimeHint">분:초 (예: 13:48) · 1348 처럼 붙여 써도 됩니다</p>
+          <input id="fTime" data-num inputmode="numeric" placeholder="19:79" />
+          <p class="hint" id="fTimeHint">적은 그대로 저장됩니다 (예: 19:79) · 1979 처럼 붙여 써도 됩니다</p>
 
           <button type="submit" class="btn solid wide">등록</button>
         </fieldset>
@@ -241,9 +241,15 @@
   /* ── 공통 ─────────────────────────────────────── */
 
   function two(n) { return n < 10 ? "0" + n : "" + n; }
+  /* 기록은 "적은 그대로" 보여줍니다.
+     19:79 처럼 뒷자리가 60을 넘는 값도 그대로 써야 해서, 분·초로 환산하지 않고
+     앞자리·뒷자리를 통째로 숫자 하나(앞*100 + 뒤)로 저장합니다. 예) 19:79 → 1979
+     이렇게 해도 숫자가 작을수록 빠른 기록이라 순위 정렬은 그대로 맞습니다.
+     ⚠️ 기록판(../index.html)의 fmt 와 반드시 같은 규칙이어야 합니다. */
   function fmt(sec) {
     if (sec === null || sec === undefined || sec === "") return "";
-    var n = Number(sec); return Math.floor(n / 60) + ":" + two(n % 60);
+    var n = Number(sec); if (isNaN(n)) return "";
+    return Math.floor(n / 100) + ":" + two(n % 100);
   }
 
   /* ── 부 + 성별 ─────────────────────────────────
@@ -261,19 +267,24 @@
   function mkDiv(div, sex) { return String(div) + (sex === "F" ? "여" : sex === "M" ? "남" : ""); }
   var SEX_KO = { M: "남자", F: "여자", "": "미지정" };
 
+  /* 적은 그대로 저장합니다 — 뒷자리가 60을 넘어도(19:79) 그대로 받습니다.
+     "19:79" → 1979, "1979" → 1979 (앞*100 + 뒤) */
   function parseTime(input) {
     var s = String(input || "").trim();
     if (!s) return null;
     s = s.replace(/[.\s'"]/g, ":").replace(/:+/g, ":").replace(/^:|:$/g, "");
-    var mm, ss;
-    if (s.indexOf(":") > -1) { var a = s.split(":"); mm = parseInt(a[0], 10); ss = parseInt(a[1], 10); }
-    else {
+    var hi, lo;
+    if (s.indexOf(":") > -1) {
+      var a = s.split(":");
+      if (!/^\d+$/.test(a[0]) || !/^\d{1,2}$/.test(a[1])) return null;
+      hi = parseInt(a[0], 10); lo = parseInt(a[1], 10);
+    } else {
       // 숫자만 입력한 경우는 반드시 3자리 이상 — "1", "18" 같은 입력 중간값을 기록으로 잘못 저장하지 않기 위함
       if (!/^\d{3,6}$/.test(s)) return null;
-      ss = parseInt(s.slice(-2), 10); mm = parseInt(s.slice(0, -2), 10);
+      lo = parseInt(s.slice(-2), 10); hi = parseInt(s.slice(0, -2), 10);
     }
-    if (isNaN(mm) || isNaN(ss) || mm < 0 || ss < 0 || ss > 59) return null;
-    return mm * 60 + ss;
+    if (isNaN(hi) || isNaN(lo) || hi < 0 || lo < 0 || lo > 99) return null;
+    return hi * 100 + lo;
   }
   var toastEl = document.getElementById("toast"), tTimer;
   function toast(m) {
@@ -437,7 +448,7 @@
           " data-sex-id='" + r.id + "'" + (r.tmp ? " disabled" : "") +
           " title='눌러서 성별을 바꿉니다'>" + SEX_KO[sx] + "</button></td>" +
         "<td class='nm'></td><td class='ph'></td>" +
-        "<td><input data-id='" + r.id + "' placeholder='18:04' value='" + fmt(r.time) + "'" + (r.tmp ? " disabled" : "") + " /></td>" +
+        "<td><input data-id='" + r.id + "' placeholder='19:79' value='" + fmt(r.time) + "'" + (r.tmp ? " disabled" : "") + " /></td>" +
         "<td><button type='button' class='x' data-del='" + r.id + "' title='삭제'>✕</button></td>";
       tr.querySelector(".nm").textContent = r.name + (r.tmp ? " …" : "");
       tr.querySelector(".ph").textContent = r.phone || "—";
@@ -475,9 +486,9 @@
   var fTime = document.getElementById("fTime"), fHint = document.getElementById("fTimeHint");
   fTime.addEventListener("input", function () {
     var v = fTime.value.trim();
-    if (!v) { fHint.className = "hint"; fHint.textContent = "분:초 (예: 13:48) · 1348 처럼 붙여 써도 됩니다"; return; }
+    if (!v) { fHint.className = "hint"; fHint.textContent = "적은 그대로 저장됩니다 (예: 19:79) · 1979 처럼 붙여 써도 됩니다"; return; }
     var t = parseTime(v);
-    if (t === null) { fHint.className = "hint"; fHint.textContent = "형식을 확인하세요 (예: 18:04)"; }
+    if (t === null) { fHint.className = "hint"; fHint.textContent = "형식을 확인하세요 (예: 19:79)"; }
     else { fHint.className = "hint ok"; fHint.textContent = "→ " + fmt(t); }
   });
 
@@ -505,7 +516,7 @@
     if (!pickedSex) { toast("남자 / 여자를 골라주세요"); sexBox.querySelector(".seg").focus(); return; }
     var raw = fTime.value.trim();
     var t = raw ? parseTime(raw) : null;
-    if (raw && t === null) { toast("기록 형식을 확인하세요 (예: 18:04)"); return; }
+    if (raw && t === null) { toast("기록 형식을 확인하세요 (예: 19:79)"); return; }
     addAthlete({
       name: name,
       phone: document.getElementById("fPhone").value.trim(),
@@ -514,7 +525,7 @@
     });
     document.getElementById("fName").value = "";
     document.getElementById("fPhone").value = "";
-    fTime.value = ""; fHint.className = "hint"; fHint.textContent = "분:초 (예: 13:48) · 1348 처럼 붙여 써도 됩니다";
+    fTime.value = ""; fHint.className = "hint"; fHint.textContent = "적은 그대로 저장됩니다 (예: 19:79) · 1979 처럼 붙여 써도 됩니다";
     var doneSex = SEX_KO[pickedSex];
     pickedSex = ""; paintSex();          // 다음 사람에게 앞사람 성별이 딸려가지 않게 매번 초기화
     document.getElementById("fName").focus();
@@ -542,7 +553,7 @@
     var v = inp.value.trim();
     if (!v) { setTime(inp.dataset.id, null); toast("기록 지움"); return; }
     var t = parseTime(v);
-    if (t === null) { toast("형식을 확인하세요 (예: 18:04)"); render(); return; }
+    if (t === null) { toast("형식을 확인하세요 (예: 19:79)"); render(); return; }
     setTime(inp.dataset.id, t);
     toast("기록 " + fmt(t) + " 저장");
   });
@@ -629,7 +640,7 @@
           .forEach(function (r, i) { rankMap[r.id] = i + 1; });
       });
     });
-    var lines = ["부,성별,순위,이름,연락처,기록,기록(초)"];
+    var lines = ["부,성별,순위,이름,연락처,기록,기록(정렬용 숫자)"];
     rows.slice().sort(function (x, y) { return String(x.div).localeCompare(String(y.div)) || (rankMap[x.id] || 999) - (rankMap[y.id] || 999); })
       .forEach(function (r) {
         lines.push([divOf(r.div) + "부", SEX_KO[sexOf(r.div)], rankMap[r.id] || "", esc(r.name), esc(r.phone), fmt(r.time), r.time == null ? "" : r.time].join(","));

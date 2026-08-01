@@ -364,9 +364,14 @@
   var flashKeys = {};
 
   function two(n) { return n < 10 ? "0" + n : "" + n; }
+  /* 기록은 "적은 그대로" 보여줍니다.
+     19:79 처럼 뒷자리가 60을 넘는 값도 그대로 써야 해서, 분·초로 환산하지 않고
+     앞자리·뒷자리를 통째로 숫자 하나(앞*100 + 뒤)로 저장합니다. 예) 19:79 → 1979
+     이렇게 해도 숫자가 작을수록 빠른 기록이라 순위 정렬은 그대로 맞습니다. */
   function fmt(sec) {
     if (sec === null || sec === undefined || sec === "") return "";
-    var n = Number(sec); return Math.floor(n / 60) + ":" + two(n % 60);
+    var n = Number(sec); if (isNaN(n)) return "";
+    return Math.floor(n / 100) + ":" + two(n % 100);
   }
   function keyOf(r) { return r.d + "|" + r.n + "|" + r.s; }
 
