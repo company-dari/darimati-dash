@@ -45,23 +45,30 @@
     display: flex; align-items: center; justify-content: space-between;
     gap: 2rem; padding: calc(3.6 * var(--u)) 0 calc(2 * var(--u)); border-bottom: 1px solid var(--rule-strong);
   }
-  /* 맨 위 = 선물 안내 롤링 배너 (브랜드·챌린지 락업 대신)
-     손님이 멀리서도 "뭘 주는 대회인지" 바로 알게 하는 자리.
-     문구는 스크립트 맨 아래 PRIZES 배열 한 곳만 고치면 됩니다. */
-  .prize { flex: 1; min-width: 0; overflow: hidden; }
-  .proll {
-    display: flex; align-items: center; gap: calc(1.4 * var(--u)); min-width: 0;
-    transition: opacity .7s ease, transform .7s ease;
+  /* 선물 띠 아래에 붙는 줄 — 부 알약·시계만 남아 오른쪽으로 몰아둡니다 */
+  .mq + .brand { padding-top: calc(1.6 * var(--u)); }
+  .brand > .meta { margin-right: auto; }   /* 오른쪽 위는 A− A+ 회전 버튼 자리로 비워둡니다 */
+  /* ── 맨 위 선물 안내 띠 (오른쪽 → 왼쪽 흐름) ───
+     화면 폭을 꽉 채운 주황 띠. 글자는 절대 줄바꿈하지 않고 한 줄로 계속 흘러갑니다.
+     문구는 스크립트의 PRIZES 배열 한 곳만 고치면 됩니다. */
+  .mq {
+    overflow: hidden; background: var(--signal); color: #1a0600;
+    margin: 0 calc(-1 * clamp(1rem, 2.6vw, 3rem));
+    padding: calc(1.5 * var(--u)) 0;
   }
-  .proll.out { opacity: 0; transform: translateY(-38%); }
-  .proll.below { opacity: 0; transform: translateY(38%); }
-  .prize .ptag {
-    flex: none; font-size: calc(calc(2.6 * var(--u)) * var(--s)); font-weight: 800; line-height: 1;
-    background: var(--signal); color: #170500; padding: .38em .7em; border-radius: 3px; white-space: nowrap;
+  .mqtrack {
+    display: flex; width: max-content; white-space: nowrap; will-change: transform;
+    animation: mqscroll var(--mqdur, 34s) linear infinite;
   }
-  .prize .pmsg {
-    font-size: calc(calc(4.6 * var(--u)) * var(--s)); font-weight: 800; letter-spacing: -.035em; line-height: 1.14;
-    word-break: keep-all;   /* 한글이 낱말 안에서 끊기면 멀리서 읽는 속도가 뚝 떨어집니다 */
+  @keyframes mqscroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .mqi {
+    display: inline-flex; align-items: center; gap: calc(1.2 * var(--u));
+    font-size: calc(calc(5 * var(--u)) * var(--s)); font-weight: 800; letter-spacing: -.03em; line-height: 1.1;
+    white-space: nowrap; padding-right: calc(5 * var(--u));
+  }
+  .mqi b {
+    background: #1a0600; color: var(--signal); font-weight: 800;
+    font-size: .58em; letter-spacing: -.01em; padding: .34em .7em; border-radius: 3px; white-space: nowrap;
   }
   .meta { display: flex; align-items: center; gap: clamp(.9rem, 2vw, 2.2rem); flex: none; }
   .divpill {
@@ -206,7 +213,8 @@
   .banner .n { font-size: calc(4.4 * var(--u)); font-weight: 800; letter-spacing: -.03em; }
   .banner .t { font-family: var(--font-num); font-variant-numeric: tabular-nums; font-size: calc(4.4 * var(--u)); font-weight: 700; margin-left: auto; }
 
-  .ctl { position: fixed; right: .7rem; top: .7rem; display: flex; gap: .4rem; opacity: .92; transition: opacity .2s; z-index: 70; }
+  /* 선물 띠를 가리지 않게 띠 아래줄로 내려둡니다 */
+  .ctl { position: fixed; right: .7rem; top: calc(10.5 * var(--u)); display: flex; gap: .4rem; opacity: .92; transition: opacity .2s; z-index: 70; }
   .ctl:hover { opacity: 1; }
   /* 마우스가 없는 TV 에서 리모콘 방향키로 버튼에 도달했을 때도 보이게 */
   .ctl:focus-within { opacity: 1; }
@@ -221,10 +229,8 @@
      모니터를 눕혀 세워 회전시킨 경우도 여기에 걸린다(아래 회전 모드 참고).
      글자 크기는 --u 가 알아서 맞추므로, 여기서는 "가로로 늘어놓던 것"만 세로로 쌓는다. */
   :root.pt .brand { flex-direction: column; align-items: stretch; gap: calc(1.8 * var(--u)); }
-  /* 세로 화면은 폭이 좁아 선물 문구가 두 줄이 된다 — 태그를 위로 올려 폭을 다 쓴다 */
-  :root.pt .proll { flex-direction: column; align-items: flex-start; gap: calc(1 * var(--u)); }
-  :root.pt .prize .ptag { font-size: calc(calc(3.2 * var(--u)) * var(--s)); }
-  :root.pt .prize .pmsg { font-size: calc(calc(5.6 * var(--u)) * var(--s)); }
+  /* 세로 화면은 위아래가 넉넉하므로 띠 글자를 더 키운다 (줄바꿈은 어차피 없음) */
+  :root.pt .mqi { font-size: calc(calc(6 * var(--u)) * var(--s)); }
   :root.pt .meta { justify-content: space-between; }
 
   /* 세로 화면(=TV를 세워 쓰는 실제 현장)에서는 위아래가 넉넉하므로 전부 키운다.
@@ -275,20 +281,20 @@
   html.rot.r90 body  { transform: rotate(90deg) translateY(-100%); }
   html.rot.r270 body { transform: rotate(-90deg) translateX(-100%); }
 
-  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition-duration: .01ms !important; } }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition-duration: .01ms !important; }
+    /* 선물 띠는 흐르는 게 본질이라 여기서도 계속 흐르게 둡니다 */
+    .mqtrack { animation: mqscroll var(--mqdur, 34s) linear infinite !important; }
+  }
 </style>
 </head>
 <body>
 
 <main class="board">
+  <!-- 맨 위 = 선물 안내 띠. 오른쪽에서 왼쪽으로 끊김 없이 흘러갑니다 -->
+  <div class="mq" id="mqBar"><div class="mqtrack" id="mqTrack"></div></div>
+
   <header class="brand">
-    <!-- 맨 위 = 선물 안내 롤링 배너 (천천히 계속 돌아갑니다) -->
-    <div class="prize">
-      <div class="proll" id="proll">
-        <span class="ptag" id="prizeTag"></span>
-        <span class="pmsg" id="prizeMsg"></span>
-      </div>
-    </div>
     <div class="meta">
       <span class="divpill" id="divPill">1부 · 10–12시</span>
       <span class="clock" id="clock">--:--</span>
@@ -677,34 +683,46 @@
   }
 
   /* ── 맨 위 선물 안내 롤링 배너 ─────────────────
-     화면 맨 위에서 천천히(9초마다) 계속 돌아갑니다.
+     오른쪽에서 왼쪽으로 끊김 없이 계속 흐릅니다. 줄바꿈은 절대 하지 않습니다.
      ⭐ 문구를 바꾸려면 아래 PRIZES 배열만 고치면 됩니다. */
   var PRIZES = [
-    { tag: "1등 선물", msg: "하이브리드화!" },
+    { tag: "1등 선물", msg: "다리마티 BR-001 하이브리드 러닝화" },
     { tag: "2·3등 선물", msg: "러닝키트 (러닝벨트 + 러닝캡 + 러닝타월 + 슈백)" }
   ];
-  var prizeIdx = 0;
 
-  function paintPrize() {
-    var p = PRIZES[prizeIdx];
-    document.getElementById("prizeTag").textContent = p.tag;
-    document.getElementById("prizeMsg").textContent = p.msg;
+  function prizeSet() {
+    var f = document.createDocumentFragment();
+    PRIZES.forEach(function (p) {
+      var it = document.createElement("span");
+      it.className = "mqi";
+      var b = document.createElement("b"); b.textContent = p.tag;
+      var t = document.createElement("span"); t.textContent = p.msg;
+      it.appendChild(b); it.appendChild(t);
+      f.appendChild(it);
+    });
+    return f;
   }
 
-  function rollPrize() {
-    var el = document.getElementById("proll");
-    el.classList.add("out");
-    setTimeout(function () {
-      prizeIdx = (prizeIdx + 1) % PRIZES.length;
-      el.style.transition = "none";
-      el.classList.remove("out");
-      el.classList.add("below");
-      paintPrize();
-      void el.offsetWidth;              // 아래에서 올라오도록 위치를 먼저 잡습니다
-      el.style.transition = "";
-      el.classList.remove("below");
-      autofit();                        // 문구 길이가 달라 헤더 높이가 바뀌면 순위 글자를 다시 맞춥니다
-    }, 700);
+  function buildTicker() {
+    var track = document.getElementById("mqTrack");
+    track.innerHTML = "";
+    track.appendChild(prizeSet());
+    // 한 벌이 화면 폭보다 짧으면 흐르는 중간에 빈 구간이 생깁니다 — 폭을 넘길 때까지 벌 수를 늘립니다
+    var one = track.scrollWidth || 1;
+    var box = document.getElementById("mqBar").clientWidth || 1;
+    var need = Math.max(1, Math.ceil(box / one));
+    track.innerHTML = "";
+    for (var i = 0; i < need * 2; i++) track.appendChild(prizeSet());  // 앞뒤 두 벌 — 반쯤 밀면 처음과 똑같아 끊김이 없습니다
+    sizeTicker();
+  }
+
+  /* 흐르는 속도를 화면 크기에 맞춥니다 — 큰 TV에서도 눈으로 따라 읽을 수 있는 빠르기 */
+  function sizeTicker() {
+    var track = document.getElementById("mqTrack");
+    var half = track.scrollWidth / 2;
+    if (!half) return;
+    var pps = Math.min(window.innerWidth, window.innerHeight) / 100 * 9;  // 1초에 9u 만큼 흐름
+    track.style.setProperty("--mqdur", Math.max(8, Math.round(half / pps)) + "s");
   }
 
   /* ── QR ────────────────────────────────────── */
@@ -733,7 +751,7 @@
   var vs = { scale: 1, rot: 0 };
   try { vs = JSON.parse(localStorage.getItem(VKEY)) || vs; } catch (e) {}
   if (typeof vs.scale !== "number") vs.scale = 1;
-  function applyScale() { document.documentElement.style.setProperty("--s", vs.scale); autofit(); }
+  function applyScale() { document.documentElement.style.setProperty("--s", vs.scale); autofit(); buildTicker(); }
   function saveView() { try { localStorage.setItem(VKEY, JSON.stringify(vs)); } catch (e) {} }
 
   /* 화면 회전 — 모니터를 물리적으로 눕혀 세웠을 때 내용을 돌려 맞춘다.
@@ -756,6 +774,7 @@
     h.classList.toggle("r270", vs.rot === 270);
     setPortrait();
     autofit();
+    buildTicker();   // 회전하면 폭이 달라져 필요한 벌 수도 달라집니다
   }
   document.getElementById("rotBtn").addEventListener("click", function () {
     vs.rot = ROTS[(ROTS.indexOf(vs.rot) + 1) % ROTS.length];
@@ -779,9 +798,9 @@
   }
 
   window.addEventListener("storage", function (e) { if (e.key === LKEY) poll(); });
-  window.addEventListener("resize", function () { setPortrait(); autofit(); });
+  window.addEventListener("resize", function () { setPortrait(); autofit(); buildTicker(); });
 
-  paintPrize(); if (PRIZES.length > 1) setInterval(rollPrize, 9000);
+  buildTicker();
   applyRot(); applyScale(); setNotice(); tick(); setInterval(tick, 10000);
   poll();
 })();
