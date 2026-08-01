@@ -213,8 +213,8 @@
   .banner .n { font-size: calc(4.4 * var(--u)); font-weight: 800; letter-spacing: -.03em; }
   .banner .t { font-family: var(--font-num); font-variant-numeric: tabular-nums; font-size: calc(4.4 * var(--u)); font-weight: 700; margin-left: auto; }
 
-  /* 선물 띠를 가리지 않게 띠 아래줄로 내려둡니다 */
-  .ctl { position: fixed; right: .7rem; top: calc(10.5 * var(--u)); display: flex; gap: .4rem; opacity: .92; transition: opacity .2s; z-index: 70; }
+  /* 조작 버튼 = 화면 맨 윗줄 (선물 띠보다 위). 떠 있지 않고 자리를 차지합니다 */
+  .ctl { display: flex; justify-content: flex-end; gap: .4rem; padding: .5rem 0 .55rem; opacity: .92; transition: opacity .2s; }
   .ctl:hover { opacity: 1; }
   /* 마우스가 없는 TV 에서 리모콘 방향키로 버튼에 도달했을 때도 보이게 */
   .ctl:focus-within { opacity: 1; }
@@ -291,6 +291,14 @@
 <body>
 
 <main class="board">
+  <!-- 맨 윗줄 = 조작 버튼 (그 아래 선물 띠, 그 아래 부·시계 순서) -->
+  <div class="ctl">
+    <button type="button" id="fontDown">A−</button>
+    <button type="button" id="fontUp">A+</button>
+    <button type="button" id="rotBtn" title="모니터를 눕혀 세웠을 때 화면을 돌립니다">⟳ 회전</button>
+    <button type="button" id="fsBtn">전체화면</button>
+  </div>
+
   <!-- 맨 위 = 선물 안내 띠. 오른쪽에서 왼쪽으로 끊김 없이 흘러갑니다 -->
   <div class="mq" id="mqBar"><div class="mqtrack" id="mqTrack"></div></div>
 
@@ -336,13 +344,6 @@
 
 <div class="banner" id="banner">
   <span class="k">기록</span><span class="n" id="bnName"></span><span class="t" id="bnTime"></span>
-</div>
-
-<div class="ctl">
-  <button type="button" id="fontDown">A−</button>
-  <button type="button" id="fontUp">A+</button>
-  <button type="button" id="rotBtn" title="모니터를 눕혀 세웠을 때 화면을 돌립니다">⟳ 회전</button>
-  <button type="button" id="fsBtn">전체화면</button>
 </div>
 
 <script src="qrcode.js"></script>
