@@ -135,6 +135,19 @@
   :root.side .slot[data-state="live"] .sr { font-size: calc(10.6 * var(--u) * var(--s) * var(--pf, 1)); }
   .slot[data-state="live"] .sst b { color: var(--signal); }
 
+  /* 그 타임 "안"의 쉬는 시간 — 진행중과 같은 크기로 두되, 색만 죽여서 헷갈리지 않게 한다 */
+  .slot[data-state="rest"] {
+    background: linear-gradient(90deg, rgba(255,255,255,.10), rgba(255,255,255,.02) 70%);
+    border-color: var(--rule-strong);
+  }
+  .slot[data-state="rest"] .sn { color: var(--text); }
+  .slot[data-state="rest"] .sr { font-size: calc(18.5 * var(--u) * var(--s) * var(--pf, 1)); }
+  :root.side .slot[data-state="rest"] .sr { font-size: calc(10.6 * var(--u) * var(--s) * var(--pf, 1)); }
+  :root.pt .slot[data-state="rest"] .sr { font-size: calc(30 * var(--u) * var(--s) * var(--pf, 1)); }
+  :root.pt.side .slot[data-state="rest"] .sr { font-size: calc(12 * var(--u) * var(--s) * var(--pf, 1)); }
+  .slot[data-state="rest"] .sst b { color: var(--signal); }
+  .slot[data-state="rest"] .bar { display: block; }
+
   /* 진행 막대 — 그 타임이 얼마나 남았는지 */
   .slot .bar {
     position: absolute; left: 0; right: 0; bottom: 0; height: calc(.7 * var(--u));
@@ -327,8 +340,8 @@
     /* done: true 를 붙이면 시계와 상관없이 "종료"로 보입니다(일찍 끝낸 타임). 지우면 시계대로 돌아갑니다. */
     { name: "1타임", from: [10, 0], to: [12, 0], done: true },
     { name: "2타임", from: [13, 0], to: [15, 0], done: true },
-    { name: "3타임", from: [16, 0], to: [18, 0], done: true },
-    { name: "4타임", from: [17, 50], to: [19, 0] }
+    /* brk: [[쉬기 시작], [다시 시작]] — 그 타임 "안"의 쉬는 시간. 없애려면 이 줄만 지우면 됩니다. */
+    { name: "3타임", from: [16, 0], to: [19, 0], brk: [[17, 30], [17, 50]] }
   ];
 
   /* 기록판이 쓰는 것과 같은 Apps Script. 여기서는 "한국 시각"만 빌려옵니다.
@@ -389,12 +402,16 @@
 
   function paint() {
     var now = nowMin();
-    var live = -1, next = -1;
+    var live = -1, next = -1, rest = null;      // rest = 진행중인 타임이 지금 쉬는 시간일 때의 정보
 
     SLOTS.forEach(function (s, i) {
       if (s.done) return;                       // 손으로 종료시킨 타임은 진행중/다음 후보에서 뺀다
       var a = mins(s.from), b = mins(s.to);
-      if (now >= a && now < b) live = i;
+      if (now >= a && now < b) {
+        live = i;
+        // 그 타임 안에 쉬는 시간이 잡혀 있고 지금이 그 사이면 "쉬는시간"으로 본다
+        if (s.brk && now >= mins(s.brk[0]) && now < mins(s.brk[1])) rest = { back: s.brk[1], end: s.to };
+      }
       else if (now < a && next < 0) next = i;
     });
 
@@ -404,8 +421,8 @@
 
       // 상태는 한 낱말만 — "몇 분 뒤 시작" 같은 상세 시간은 화면에 쓰지 않는다
       if (i === live) {
-        el.dataset.state = "live";
-        st.innerHTML = "<i class='dotlive'></i>진행중";
+        el.dataset.state = rest ? "rest" : "live";
+        st.innerHTML = rest ? "쉬는시간" : "<i class='dotlive'></i>진행중";
         el.querySelector(".bar i").style.width = Math.min(100, Math.max(0, (now - a) / (b - a) * 100)) + "%";
       } else if (s.done || now >= b) {
         el.dataset.state = "done";
@@ -416,7 +433,7 @@
       }
     });
 
-    paintMeet(live, next);
+    paintMeet(live, next, rest);
     autofit();
   }
 
@@ -425,7 +442,13 @@
   var meet = document.getElementById("meet");
   var meetA = meet.querySelector(".meet-a");
   var meetB = meet.querySelector(".meet-b");
-  function paintMeet(live, next) {
+  function paintMeet(live, next, rest) {
+    if (rest) {                                      // 타임 안의 쉬는 시간 — 이때가 이 띠의 주목적
+      meet.hidden = false;
+      meetA.textContent = "지금은 쉬는 시간입니다";
+      meetB.textContent = hhmm(rest.back) + " 부스 다시 시작 · " + hhmm(rest.end) + " 까지";
+      return;
+    }
     if (live >= 0) { meet.hidden = true; return; }   // 진행중 — 띠를 없애 타임 줄을 크게
     meet.hidden = false;
     if (next >= 0) {
