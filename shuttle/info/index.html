@@ -65,15 +65,15 @@
 
   /* 앞의 두 줄 = 무엇을 하면 되는지 */
   .promo .p1, .promo .p2 {
-    font-size: calc(10.5 * var(--u) * var(--s) * var(--pf, 1));
+    font-size: calc(8 * var(--u) * var(--s) * var(--pf, 1));
     font-weight: 700; color: var(--text);
   }
   .promo .p1 b, .promo .p2 b { color: var(--signal); font-weight: 800; }
 
-  /* 마지막 줄 = 보상. 이 줄만 보고 발길을 돌리는 사람이 있으므로 제일 크게. */
+  /* 맨 윗줄 = 붙잡는 한마디. 멀리서 이것만 보고 다가오므로 제일 크게. */
   .promo .p3 {
-    margin-top: calc(1.4 * var(--u));
-    font-size: calc(22 * var(--u) * var(--s) * var(--pf, 1));
+    margin-bottom: calc(1.4 * var(--u));
+    font-size: calc(17 * var(--u) * var(--s) * var(--pf, 1));
     font-weight: 800; color: var(--signal);
     padding: calc(1.6 * var(--u)) calc(4 * var(--u));
     border: calc(.35 * var(--u)) solid var(--signal); border-radius: calc(1.4 * var(--u));
@@ -86,8 +86,8 @@
   }
 
   /* 눕혀 세운 세로 화면 — 폭이 좁으므로 크게 잡아두고 autofit 에 맡긴다 */
-  :root.pt .promo .p1, :root.pt .promo .p2 { font-size: calc(14 * var(--u) * var(--s) * var(--pf, 1)); }
-  :root.pt .promo .p3 { font-size: calc(28 * var(--u) * var(--s) * var(--pf, 1)); }
+  :root.pt .promo .p1, :root.pt .promo .p2 { font-size: calc(11 * var(--u) * var(--s) * var(--pf, 1)); }
+  :root.pt .promo .p3 { font-size: calc(22 * var(--u) * var(--s) * var(--pf, 1)); }
 
   /* ── 모니터를 눕혀 세운 경우 (회전 모드) ───────
      기록판과 같은 방식. 우측 상단 ⟳ 또는 주소에 ?rotate=90 */
@@ -118,9 +118,9 @@
 
   <!-- 문구를 바꾸려면 이 세 줄만 고치면 됩니다. 줄을 나눈 위치가 곧 읽는 순서입니다. -->
   <section class="promo" id="promo">
-    <p class="p1">다리마티 <b>하이브리드화</b> 신고</p>
-    <p class="p2"><b>박스점프 이벤트</b> 참여하시면</p>
-    <p class="p3">선물 드려요!</p>
+    <p class="p3">극강의 접지력!</p>
+    <p class="p1">다리마티 <b>하이브리드 러닝화</b> 체험해보시고</p>
+    <p class="p2"><b>선물</b> 받아가세요</p>
   </section>
 </main>
 
