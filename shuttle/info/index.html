@@ -100,6 +100,17 @@
   :root.side .slot .sr { font-size: calc(8.4 * var(--u) * var(--s) * var(--pf, 1)); }
   :root.side .slot .sst b { font-size: calc(3.6 * var(--u) * var(--s)); }
 
+  /* 다음 타임 안내 — 타임표 아래에 한 줄. order 로 JS가 그린 타임 줄들 뒤에 놓는다. */
+  .meet {
+    order: 2; flex: none; text-align: center;
+    padding: calc(1.8 * var(--u)) calc(2.2 * var(--u));
+    background: linear-gradient(90deg, rgba(255,90,40,.20), rgba(255,90,40,.04) 70%);
+    border: 1px solid var(--signal); border-radius: calc(1 * var(--u));
+    color: var(--signal); font-size: calc(9 * var(--u) * var(--s));
+    font-weight: 800; letter-spacing: -.03em; line-height: 1.1;
+  }
+  :root.side .meet { font-size: calc(5.4 * var(--u) * var(--s)); }
+
   /* 지난 타임 — 있었다는 것만 알아보게 죽인다 */
   .slot[data-state="done"] { opacity: .45; }
   .slot[data-state="done"] .sst b { color: var(--dim); }
@@ -263,7 +274,10 @@
   </header>
 
   <div class="grid">
-    <section class="times" id="times"></section>
+    <section class="times" id="times">
+      <!-- 다음 타임 안내 한 줄. 문구만 고치면 됩니다(없애려면 이 줄을 지우세요). -->
+      <div class="meet">오후 1시에 만나요!</div>
+    </section>
 
     <aside class="side">
       <div class="card rules">
@@ -303,9 +317,10 @@
 
   /* 타임표 — 바뀌면 이 줄만 고치면 화면 전체가 따라갑니다. [시작시, 시작분, 끝시, 끝분] */
   var SLOTS = [
-    { name: "1타임", from: [10, 0], to: [12, 0] },
-    { name: "2타임", from: [13, 0], to: [15, 0] },
-    { name: "3타임", from: [16, 0], to: [18, 0] }
+    { name: "1타임", from: [10, 0], to: [12, 0] }
+    // 오후 타임은 화면에서 잠시 내려둠 — 다시 띄우려면 위 줄 끝에 쉼표를 찍고 아래 두 줄의 // 를 지우세요
+    // , { name: "2타임", from: [13, 0], to: [15, 0] }
+    // , { name: "3타임", from: [16, 0], to: [18, 0] }
   ];
 
   /* 기록판이 쓰는 것과 같은 Apps Script. 여기서는 "한국 시각"만 빌려옵니다.
