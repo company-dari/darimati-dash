@@ -38,7 +38,12 @@
     overflow: hidden;
   }
 
-  .board { height: 100%; display: flex; flex-direction: column; padding: 0 clamp(1rem, 2.6vw, 3rem); }
+  /* TV가 화면 가장자리를 잘라 먹는 경우(오버스캔)가 있어 사방에 안전 여백을 둔다.
+     더 잘리면 주소에 ?inset=5 처럼 % 를 올리면 된다. */
+  .board {
+    height: 100%; display: flex; flex-direction: column;
+    padding: var(--inset, 2.4vmin) calc(clamp(1rem, 2.6vw, 3rem) + var(--inset, 2.4vmin));
+  }
 
   /* ── 브랜드 밴드 ─────────────────────────────── */
   .brand {
@@ -53,8 +58,8 @@
      문구는 스크립트의 PRIZES 배열 한 곳만 고치면 됩니다. */
   .mq {
     overflow: hidden; background: var(--signal); color: #1a0600;
-    margin: 0 calc(-1 * clamp(1rem, 2.6vw, 3rem));
-    padding: calc(1.5 * var(--u)) 0;
+    margin: 0 calc(-1 * (clamp(1rem, 2.6vw, 3rem) + var(--inset, 2.4vmin)));
+    padding: calc(1.5 * var(--u)) calc(clamp(1rem, 2.6vw, 3rem) + var(--inset, 2.4vmin));
   }
   .mqtrack {
     display: flex; width: max-content; white-space: nowrap; will-change: transform;
@@ -122,7 +127,8 @@
   .pod.p2 .pn, .pod.p3 .pn { color: #d7e0e5; }
 
   /* 1위 줄만 은은한 배경 — 어느 쪽이 남/여인지 멀리서도 구분되게 */
-  .pod.p1 { margin: 0 calc(-1 * clamp(1rem, 2.6vw, 3rem)); padding: .2em clamp(1rem, 2.6vw, 3rem); }
+  .pod.p1 { margin: 0 calc(-1 * (clamp(1rem, 2.6vw, 3rem) + var(--inset, 2.4vmin)));
+    padding: .2em calc(clamp(1rem, 2.6vw, 3rem) + var(--inset, 2.4vmin)); }
   .half[data-sex="M"] .pod.p1 { background: linear-gradient(90deg, rgba(74,168,255,.16), rgba(74,168,255,0) 75%); }
   .half[data-sex="F"] .pod.p1 { background: linear-gradient(90deg, rgba(255,176,58,.16), rgba(255,176,58,0) 75%); }
 
@@ -134,8 +140,8 @@
   /* ── 하단 안내 롤링 배너 ─────────────────────── */
   .notice {
     display: flex; align-items: center; gap: 1.2em; overflow: hidden;
-    margin: 0 calc(-1 * clamp(1rem, 2.6vw, 3rem));
-    padding: calc(2.1 * var(--u)) clamp(1rem, 2.6vw, 3rem);
+    margin: 0 calc(-1 * (clamp(1rem, 2.6vw, 3rem) + var(--inset, 2.4vmin)));
+    padding: calc(2.1 * var(--u)) calc(clamp(1rem, 2.6vw, 3rem) + var(--inset, 2.4vmin));
     background: rgba(255, 90, 40, .09);
     border-top: 1px solid var(--rule-strong);
   }
@@ -760,6 +766,12 @@
   var ROTS = [0, 90, 270];
   if (qs.get("rotate") !== null) vs.rot = Number(qs.get("rotate"));
   if (ROTS.indexOf(vs.rot) < 0) vs.rot = 0;
+
+  // TV가 화면 가장자리를 잘라 먹으면(오버스캔) 주소에 ?inset=5 처럼 여백 %를 올린다
+  if (qs.get("inset") !== null) {
+    var iv = Number(qs.get("inset"));
+    if (!isNaN(iv) && iv >= 0 && iv <= 15) document.documentElement.style.setProperty("--inset", iv + "vmin");
+  }
 
   // 화면이 세로로 길쭉한가? 회전 모드면 가로세로가 뒤바뀐 걸 감안한다.
   function setPortrait() {
