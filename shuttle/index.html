@@ -435,6 +435,8 @@
 
   function poll() {
     if (!api) { apply(loadLocal(), false); setConn("", "로컬 모드"); schedulePoll(1000); return; }
+    // 화면이 안 보이는 탭(뒤로 넘어간 창)은 시트를 두드리지 않습니다 — 구글 쪽 사용량이 새는 걸 막습니다
+    if (document.hidden) { schedulePoll(3000); return; }
     var t0 = Date.now();
     fetch(api + (api.indexOf("?") > -1 ? "&" : "?") + "a=board&_=" + t0, { cache: "no-store" })
       .then(function (r) { return r.json(); })
@@ -815,6 +817,8 @@
     document.getElementById("clock").textContent = two(d.getUTCHours()) + ":" + two(d.getUTCMinutes());
   }
 
+  // 다시 화면에 돌아오면 기다리지 않고 바로 한 번 불러옵니다
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) schedulePoll(0); });
   window.addEventListener("storage", function (e) { if (e.key === LKEY) poll(); });
   window.addEventListener("resize", function () { setPortrait(); autofit(); buildTicker(); });
 

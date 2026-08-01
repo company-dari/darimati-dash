@@ -350,6 +350,8 @@
     if (!api) { loadLocal(); rows = local.athletes.slice(); syncCfgInputs(); render(); setConn("", "로컬 모드 · 이 브라우저에만 저장"); return; }
     // 시트 응답이 2~3초 걸립니다 — 앞선 조회가 아직이면 겹쳐 보내지 않습니다
     if (refreshing) return;
+    // 화면이 안 보이면(다른 앱·다른 탭·폰 화면 꺼짐) 조회를 쉽니다. 전송 대기(flush)는 그대로 돌아갑니다
+    if (document.hidden) return;
     refreshing = true;
     call({ a: "list" }).then(function (j) {
       refreshing = false;
@@ -720,6 +722,8 @@
   syncCfgInputs();
   refresh();
   setInterval(function () { flush(); refresh(); }, 2000);   // 시트 응답이 2~3초 걸려 실제 주기는 4~5초
+  // 화면으로 돌아오면 바로 최신 상태를 받아옵니다
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) { flush(); refresh(); } });
   if (api && !key) openSetup();
 })();
 
