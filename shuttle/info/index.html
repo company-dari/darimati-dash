@@ -4,19 +4,15 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex, nofollow" />
-<title>REXTREME 부스 안내 · 셔틀런 타임표</title>
+<title>REXTREME 부스 안내</title>
 <style>
   :root {
     --ground: #06080a;
     --panel: #0e1316;
-    --rule: #1c2429;
     --rule-strong: #2b373e;
     --text: #f2f6f8;
     --muted: #7d8c95;
-    --dim: #4b585f;
     --signal: #ff5a28;
-    --gold: #f0cf7a;
-    --live: #4ade80;
     --font-ui: system-ui, -apple-system, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif;
     --font-num: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
     /* 기록판과 같은 단위 — 화면 짧은 변의 1%. 가로로 두든 눕혀 세우든 글자 크기가 같다. */
@@ -34,7 +30,7 @@
     word-break: keep-all;
   }
 
-  /* TV 는 화면 가장자리를 잘라 먹는 기종이 있다(오버스캔). 위아래·좌우로 안전 여백을 둔다.
+  /* TV 는 화면 가장자리를 잘라 먹는 기종이 있다(오버스캔). 안전 여백을 둔다.
      더 잘리면 주소에 ?inset=5 처럼 % 를 올리면 된다. */
   .board {
     height: 100%; display: flex; flex-direction: column;
@@ -57,214 +53,41 @@
     font-size: .34em; letter-spacing: .18em; color: var(--signal); text-transform: uppercase;
   }
 
-  /* ── 본문 ────────────────────────────────────
-     기본은 "시간만" — 화면 전체를 타임표가 쓴다(멀리서 보는 화면이라 이게 제일 잘 읽힌다).
-     참여 방법·시상 카드는 지우지 않고 꺼둔 것뿐이라, 주소에 ?side=1 을 붙이면 오른쪽에 다시 나온다. */
-  .grid {
-    flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr;
-    gap: calc(2.4 * var(--u)); padding: calc(2 * var(--u)) 0;
+  /* ── 본문: 안내 문구 한 장 ────────────────────
+     멀리서 한 번에 읽히는 게 전부인 화면이다. 줄을 손으로 끊어 두고(=읽는 순서를 고정),
+     화면에 안 들어가면 autofit 이 세 줄을 같은 비율로 줄인다. */
+  .promo {
+    flex: 1; min-height: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+    gap: calc(2.2 * var(--u)); padding: calc(2 * var(--u)) 0;
   }
-  .side { display: none; }
-  :root.side .grid { grid-template-columns: 1.45fr 1fr; }
-  :root.side .side { display: flex; }
+  .promo p { margin: 0; line-height: 1.16; letter-spacing: -.035em; }
 
-  .times { min-height: 0; display: flex; flex-direction: column; gap: calc(1.6 * var(--u)); }
+  /* 앞의 두 줄 = 무엇을 하면 되는지 */
+  .promo .p1, .promo .p2 {
+    font-size: calc(9.4 * var(--u) * var(--s) * var(--pf, 1));
+    font-weight: 700; color: var(--text);
+  }
+  .promo .p1 b, .promo .p2 b { color: var(--signal); font-weight: 800; }
 
-  /* 한 타임 = 한 줄. 번호 · 시간 · 상태 세 칸. 시간을 가장 크게 둔다. */
-  .slot {
-    flex: 1; min-height: 0; position: relative; overflow: hidden;
-    display: grid; grid-template-columns: auto 1fr auto; align-items: center;
-    column-gap: calc(2 * var(--u)); padding: calc(1.2 * var(--u)) calc(2.2 * var(--u));
-    background: var(--panel); border: 1px solid var(--rule); border-radius: calc(1 * var(--u));
-    transition: background .3s ease, border-color .3s ease;
+  /* 마지막 줄 = 보상. 이 줄만 보고 발길을 돌리는 사람이 있으므로 제일 크게. */
+  .promo .p3 {
+    margin-top: calc(1.4 * var(--u));
+    font-size: calc(19 * var(--u) * var(--s) * var(--pf, 1));
+    font-weight: 800; color: var(--signal);
+    padding: calc(1.6 * var(--u)) calc(4 * var(--u));
+    border: calc(.35 * var(--u)) solid var(--signal); border-radius: calc(1.4 * var(--u));
+    background: linear-gradient(180deg, rgba(255,90,40,.18), rgba(255,90,40,.04));
+    animation: glow 2.4s ease-in-out infinite;
   }
-  .slot .sn {
-    font-size: calc(8 * var(--u) * var(--s)); font-weight: 800; letter-spacing: -.02em;
-    color: var(--text); line-height: 1; white-space: nowrap;
+  @keyframes glow {
+    0%, 100% { box-shadow: 0 0 calc(2 * var(--u)) rgba(255,90,40,.25); }
+    50%      { box-shadow: 0 0 calc(5 * var(--u)) rgba(255,90,40,.60); }
   }
-  .slot .sr {
-    font-family: var(--font-num); font-variant-numeric: tabular-nums;
-    /* 크게 잡아두고, 화면에 안 들어가면 autofit 이 알아서 줄인다 (가로·세로 둘 다 본다) */
-    font-size: calc(15 * var(--u) * var(--s) * var(--pf, 1)); font-weight: 700; letter-spacing: -.045em; line-height: 1;
-    /* 시간은 절대 두 줄로 접히면 안 된다 */
-    white-space: nowrap; min-width: 0; overflow: hidden;
-  }
-  .slot .sst {
-    text-align: right; line-height: 1.15; white-space: nowrap;
-  }
-  .slot .sst b {
-    display: block; font-size: calc(4.6 * var(--u) * var(--s)); font-weight: 800; letter-spacing: -.02em;
-  }
-  /* 방법·시상을 함께 띄우면 폭이 좁아지므로 그때는 원래 크기로 */
-  :root.side .slot .sn { font-size: calc(5 * var(--u) * var(--s)); }
-  :root.side .slot .sr { font-size: calc(8.4 * var(--u) * var(--s) * var(--pf, 1)); }
-  :root.side .slot .sst b { font-size: calc(3.6 * var(--u) * var(--s)); }
 
-  /* 안내 문구 — 타임표 맨 윗줄을 차지한다(order 로 JS가 그린 타임 줄들보다 앞에). */
-  .meet {
-    order: -1; flex: 1; min-height: 0;
-    display: flex; align-items: center; justify-content: center; text-align: center;
-    padding: calc(1.2 * var(--u)) calc(2.2 * var(--u));
-    background: linear-gradient(90deg, rgba(255,90,40,.20), rgba(255,90,40,.04) 70%);
-    border: 1px solid var(--signal); border-radius: calc(1 * var(--u));
-    color: var(--signal); font-size: calc(10.5 * var(--u) * var(--s));
-    font-weight: 800; letter-spacing: -.03em; line-height: 1.1;
-    flex-direction: column; gap: calc(.8 * var(--u)); word-break: keep-all;
-  }
-  :root.side .meet { font-size: calc(5.4 * var(--u) * var(--s)); }
-  /* 둘째 줄(다시 시작 시각)은 첫 줄보다 작게 — 멀리서 "쉬는 시간"이 먼저 읽히게 */
-  .meet .meet-b { font-size: .52em; font-weight: 700; letter-spacing: -.02em; color: var(--text); }
-  .meet .meet-b:empty { display: none; }
-  /* 진행중일 땐 이 띠를 없애 타임 줄에 자리를 다 준다 */
-  .meet[hidden] { display: none; }
-
-  /* 지난 타임 — 있었다는 것만 알아보게 죽인다 */
-  .slot[data-state="done"] { opacity: .45; }
-  .slot[data-state="done"] .sst b { color: var(--dim); }
-
-  /* 다음 타임 */
-  .slot[data-state="next"] .sst b { color: var(--text); }
-
-  /* 지금 하는 타임 — 멀리서 이 줄만 보이면 된다 */
-  .slot[data-state="live"] {
-    background: linear-gradient(90deg, rgba(255,90,40,.20), rgba(255,90,40,.04) 70%);
-    border-color: var(--signal);
-  }
-  .slot[data-state="live"] .sn { color: var(--signal); }
-  .slot[data-state="live"] .sr { font-size: calc(18.5 * var(--u) * var(--s) * var(--pf, 1)); }
-  :root.side .slot[data-state="live"] .sr { font-size: calc(10.6 * var(--u) * var(--s) * var(--pf, 1)); }
-  .slot[data-state="live"] .sst b { color: var(--signal); }
-
-  /* 그 타임 "안"의 쉬는 시간 — 진행중과 같은 크기로 두되, 색만 죽여서 헷갈리지 않게 한다 */
-  .slot[data-state="rest"] {
-    background: linear-gradient(90deg, rgba(255,255,255,.10), rgba(255,255,255,.02) 70%);
-    border-color: var(--rule-strong);
-  }
-  .slot[data-state="rest"] .sn { color: var(--text); }
-  .slot[data-state="rest"] .sr { font-size: calc(18.5 * var(--u) * var(--s) * var(--pf, 1)); }
-  :root.side .slot[data-state="rest"] .sr { font-size: calc(10.6 * var(--u) * var(--s) * var(--pf, 1)); }
-  :root.pt .slot[data-state="rest"] .sr { font-size: calc(30 * var(--u) * var(--s) * var(--pf, 1)); }
-  :root.pt.side .slot[data-state="rest"] .sr { font-size: calc(12 * var(--u) * var(--s) * var(--pf, 1)); }
-  .slot[data-state="rest"] .sst b { color: var(--signal); }
-  .slot[data-state="rest"] .bar { display: block; }
-
-  /* 진행 막대 — 그 타임이 얼마나 남았는지 */
-  .slot .bar {
-    position: absolute; left: 0; right: 0; bottom: 0; height: calc(.7 * var(--u));
-    background: rgba(255,255,255,.06); display: none;
-  }
-  .slot[data-state="live"] .bar { display: block; }
-  .slot .bar i { display: block; height: 100%; width: 0; background: var(--signal); transition: width 1s linear; }
-
-  .dotlive {
-    display: none; width: .5em; height: .5em; border-radius: 50%; background: var(--signal);
-    margin-right: .4em; vertical-align: .05em; animation: pulse 1.6s ease-in-out infinite;
-  }
-  .slot[data-state="live"] .dotlive { display: inline-block; }
-  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
-
-  /* ── 오른쪽: 방법 · 시상 ─────────────────────── */
-  /* 기본은 숨김 — ?side=1 일 때만 나온다 (숨김 규칙은 위쪽 .side{display:none} 과 짝) */
-  .side { min-height: 0; flex-direction: column; gap: calc(2 * var(--u)); }
-  .card {
-    background: var(--panel); border: 1px solid var(--rule); border-radius: calc(1 * var(--u));
-    padding: calc(1.8 * var(--u)) calc(2.2 * var(--u)); display: flex; flex-direction: column;
-    justify-content: center; min-height: 0;
-  }
-  .card h2 {
-    margin: 0 0 calc(1.4 * var(--u)); display: flex; align-items: baseline; gap: .6em;
-    font-size: calc(2.6 * var(--u) * var(--s)); font-weight: 800; letter-spacing: -.02em; line-height: 1;
-  }
-  .card h2 em {
-    font-style: normal; font-family: var(--font-num); font-size: .52em; font-weight: 700;
-    letter-spacing: .2em; text-transform: uppercase; color: var(--signal);
-  }
-  .rules { flex: 1.05; }
-  .rules ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: calc(1.3 * var(--u)); }
-  /* 방법·시상은 곁들이는 정보라 시간보다 확실히 작게 둔다 */
-  .rules li {
-    display: grid; grid-template-columns: calc(3.2 * var(--u)) 1fr; align-items: baseline; column-gap: calc(1.2 * var(--u));
-    font-size: calc(2.7 * var(--u) * var(--s)); font-weight: 600; letter-spacing: -.02em; line-height: 1.3;
-  }
-  .rules li i {
-    font-style: normal; font-family: var(--font-num); font-size: .72em; font-weight: 700; color: var(--signal);
-  }
-  .rules li b { font-weight: 800; }
-
-  .prize { flex: 1; }
-  .prow {
-    display: grid; grid-template-columns: calc(11 * var(--u)) 1fr; align-items: baseline;
-    column-gap: calc(1.4 * var(--u)); padding: calc(.9 * var(--u)) 0;
-    font-size: calc(2.8 * var(--u) * var(--s)); font-weight: 700; letter-spacing: -.025em; line-height: 1.15;
-  }
-  .prow + .prow { border-top: 1px solid var(--rule); }
-  .prow b { font-size: calc(2.5 * var(--u) * var(--s)); font-weight: 800; }
-  .prow.p1 b { color: var(--gold); }
-  .prow.p1 span { color: var(--gold); }
-  .prow.p2 b { color: var(--muted); }
-  .divnote {
-    margin-top: calc(1.4 * var(--u)); font-size: calc(2.3 * var(--u) * var(--s)); font-weight: 600;
-    color: var(--muted); letter-spacing: -.01em; line-height: 1.3;
-  }
-  .divnote b { color: var(--text); font-weight: 800; }
-
-  /* ── 바닥 안내 ─────────────────────────────────
-     이것도 기본은 꺼둠. 주소에 ?notice=1 을 붙이면 아래에 한 줄로 돌아간다. */
-  .foot { display: none; }
-  /* 안내는 화면 폭을 끝까지 쓰고 높이도 넉넉하게 — 여기까지 시선이 오면 읽으라고 두는 줄이다 */
-  :root.notice .foot {
-    display: flex; align-items: center; gap: 1.4em; overflow: hidden;
-    margin: 0 calc(-1 * (clamp(1rem, 2.6vw, 3rem) + var(--inset, 2vmin)));
-    padding: calc(3.2 * var(--u)) calc(clamp(1rem, 2.6vw, 3rem) + var(--inset, 2vmin));
-    background: rgba(255, 90, 40, .12); border-top: 1px solid var(--rule-strong);
-  }
-  .foot .tag {
-    flex: none; font-family: var(--font-num); font-size: calc(1.9 * var(--u) * var(--s));
-    font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: var(--signal);
-    border: 1px solid var(--signal); border-radius: 999px; padding: .45em .9em; line-height: 1;
-  }
-  .foot .msg {
-    font-size: calc(3.4 * var(--u) * var(--s)); font-weight: 700; letter-spacing: -.015em; line-height: 1.25;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    transition: opacity .4s ease, transform .4s ease;
-  }
-  .foot .msg.out { opacity: 0; transform: translateY(-45%); }
-  .foot .msg.below { opacity: 0; transform: translateY(45%); }
-
-  /* ── 세로로 길쭉한 화면 (눕혀 세운 TV) ────────── */
-  :root.pt.side .grid { grid-template-columns: 1fr; grid-template-rows: 1.15fr 1fr; }
-  :root.pt .mark { height: calc(10 * var(--u) * var(--s)); }
-  :root.pt .challenge { font-size: calc(7.4 * var(--u) * var(--s)); }
-  /* 세로 화면에서 두 카드를 좌우로 나누면 폭이 반이 되어 한 줄짜리 문장이 3줄로 접힌다.
-     위아래로 쌓아 폭을 다 쓰고, 대신 글자를 키운다. */
-  :root.pt .card { flex: 1; }
-  :root.pt .rules li { font-size: calc(3.2 * var(--u) * var(--s)); }
-  :root.pt .prow { font-size: calc(3.3 * var(--u) * var(--s)); }
-  :root.pt .prow b { font-size: calc(2.9 * var(--u) * var(--s)); }
-  :root.pt .card h2 { font-size: calc(2.8 * var(--u) * var(--s)); }
-  :root.pt .divnote { font-size: calc(2.4 * var(--u) * var(--s)); }
-  /* 세로 화면에서 [타임][시간][상태]를 한 줄에 넣으면 폭이 모자라 시간이 작아진다.
-     위 줄에 타임·상태를 두고, 시간은 아래에서 폭을 통째로 써서 최대한 크게. */
-  :root.pt .slot {
-    grid-template-columns: 1fr auto; grid-template-rows: auto 1fr;
-    align-items: center; row-gap: calc(.6 * var(--u));
-    padding: calc(1.4 * var(--u)) calc(2 * var(--u));
-  }
-  :root.pt .slot .sn  { grid-column: 1; grid-row: 1; }
-  :root.pt .slot .sst { grid-column: 2; grid-row: 1; }
-  :root.pt .slot .sr  { grid-column: 1 / -1; grid-row: 2; align-self: center; }
-
-  :root.pt .slot .sn { font-size: calc(10.5 * var(--u) * var(--s)); }
-  :root.pt .slot .sst b { font-size: calc(5.4 * var(--u) * var(--s)); }
-  :root.pt.side .slot .sn { font-size: calc(5.6 * var(--u) * var(--s)); }
-  :root.pt.side .slot .sst b { font-size: calc(4 * var(--u) * var(--s)); }
-  /* 폭을 다 쓰므로 크게 잡아두고 autofit 에 맡긴다 */
-  :root.pt .slot .sr { font-size: calc(26 * var(--u) * var(--s) * var(--pf, 1)); }
-  :root.pt .slot[data-state="live"] .sr { font-size: calc(30 * var(--u) * var(--s) * var(--pf, 1)); }
-  :root.pt.side .slot .sr { font-size: calc(9.6 * var(--u) * var(--s) * var(--pf, 1)); }
-  :root.pt.side .slot[data-state="live"] .sr { font-size: calc(12 * var(--u) * var(--s) * var(--pf, 1)); }
-  :root.pt .foot .msg { font-size: calc(3.2 * var(--u) * var(--s)); white-space: normal; line-height: 1.25;
-    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  /* 눕혀 세운 세로 화면 — 폭이 좁으므로 크게 잡아두고 autofit 에 맡긴다 */
+  :root.pt .promo .p1, :root.pt .promo .p2 { font-size: calc(13 * var(--u) * var(--s) * var(--pf, 1)); }
+  :root.pt .promo .p3 { font-size: calc(24 * var(--u) * var(--s) * var(--pf, 1)); }
 
   /* ── 모니터를 눕혀 세운 경우 (회전 모드) ───────
      기록판과 같은 방식. 우측 상단 ⟳ 또는 주소에 ?rotate=90 */
@@ -289,39 +112,16 @@
   <header class="brand">
     <div class="lockup">
       <svg class="mark" viewBox="0 0 61 55" aria-hidden="true"><path fill="currentColor" d="M60.9 22.34V10.77H25.07L17.89 0H4.51l7.15 10.77H0v11.57h19.36l6.32 9.53H0v11.57h33.37l7.24 10.89h13.5l-7.26-10.89h14.04V31.87H39.14l-6.35-9.53z"/></svg>
-      <p class="challenge">부스 안내 <em>Shuttle Run Challenge</em></p>
+      <p class="challenge">부스 안내 <em>Darimati</em></p>
     </div>
   </header>
 
-  <div class="grid">
-    <section class="times" id="times">
-      <!-- 맨 위 안내 줄. 아래 JS(paintMeet)가 시계를 보고 문구를 자동으로 바꿉니다. -->
-      <div class="meet" id="meet"><b class="meet-a"></b><span class="meet-b"></span></div>
-    </section>
-
-    <aside class="side">
-      <div class="card rules">
-        <h2>참여 방법 <em>How to</em></h2>
-        <ul>
-          <li><i>01</i><span>10m 구간을 <b>왕복 4번</b> 달립니다</span></li>
-          <li><i>02</i><span>양 끝에서 <b>콘을 터치</b>해야 인정됩니다</span></li>
-          <li><i>03</i><span>총 소요 시간으로 <b>순위</b>를 매깁니다</span></li>
-        </ul>
-      </div>
-
-      <div class="card prize">
-        <h2>시상 <em>Prize</em></h2>
-        <div class="prow p1"><b>1등</b><span>BR-001 하이브리드화</span></div>
-        <div class="prow p2"><b>2·3등</b><span>다리마티 러닝 키트</span></div>
-        <p class="divnote">타임별로 <b>여성부 · 남성부</b> 각각 시상합니다</p>
-      </div>
-    </aside>
-  </div>
-
-  <footer class="foot">
-    <span class="tag">안내</span>
-    <span class="msg" id="footMsg"></span>
-  </footer>
+  <!-- 문구를 바꾸려면 이 세 줄만 고치면 됩니다. 줄을 나눈 위치가 곧 읽는 순서입니다. -->
+  <section class="promo" id="promo">
+    <p class="p1">다리마티 <b>하이브리드 러닝화</b> 트라이얼 하시고,</p>
+    <p class="p2"><b>박스점프 인스타 스토리</b> 올리시면</p>
+    <p class="p3">선물 드려요!</p>
+  </section>
 </main>
 
 <div class="ctl">
@@ -335,141 +135,23 @@
 (function () {
   "use strict";
 
-  /* 타임표 — 바뀌면 이 줄만 고치면 화면 전체가 따라갑니다. [시작시, 시작분, 끝시, 끝분] */
-  var SLOTS = [
-    /* done: true 를 붙이면 시계와 상관없이 "종료"로 보입니다(일찍 끝낸 타임). 지우면 시계대로 돌아갑니다. */
-    { name: "1타임", from: [10, 0], to: [12, 0], done: true },
-    { name: "2타임", from: [13, 0], to: [15, 0], done: true },
-    /* brk: [[쉬기 시작], [다시 시작]] — 그 타임 "안"의 쉬는 시간. 없애려면 이 줄만 지우면 됩니다. */
-    { name: "3타임", from: [16, 0], to: [19, 0], brk: [[17, 30], [17, 50]] }
-  ];
-
-  /* 기록판이 쓰는 것과 같은 Apps Script. 여기서는 "한국 시각"만 빌려옵니다.
-     인터넷이 없거나 실패하면 이 기기 시계를 그대로 씁니다(화면은 계속 돕니다). */
-  var API_URL = "https://script.google.com/macros/s/AKfycbwDiOVHDIHlFRYEgdNJSDohbYrk23cPJtZxBDwiJsYbvoqdWD2Couq0VAWOO6lWa_0-/exec";
   var VKEY = "rextreme_board_view";      // 기록판과 같은 키 — 회전·글자 크기 설정을 공유
-
   var qs = new URLSearchParams(location.search);
-  var api = qs.get("local") ? "" : (qs.get("api") || API_URL);
-
-  /* 화면에 무엇을 띄울지 — 기본은 시간만.
-     ?side=1   오른쪽에 참여 방법 · 시상 카드
-     ?notice=1 아래에 안내 한 줄 */
-  if (qs.get("side") === "1") document.documentElement.classList.add("side");
-  if (qs.get("notice") === "1") document.documentElement.classList.add("notice");
 
   // TV가 화면 가장자리를 잘라 먹으면(오버스캔) ?inset=5 처럼 여백 %를 올린다
   (function () {
     var v = Number(qs.get("inset"));
     if (!isNaN(v) && v >= 0 && v <= 15) document.documentElement.style.setProperty("--inset", v + "vmin");
   })();
-  var skew = 0;                          // 시트가 알려주는 한국 시각과 이 기기 시계의 차이
 
-  function two(n) { return n < 10 ? "0" + n : "" + n; }
-  function hhmm(a) { return two(a[0]) + ":" + two(a[1]); }
-  function mins(a) { return a[0] * 60 + a[1]; }
-
-  // 미리보기용 — 주소에 ?now=13:30 을 붙이면 그 시각인 것처럼 화면을 보여줍니다(현장에서는 쓰지 않음)
-  var fake = null;
-  (function () {
-    var m = String(qs.get("now") || "").match(/^(\d{1,2}):(\d{2})$/);
-    if (m) fake = Number(m[1]) * 60 + Number(m[2]);
-  })();
-
-  // 한국 시각(UTC+9). skew 가 0이면 이 기기 시계 그대로.
-  function kst() {
-    if (fake !== null) return new Date(Date.UTC(2026, 7, 1, Math.floor(fake / 60), fake % 60, 0));
-    return new Date(Date.now() + skew + 9 * 3600 * 1000);
-  }
-  function nowMin() { var d = kst(); return d.getUTCHours() * 60 + d.getUTCMinutes() + d.getUTCSeconds() / 60; }
-
-  /* ── 타임표 그리기 ─────────────────────────── */
-
-  var box = document.getElementById("times");
-  var els = SLOTS.map(function (s) {
-    var el = document.createElement("div");
-    el.className = "slot";
-    el.innerHTML =
-      "<span class='sn'></span>" +
-      "<span class='sr'></span>" +
-      "<span class='sst'><b></b></span>" +
-      "<div class='bar'><i></i></div>";
-    el.querySelector(".sn").textContent = s.name;
-    el.querySelector(".sr").textContent = hhmm(s.from) + " – " + hhmm(s.to);
-    box.appendChild(el);
-    return el;
-  });
-
-  function paint() {
-    var now = nowMin();
-    var live = -1, next = -1, rest = null;      // rest = 진행중인 타임이 지금 쉬는 시간일 때의 정보
-
-    SLOTS.forEach(function (s, i) {
-      if (s.done) return;                       // 손으로 종료시킨 타임은 진행중/다음 후보에서 뺀다
-      var a = mins(s.from), b = mins(s.to);
-      if (now >= a && now < b) {
-        live = i;
-        // 그 타임 안에 쉬는 시간이 잡혀 있고 지금이 그 사이면 "쉬는시간"으로 본다
-        if (s.brk && now >= mins(s.brk[0]) && now < mins(s.brk[1])) rest = { back: s.brk[1], end: s.to };
-      }
-      else if (now < a && next < 0) next = i;
-    });
-
-    SLOTS.forEach(function (s, i) {
-      var a = mins(s.from), b = mins(s.to);
-      var el = els[i], st = el.querySelector(".sst b");
-
-      // 상태는 한 낱말만 — "몇 분 뒤 시작" 같은 상세 시간은 화면에 쓰지 않는다
-      if (i === live) {
-        el.dataset.state = rest ? "rest" : "live";
-        st.innerHTML = rest ? "쉬는시간" : "<i class='dotlive'></i>진행중";
-        el.querySelector(".bar i").style.width = Math.min(100, Math.max(0, (now - a) / (b - a) * 100)) + "%";
-      } else if (s.done || now >= b) {
-        el.dataset.state = "done";
-        st.textContent = "종료";
-      } else {
-        el.dataset.state = "next";
-        st.textContent = (i === next) ? "다음" : "예정";
-      }
-    });
-
-    paintMeet(live, next, rest);
-    autofit();
-  }
-
-  /* 맨 윗줄 안내 띠 — 시계를 보고 스스로 바뀝니다.
-     진행중이면 감추고, 쉬는 중이면 "쉬는 시간 + 다시 시작 시각", 다 끝났으면 종료 문구. */
-  var meet = document.getElementById("meet");
-  var meetA = meet.querySelector(".meet-a");
-  var meetB = meet.querySelector(".meet-b");
-  function paintMeet(live, next, rest) {
-    if (rest) {                                      // 타임 안의 쉬는 시간 — 이때가 이 띠의 주목적
-      meet.hidden = false;
-      meetA.textContent = "지금은 쉬는 시간입니다";
-      meetB.textContent = hhmm(rest.back) + " 부스 다시 시작 · " + hhmm(rest.end) + " 까지";
-      return;
-    }
-    if (live >= 0) { meet.hidden = true; return; }   // 진행중 — 띠를 없애 타임 줄을 크게
-    meet.hidden = false;
-    if (next >= 0) {
-      meetA.textContent = "지금은 쉬는 시간입니다";
-      meetB.textContent = hhmm(SLOTS[next].from) + " 부스 다시 시작 · " + hhmm(SLOTS[next].to) + " 까지";
-    } else {
-      meetA.textContent = "오늘 부스 운영이 끝났습니다";
-      meetB.textContent = "찾아와 주셔서 감사합니다";
-    }
-  }
-
-  /* 화면이 좁아 "13:00 – 15:00" 이 옆으로 잘리면(=두 줄로 접히려 하면) 세 줄 글자를 함께 줄입니다.
-     세 줄을 같은 비율로 줄여야 숫자 크기가 어긋나 보이지 않습니다. */
+  /* 문구가 화면 밖으로 넘치면 세 줄을 같은 비율로 함께 줄인다.
+     따로 줄이면 줄마다 글자 크기가 어긋나 보인다. */
+  var promo = document.getElementById("promo");
   function autofit() {
     var root = document.documentElement;
     function over() {
-      return els.some(function (el) {
-        var s = el.querySelector(".sr");
-        if (s.scrollWidth > s.clientWidth + 1) return true;      // 옆으로 잘림
-        return el.scrollHeight > el.clientHeight + 2;            // 위아래로 넘침
-      });
+      if (promo.scrollHeight > promo.clientHeight + 2) return true;   // 위아래로 넘침
+      return promo.scrollWidth > promo.clientWidth + 1;               // 옆으로 잘림
     }
     var f = 1, guard = 0;
     root.style.setProperty("--pf", f);
@@ -477,41 +159,6 @@
       f = Math.round((f - 0.03) * 100) / 100;
       root.style.setProperty("--pf", f);
     }
-  }
-
-  /* ── 바닥 롤링 안내 ────────────────────────── */
-
-  var NOTICES = [
-    "매 타임 종료 후 시상자분께 개별 연락드립니다",
-    "부스에서 정보 제출과 사진 촬영을 마치시면 상품을 배송해 드립니다",
-    "참가 신청은 부스 대기줄 입구의 QR코드로 해주세요"
-  ];
-  var ni = 0;
-  document.getElementById("footMsg").textContent = NOTICES[0];
-  setInterval(function () {
-    var el = document.getElementById("footMsg");
-    el.classList.add("out");
-    setTimeout(function () {
-      ni = (ni + 1) % NOTICES.length;
-      el.style.transition = "none";
-      el.classList.remove("out"); el.classList.add("below");
-      el.textContent = NOTICES[ni];
-      void el.offsetWidth;
-      el.style.transition = "";
-      el.classList.remove("below");
-    }, 400);
-  }, 7000);
-
-  /* ── 한국 시각 맞추기 (실패해도 그냥 넘어감) ── */
-
-  function syncTime() {
-    if (!api) return;
-    fetch(api + (api.indexOf("?") > -1 ? "&" : "?") + "a=board&_=" + new Date().getTime(), { cache: "no-store" })
-      .then(function (r) { return r.json(); })
-      .then(function (j) {
-        if (j && j.ts) { var t = Date.parse(j.ts); if (!isNaN(t)) { skew = t - Date.now(); paint(); } }
-      })
-      .catch(function () {});
   }
 
   /* ── 화면 설정 (기록판과 같은 조작) ────────── */
@@ -553,9 +200,7 @@
   });
   window.addEventListener("resize", function () { setPortrait(); autofit(); });
 
-  applyRot(); applyScale(); paint();
-  setInterval(paint, 1000);
-  syncTime(); setInterval(syncTime, 120000);
+  applyRot(); applyScale();
 })();
 </script>
 </body>
