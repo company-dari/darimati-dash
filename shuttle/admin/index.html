@@ -345,9 +345,14 @@
     }).catch(function () { flushing = false; });
   }
 
+  var refreshing = false;
   function refresh() {
     if (!api) { loadLocal(); rows = local.athletes.slice(); syncCfgInputs(); render(); setConn("", "로컬 모드 · 이 브라우저에만 저장"); return; }
+    // 시트 응답이 2~3초 걸립니다 — 앞선 조회가 아직이면 겹쳐 보내지 않습니다
+    if (refreshing) return;
+    refreshing = true;
     call({ a: "list" }).then(function (j) {
+      refreshing = false;
       if (!j || !j.ok) {
         if (j && j.error === "BAD_KEY") badKey();
         else setConn("bad", "응답 이상");
@@ -357,7 +362,7 @@
       if (j.cfg) { cfg = j.cfg; syncCfgInputs(); }
       lastOkAt = new Date(); setConn("ok", "시트 연결됨");
       render();
-    }).catch(function () { setConn("bad", lastOkAt ? "연결 끊김 · 마지막" : "연결 실패"); });
+    }).catch(function () { refreshing = false; setConn("bad", lastOkAt ? "연결 끊김 · 마지막" : "연결 실패"); });
   }
 
   /* ── 동작 ─────────────────────────────────────── */
@@ -714,7 +719,7 @@
   loadLocal();
   syncCfgInputs();
   refresh();
-  setInterval(function () { flush(); refresh(); }, 5000);
+  setInterval(function () { flush(); refresh(); }, 2000);   // 시트 응답이 2~3초 걸려 실제 주기는 4~5초
   if (api && !key) openSetup();
 })();
 

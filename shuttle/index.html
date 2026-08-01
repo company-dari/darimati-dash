@@ -426,24 +426,29 @@
 
   // 시트가 알려주는 한국 시각과 이 기기 시계의 차이. TV 시계가 틀려도 화면은 맞습니다.
   var skew = 0;
-  var pollDelay = 3000, pollTimer = null;
+  /* 순위 갱신 주기.
+     시트(Apps Script) 응답 자체가 2~3초 걸리므로, "응답 뒤 몇 초 쉰다"로 잡으면 5초 넘게 벌어집니다.
+     그래서 한 바퀴 전체가 POLL_CYCLE 이 되도록 남는 시간만 쉽니다 → 실제 갱신 = 2.5~3초. */
+  var POLL_CYCLE = 2500, POLL_MIN = 300;
+  var pollDelay = POLL_MIN, pollTimer = null;
   function schedulePoll(ms) { clearTimeout(pollTimer); pollTimer = setTimeout(poll, ms); }
 
   function poll() {
-    if (!api) { apply(loadLocal(), false); setConn("", "로컬 모드"); schedulePoll(3000); return; }
-    fetch(api + (api.indexOf("?") > -1 ? "&" : "?") + "a=board&_=" + new Date().getTime(), { cache: "no-store" })
+    if (!api) { apply(loadLocal(), false); setConn("", "로컬 모드"); schedulePoll(1000); return; }
+    var t0 = Date.now();
+    fetch(api + (api.indexOf("?") > -1 ? "&" : "?") + "a=board&_=" + t0, { cache: "no-store" })
       .then(function (r) { return r.json(); })
       .then(function (j) {
         if (!j || !j.ok) throw 0;
         if (j.ts) { var t = Date.parse(j.ts); if (!isNaN(t)) skew = t - Date.now(); }
         apply(j, true);
         tick();
-        pollDelay = 3000;
+        pollDelay = Math.max(POLL_MIN, POLL_CYCLE - (Date.now() - t0));
         schedulePoll(pollDelay);
       })
       .catch(function () {
         setConn("bad", lastOkAt ? "연결 끊김 · 마지막" : "연결 실패");
-        pollDelay = Math.min(pollDelay * 2, 30000);   // 계속 두드리지 않고 간격을 늘립니다
+        pollDelay = Math.min(Math.max(pollDelay, 1000) * 2, 30000);   // 계속 두드리지 않고 간격을 늘립니다
         schedulePoll(pollDelay);
       });
   }
