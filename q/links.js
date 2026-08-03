@@ -7,6 +7,9 @@ window.QR = {
   api: "https://script.google.com/macros/s/AKfycbx4EqPZxQlkC6u9EDUq9ttWf5cuoRnvaurxuEBnd0MZWOq6w1q_Vjjdax5vPeob_kLinQ/exec",
   map: {
     "join": "https://www.darimati.us/pages/join",
-    "coach": "https://www.darimati.us/pages/coach"
+    "coach": "https://www.darimati.us/pages/coach",
+    "f45-yeonsinnae": "https://www.darimati.us/pages/br001-f45-yeonsinnae",
+    "f45-boramae": "https://www.darimati.us/pages/br001-f45-boramae",
+    "f45-sinyongsan": "https://www.darimati.us/pages/br001-f45-sinyongsan"
   }
 };
