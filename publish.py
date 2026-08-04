@@ -229,6 +229,30 @@ def build_growth(password):
           gate_page("네이버 Growth 대시보드", "📈", with_share(html, True), stamp, password))
     return stamp
 
+def build_br001(password):
+    """BR-001 브릿지 성과 — dash.html + data.js 를 한 파일로 합쳐 암호화.
+
+    소스를 repo 밖(~/br001-dash)에 두는 이유: 여기 data.js 에 광고비가 들어있는데
+    이 폴더는 git add -A 로 통째로 올라간다. 소스를 안에 두면 PIN 게이트를 우회해
+    원본이 공개된다. 광고 대시보드(ads)와 같은 이유·같은 구조다.
+    """
+    src = os.path.join(HOME, "br001-dash")
+    html_path = os.path.join(src, "dash.html")
+    data_path = os.path.join(src, "data.js")
+    if not os.path.exists(data_path):
+        print("  ! br001: data.js 없음 — 건너뜀 (python3 ~/br001-dash/fetch.py 먼저)")
+        return None
+    html = read(html_path)
+    data = read(data_path)
+    html = html.replace('<script src="data.js"></script>',
+                        "<script>\n%s\n</script>" % data)
+
+    m = re.search(r'"updated":\s*"([^"]+)"', data)
+    stamp = m.group(1) if m else "-"
+    write(os.path.join(HERE, "br001", "index.html"),
+          gate_page("BR-001 브릿지 성과", "🧭", with_share(html, True), stamp, password))
+    return stamp
+
 def build_utm():
     """UTM 생성기 — 데이터가 없는 순수 도구라 잠그지 않는다."""
     src = os.path.join(HOME, "fb-ads-dashboard", "utm-builder.html")
@@ -256,6 +280,7 @@ a span{display:block;font-weight:400;font-size:12.5px;color:#98a0ad;margin-top:4
 <h1>다리마티 대시보드</h1><p>폰에서 보는 읽기 전용 스냅샷</p>
 <a href="ads/">📊 메타 광고 대시보드<span>광고비·노출·클릭·CPC · PIN 필요</span></a>
 <a href="growth/">📈 네이버 Growth 대시보드<span>매출·유입·검색어·퍼널 · PIN 필요</span></a>
+<a href="br001/">🧭 BR-001 브릿지 성과<span>광고→랜딩 도달률·배치별 낭비·지점 QR 스캔 · PIN 필요</span></a>
 <a href="talent/">👥 인물 관리<span>선수·크리에이터·파트너·코치 · 대시보드에서 직접 수정 · PIN 필요</span></a>
 <a href="f45/">🗺️ F45 지점 관리<span>공략 지도·협의현황·지점별 판매링크/QR·할인코드·신청접수 · PIN 필요</span></a>
 <a href="utm/">🔗 UTM·광고명 생성기<span>바로 사용</span></a>
@@ -278,6 +303,7 @@ def main():
     print("빌드 중…")
     a = build_ads(pw);      print("  ads    :", a)
     g = build_growth(pw);   print("  growth :", g)
+    b = build_br001(pw);    print("  br001  :", b)
     build_utm();            print("  utm    : ok")
     print("  qr     :", build_qr())
     write(os.path.join(HERE, "index.html"), INDEX)
