@@ -247,6 +247,14 @@ def build_br001(password):
     html = html.replace('<script src="data.js"></script>',
                         "<script>\n%s\n</script>" % data)
 
+    # 행동 수집기 접속정보(collect.txt) — 빌드할 때만 끼워 넣는다.
+    # 결과물은 PIN 으로 암호화되므로 주소·암호가 공개 저장소에 남지 않는다.
+    cpath = os.path.join(src, "collect.txt")
+    if os.path.exists(cpath):
+        lines = [l.strip() for l in read(cpath).splitlines() if l.strip()]
+        if len(lines) >= 2:
+            html = html.replace("__COLLECT_URL__", lines[0]).replace("__COLLECT_KEY__", lines[1])
+
     m = re.search(r'"updated":\s*"([^"]+)"', data)
     stamp = m.group(1) if m else "-"
     write(os.path.join(HERE, "br001", "index.html"),
