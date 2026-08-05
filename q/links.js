@@ -10,6 +10,7 @@ window.QR = {
     "coach": "https://www.darimati.us/pages/coach",
     "f45-yeonsinnae": "https://www.darimati.us/pages/br001-f45-yeonsinnae",
     "f45-boramae": "https://www.darimati.us/pages/br001-f45-boramae",
-    "f45-sinyongsan": "https://www.darimati.us/pages/br001-f45-sinyongsan"
+    "f45-sinyongsan": "https://www.darimati.us/pages/br001-f45-sinyongsan",
+    "anytime": "https://www.darimati.us/pages/br001-anytime"
   }
 };
