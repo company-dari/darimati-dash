@@ -11,6 +11,11 @@ window.QR = {
     "f45-yeonsinnae": "https://www.darimati.us/pages/br001-f45-yeonsinnae",
     "f45-boramae": "https://www.darimati.us/pages/br001-f45-boramae",
     "f45-sinyongsan": "https://www.darimati.us/pages/br001-f45-sinyongsan",
-    "anytime": "https://www.darimati.us/pages/br001-anytime"
+    "anytime": "https://www.darimati.us/pages/br001-anytime",
+    "f45-hapjeong": "https://www.darimati.us/pages/br001-f45-hapjeong",
+    "f45-dangsan": "https://www.darimati.us/pages/br001-f45-dangsan",
+    "f45-songdo": "https://www.darimati.us/pages/br001-f45-songdo",
+    "f45-suyu": "https://www.darimati.us/pages/br001-f45-suyu",
+    "f45-beomgye": "https://www.darimati.us/pages/br001-f45-beomgye"
   }
 };
