@@ -16,6 +16,7 @@ window.QR = {
     "f45-dangsan": "https://www.darimati.us/pages/br001-f45-dangsan",
     "f45-songdo": "https://www.darimati.us/pages/br001-f45-songdo",
     "f45-suyu": "https://www.darimati.us/pages/br001-f45-suyu",
-    "f45-beomgye": "https://www.darimati.us/pages/br001-f45-beomgye"
+    "f45-beomgye": "https://www.darimati.us/pages/br001-f45-beomgye",
+    "f45-yeouido": "https://www.darimati.us/pages/br001-f45-yeouido"
   }
 };
