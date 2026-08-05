@@ -4,9 +4,12 @@
  *   node ~/darimati-dash/qr/export.js
  *
  * 만들어지는 곳: ~/Desktop/다리마티-QR/
- *   darimati-qr-<코드>.png   인쇄·화면용 (1200px 안팎)
- *   darimati-qr-<코드>.svg   대형 인쇄용 (벡터라 안 깨짐)
- *   목록.txt                 어떤 QR이 어디로 가는지, 언제 만들었고 몇 번 찍혔는지
+ *   F45합정_darimati-qr-f45-hapjeong.png   인쇄·화면용 (1200px 안팎)
+ *   F45합정_darimati-qr-f45-hapjeong.svg   대형 인쇄용 (벡터라 안 깨짐)
+ *   목록.txt                               어떤 QR이 어디로 가는지, 언제 만들었고 몇 번 찍혔는지
+ *
+ * 파일명 앞의 한글은 대시보드에 등록된 "이름"(공백 제거). 인쇄소에 넘길 때
+ * 어느 지점 것인지 눈으로 바로 구분하려고 붙인다. 뒤의 코드는 추적용으로 남긴다.
  *
  * 대시보드와 똑같은 인코더(qrcode.js)를 쓰므로 화면에서 받는 파일과 결과가 같다.
  * 접속정보는 qr/api.txt 에서 읽는다. 중지된 QR도 기록으로 남기려고 함께 뽑는다.
@@ -148,6 +151,11 @@ function pad(s, w) {
 
   fs.mkdirSync(OUT, { recursive: true });
 
+  /* 옛 이름으로 뽑아둔 파일이 남아 헷갈리는 걸 막는다(같은 QR이 두 벌 보임). */
+  fs.readdirSync(OUT).forEach(function (f) {
+    if (/darimati-qr-.+\.(png|svg)$/.test(f)) fs.unlinkSync(path.join(OUT, f));
+  });
+
   var list = [
     '다리마티 QR 기록',
     '뽑은 시각: ' + new Date().toLocaleString('ko-KR'),
@@ -162,8 +170,11 @@ function pad(s, w) {
   data.links.forEach(function (x) {
     var url = BASE + x.code;
     var rows = matrix(url);
-    fs.writeFileSync(path.join(OUT, 'darimati-qr-' + x.code + '.svg'), svg(rows));
-    fs.writeFileSync(path.join(OUT, 'darimati-qr-' + x.code + '.png'), png(rows));
+    /* 파일명 앞머리 = 등록된 이름. 공백과 파일명에 못 쓰는 글자만 걷어낸다. */
+    var head = String(x.name || '').replace(/[\/\\:*?"<>|]/g, '').replace(/\s+/g, '');
+    var stem = (head ? head + '_' : '') + 'darimati-qr-' + x.code;
+    fs.writeFileSync(path.join(OUT, stem + '.svg'), svg(rows));
+    fs.writeFileSync(path.join(OUT, stem + '.png'), png(rows));
 
     list.push(
       pad(x.code, 16) + pad(x.name, 22) + pad(x.scans + '회', 8) +
