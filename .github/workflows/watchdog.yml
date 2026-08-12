@@ -25,6 +25,11 @@ on:
     # 매일 09:30 (한국시간). 맥 자동화(08:10·08:40)가 끝난 뒤에 확인한다.
     - cron: '30 0 * * *'
   workflow_dispatch:        # 버튼으로 즉시 실행
+    inputs:
+      alarm_test:
+        description: '경보 시험 — 일부러 실패시켜 이슈가 실제로 만들어지는지 확인'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -40,6 +45,7 @@ jobs:
         id: run
         env:
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          ALARM_TEST: ${{ inputs.alarm_test }}
         run: |
           python3 .github/scripts/watchdog.py | tee /tmp/report.md
           echo "exit=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
