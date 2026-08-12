@@ -47,8 +47,11 @@ jobs:
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
           ALARM_TEST: ${{ inputs.alarm_test }}
         run: |
+          # ⚠️ pipefail 이 없으면 파이썬이 실패해도 tee 의 성공(0)이 결과가 되어
+          #    이 단계가 '성공'으로 처리된다 → 아래 알림이 영영 안 울린다.
+          #    2026-08-12 경보 시험에서 실제로 이 버그를 잡았다.
+          set -o pipefail
           python3 .github/scripts/watchdog.py | tee /tmp/report.md
-          echo "exit=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
 
       - name: 문제가 있으면 이슈로 알리기
         if: failure()
