@@ -463,13 +463,13 @@
 </style></head><body><p style="max-width:860px;margin:0 auto;padding:16px 22px 0"><a href="../" style="font-size:13px;color:var(--muted);text-decoration:none">← 다리마티 대시보드</a></p>
 
 <div class="wrap">
-
   <div class="switch">
     <div class="seg" role="tablist">
       <button id="t-work" role="tab" aria-selected="true"  aria-controls="v-work" onclick="show('work')">🧰 창고 작업</button>
       <button id="t-all"  role="tab" aria-selected="false" aria-controls="v-all"  onclick="show('all')">📖 전체 문서</button>
     </div>
   </div>
+
 
 <div id="v-work" class="view on">
 
@@ -599,7 +599,7 @@
           </tr>
           <tr>
             <td><strong>반품 · 교환 — 회수해 온 것</strong></td>
-            <td>아무것도 안 함<span class="sub">돌아왔다고 바로 재고가 되지 않습니다</span></td>
+            <td>발주시트에 <strong>새 행을 만들지 않음</strong><span class="sub">기존 판매 행에 형태 <span class="m">반품</span> 표시하는 건 괜찮습니다 — 재고에 영향 없음</span></td>
             <td class="act"><span class="sign none">변화 없음</span></td>
           </tr>
           <tr>
@@ -624,6 +624,31 @@
 
   <hr>
 
+  <!-- 회수품 -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">반품 · 교환</span>
+      <h2>회수해 온 물건은 이렇게</h2>
+    </div>
+
+    <div class="task in">
+      <span class="when">회수 도착 → 재출고까지</span>
+      <span class="ttl">3단계</span>
+      <ol class="numsteps">
+        <li><strong>회수 도착</strong> — 발주시트에 <strong>아무것도 안 적습니다</strong><br><span style="color:var(--muted);font-size:14px">돌아왔다고 바로 재고가 되지 않습니다</span></li>
+        <li><strong>검수</strong> — 양품이면 웹앱 <span class="m">📥 양품화 입고</span>에 수량 <strong>＋</strong><br><span style="color:var(--muted);font-size:14px">잔품(B급)은 아무 데도 안 적습니다</span></li>
+        <li><strong>다시 보낼 때</strong> — 발주시트에 <strong>새 주문처럼 행을 등록</strong>하고 출고완료<br><span style="color:var(--muted);font-size:14px">그때 재고에서 자동으로 빠집니다</span></li>
+      </ol>
+      <p class="tip">
+        <b>순서를 지켜주세요.</b> 양품화를 먼저 넣고 재출고해야 <b>＋1 하고 −1</b> 이라 딱 맞습니다.
+        양품화를 건너뛰고 바로 보내면 <b>−1만 남아 그만큼 마이너스</b>가 됩니다.
+        물건이 창고에 들어왔다 나가듯, 숫자도 똑같이 들어왔다 나가야 합니다.
+      </p>
+    </div>
+  </section>
+
+  <hr>
+
   <!-- 조심 -->
   <section>
     <div class="sec-head">
@@ -633,8 +658,9 @@
 
     <div class="warns">
       <div class="warn-item">
-        <span class="h">교환 회수 운송장으로 발주시트 행을 만들지 않기</span>
-        <span class="d">교환은 운송장이 둘(회수·발송)입니다. <strong>발송 건만</strong> 행으로 만드세요. 회수까지 만들면 나가는 걸로 읽혀 재고가 한 번 더 빠집니다.</span>
+        <span class="h">회수 운송장으로 발주시트 행을 만들지 않기</span>
+        <span class="d">교환은 운송장이 둘(회수·발송)입니다. <strong>발송 건만</strong> 행으로 만드세요. 회수까지 만들면 나가는 걸로 읽혀 재고가 한 번 더 빠집니다.
+        <br>기존 판매 행에 형태를 <span class="m">반품</span>으로 표시하는 건 괜찮습니다 — 그 행은 자동차감이 건너뜁니다.</span>
       </div>
       <div class="warn-item">
         <span class="h">창고 이동은 향동 쪽만 적기</span>
@@ -970,7 +996,7 @@
           </tr>
           <tr>
             <td><strong>반품 · 교환 — 회수해 온 것</strong></td>
-            <td>아무것도 안 함<span class="sub">발주시트의 ‘반품’ 표시가 회수 기록 역할</span></td>
+            <td>발주시트에 <strong>새 행을 만들지 않음</strong><span class="sub">기존 판매 행에 형태 <span class="m">반품</span> 표시는 괜찮음 — 자동차감이 그 행을 건너뜀</span></td>
             <td class="num"><span class="sign none">변화 없음</span></td>
             <td><span class="pill skip">—</span></td>
           </tr>
@@ -994,6 +1020,20 @@
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <div class="box today">
+      <span class="label">회수품이 도는 순서 — 순서가 곧 숫자입니다</span>
+      <p>
+        <strong>① 회수 도착</strong> → 발주시트에 아무것도 안 적음 ·
+        <strong>② 검수</strong> → 양품만 「양품화 입고」에 <strong>＋</strong> ·
+        <strong>③ 재출고</strong> → 발주시트에 <strong>새 주문처럼 행 등록</strong> 후 출고완료
+      </p>
+      <p>
+        양품화를 먼저 넣고 재출고해야 <strong>＋1 하고 −1</strong> 이라 맞아떨어집니다.
+        건너뛰고 바로 보내면 <strong>−1만 남아 그만큼 마이너스</strong>가 됩니다.
+        물건이 창고에 들어왔다 나가듯 숫자도 똑같이 들어왔다 나가야 합니다.
+      </p>
     </div>
 
     <div class="box done">
@@ -1289,7 +1329,6 @@
   </footer>
 </div>
 </div>
-
 <script>
   function show(v, skipScroll){
     var work = v !== 'all';
