@@ -1,0 +1,74 @@
+# ══════════════════════════════════════════════════════════════════
+#  다리마티 시스템 감시 — 깃허브 클라우드에서 돈다
+#
+#  왜 필요한가:
+#    우리 자동화(광고 수집·대시보드 갱신)는 전부 **맥북**에서 돈다.
+#    맥이 꺼져 있거나 잠들면 그날 작업이 통째로 건너뛰어지는데,
+#    2026-08-05~11 에 실제로 **6일간 아무도 모른 채 멈춰 있었다.**
+#    (화면은 멀쩡히 떴고 숫자만 옛날 것이었다 = 가장 위험한 고장)
+#
+#    이 감시는 **맥과 무관하게 깃허브 서버에서** 돌아서,
+#    무언가 멈추면 **깃허브 이슈로 알려준다**(등록된 메일로 발송된다).
+#
+#  무엇을 보나:
+#    ① 대시보드 데이터가 오늘 것인가      (맥이 잤는지 판별)
+#    ② 라이브 페이지에 픽셀이 살아있는가   (다른 에이전트가 덮어썼는지)
+#    ③ 구매 링크가 살아있는가             (깨지면 광고비가 샌다)
+#    ④ 메타 토큰이 유효한가               (죽으면 전환API+대시보드 동시 정지)
+#
+#  손으로 돌려보려면: Actions 탭 → 이 워크플로 → Run workflow
+# ══════════════════════════════════════════════════════════════════
+name: 다리마티 시스템 감시
+
+on:
+  schedule:
+    # 매일 09:30 (한국시간). 맥 자동화(08:10·08:40)가 끝난 뒤에 확인한다.
+    - cron: '30 0 * * *'
+  workflow_dispatch:        # 버튼으로 즉시 실행
+
+permissions:
+  contents: read
+  issues: write             # 문제 발견 시 이슈로 알리기 위함
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 점검 실행
+        id: run
+        env:
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+        run: |
+          python3 .github/scripts/watchdog.py | tee /tmp/report.md
+          echo "exit=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+
+      - name: 문제가 있으면 이슈로 알리기
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let body = '점검 스크립트가 실행되지 못했습니다.';
+            try { body = fs.readFileSync('/tmp/report.md', 'utf8'); } catch (e) {}
+            const title = '🔴 시스템 점검 실패 — ' +
+              new Date().toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' });
+
+            // 같은 날 이슈가 이미 있으면 댓글만 단다(이슈가 쌓이지 않게)
+            const open = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: 'open', labels: 'watchdog'
+            });
+            const same = open.data.find(i => i.title === title);
+            if (same) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: same.number, body
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner, repo: context.repo.repo,
+                title, body, labels: ['watchdog']
+              });
+            }
