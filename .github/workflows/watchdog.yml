@@ -45,6 +45,7 @@ jobs:
         id: run
         env:
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          GROUPBUY_TOKENS: ${{ secrets.GROUPBUY_TOKENS }}
           ALARM_TEST: ${{ inputs.alarm_test }}
         run: |
           # ⚠️ pipefail 이 없으면 파이썬이 실패해도 tee 의 성공(0)이 결과가 되어

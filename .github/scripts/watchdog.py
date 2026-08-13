@@ -151,6 +151,47 @@ else:
         problems.append('메타 토큰이 무효 — 전환 API와 광고 대시보드가 동시에 멈춘다')
         say('- 🔴 **토큰 무효**')
 
+# ── ⑤ 공동구매 파트너 대시보드 ───────────────────────────────────────
+#    파트너(꾸노핑 등)가 직접 보는 화면이다. 멈추면 우리보다 파트너가 먼저 안다.
+#    NCP 서버 cron(매시 10분)이 죽으면 숫자가 그대로 얼어붙는다.
+say('')
+say('## ⑤ 공동구매 대시보드')
+GROUPBUY = 'https://company-dari.github.io/groupbuy-live'
+# 토큰은 저장소에 두지 않는다(공개 저장소). Secrets 에 쉼표로 넣는다.
+gb_tokens = [t.strip() for t in os.environ.get('GROUPBUY_TOKENS', '').split(',') if t.strip()]
+if not gb_tokens:
+    say('- ⚪ 토큰이 없어 건너뜀 (저장소 Secrets 에 `GROUPBUY_TOKENS` 추가 시 확인)')
+elif status(f'{GROUPBUY}/') != 200:
+    problems.append('공동구매 대시보드 페이지 접속 실패')
+    say('- 🔴 페이지 **접속 실패**')
+else:
+    for t in gb_tokens:
+        raw = get(f'{GROUPBUY}/data/{t}.json?wd={datetime.now(KST).timestamp()}')
+        try:
+            d = json.loads(raw)
+        except Exception:
+            problems.append(f'공동구매 데이터를 읽을 수 없음 (토큰 …{t[-4:]})')
+            say(f'- 🔴 `…{t[-4:]}`: **데이터 없음**')
+            continue
+        who = d.get('partner', '?')
+        stamp = d.get('updatedAt', '')
+        try:
+            upd = datetime.strptime(stamp, '%Y-%m-%d %H:%M').replace(tzinfo=KST)
+        except Exception:
+            problems.append(f'{who} 대시보드에 기준 시각이 없음')
+            say(f'- 🔴 {who}: **기준 시각 없음**')
+            continue
+        hours = (datetime.now(KST) - upd).total_seconds() / 3600
+        s = d.get('summary', {})
+        # 매시 도니까 6시간이면 최소 5번을 연달아 건너뛴 것 = 확실한 고장
+        if hours > 6:
+            problems.append(f'{who} 공동구매 대시보드가 {hours:.0f}시간째 멈춤 '
+                            f'(기준 {stamp}) — NCP 서버 cron 또는 배포키 확인')
+            say(f'- 🔴 {who}: `{stamp}` — **{hours:.0f}시간 묵음**')
+        else:
+            say(f'- ✅ {who}: `{stamp}` ({hours:.1f}시간 전) · '
+                f'{s.get("count", 0)}건 {s.get("revenue", 0):,}원')
+
 # ── 경보 시험 ────────────────────────────────────────────────────────
 #    "울리지 않는 경보기"가 아닌지 확인하려고 일부러 실패시키는 스위치.
 #    Actions 탭에서 alarm_test 를 켜고 실행하면 이슈가 만들어져야 한다.
