@@ -182,7 +182,8 @@ function slug(s){
     .replace(/\s+/g,"-")
     .replace(/[&?#=/\\%+]/g,"");
 }
-function hasNonAscii(s){ return /[^\x00-\x7F]/.test(s); }
+/* 진짜 위험은 한글이 아니라 **이름 중복**이다.
+   같은 소재키가 둘이면 성과가 한 칸에 섞여 판단이 틀어진다. */
 
 function build(){
   const url = baseUrl(val("url"));
@@ -206,7 +207,10 @@ function build(){
       ? `${burl}?utm_source=${src}&utm_medium=paid&utm_campaign=${campLc}&utm_content=${ct}`
       /* 네이버 직행 — 측정이 여기서 끊긴다(우리 픽셀을 못 심음) */
       : `${url}?nt_source=${src}&nt_medium=${typeLc}&nt_detail=${ver}&nt_keyword=${ct}`;
-    return {campaign, group, creative, link, concept:c, ct, bad:hasNonAscii(c)};
+    return {campaign, group, creative, link, concept:c, ct, bad:false};
+  }).map((r,_,all)=>{
+    r.bad = all.filter(x=>x.ct===r.ct).length > 1;   // 소재키 중복이면 경고
+    return r;
   });
 }
 
@@ -219,7 +223,7 @@ function render(){
     <td class="mono">${r.campaign}</td>
     <td class="mono">${r.group}</td>
     <td class="mono">${r.creative}</td>
-    <td class="mono">${r.ct}${r.bad?' <span class="warn">⚠︎</span>':''}</td>
+    <td class="mono">${r.ct}${r.bad?' <span class="warn" title="이름이 겹칩니다">⚠︎중복</span>':''}</td>
     <td class="url mono">${r.link}</td>
     <td><button class="cp" data-i="${i}">URL 복사</button></td>
   </tr>`).join("");
