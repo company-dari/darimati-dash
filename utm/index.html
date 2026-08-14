@@ -175,7 +175,12 @@ let MODE = "bridge";
 /* 소재 이름은 메타·우리시트·네이버 **세 곳에 같은 값**으로 들어간다.
    한글은 인코딩 때문에 네이버 통계에서 깨질 수 있어 영문소문자+숫자를 쓴다. */
 function slug(s){
-  return s.trim().toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9\-_]/g,"");
+  /* ⚠️ 한글을 지우면 안 된다. '대회02'·'야외02' 가 둘 다 '02' 가 되어
+     서로 다른 소재의 성과가 한 칸에 섞인다(2026-08-14 실측으로 잡은 버그).
+     URL 을 깨는 문자만 제거하고 나머지는 그대로 둔다. */
+  return s.trim().toLowerCase()
+    .replace(/\s+/g,"-")
+    .replace(/[&?#=/\\%+]/g,"");
 }
 function hasNonAscii(s){ return /[^\x00-\x7F]/.test(s); }
 
@@ -236,7 +241,7 @@ function paintMode(){
     ? "광고 → <b>우리 페이지</b> → 네이버. 누가 왔고 어느 소재가 눌렀는지 <b>전부 남습니다</b>."
     : "<span class='warn'>측정이 끊깁니다.</span> 네이버엔 우리 픽셀을 못 심어서, 누가 왔는지 알 수 없어요.";
   $("cHint").innerHTML = MODE==="bridge"
-    ? "이 값이 <b>소재 이름</b>이 됩니다. 영문소문자+숫자 권장 (예: <b>louvre01</b>). 한글은 네이버 통계에서 깨질 수 있어요."
+    ? "이 값이 <b>소재 이름</b>이 됩니다. 영문소문자+숫자 권장 (예: <b>louvre01</b>). 한글도 됩니다(그대로 이어져요). 다만 <b>소재끼리 이름이 겹치지 않게</b> 해주세요."
     : "이 값이 소재명 뒷부분 + URL의 nt_keyword 로 들어가요.";
   $("chain").innerHTML = MODE==="bridge"
     ? "<b>한 이름이 세 곳을 지나갑니다</b><br>"+
