@@ -74,6 +74,16 @@
     color:var(--surface);font-size:13px;font-weight:600;padding:10px 18px;border-radius:10px;
     opacity:0;transition:opacity .18s;pointer-events:none;z-index:20;}
   .toast.show{opacity:1;}
+  .modes{display:flex;gap:8px;}
+  .mode{flex:1;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:650;
+    padding:9px 8px;border-radius:9px;border:1px solid var(--axis);
+    background:var(--field);color:var(--ink2);}
+  .mode.on{background:var(--s1);color:#fff;border-color:var(--s1);}
+  .mode b{font-weight:800;}
+  .chain{background:var(--chipbg);border:1px solid var(--border);border-radius:10px;
+    padding:11px 13px;font-size:12px;line-height:1.75;color:var(--ink2);margin-top:12px;}
+  .chain b{color:var(--ink);}
+  .warn{color:#b3341f;font-weight:650;}
 </style>
 <meta name="robots" content="noindex,nofollow">
 </head>
@@ -91,9 +101,25 @@
     <!-- 입력 -->
     <div class="card">
       <h2>세팅 규칙</h2>
-      <label>상품 URL (네이버 브랜드스토어)</label>
-      <input id="url" value="https://brand.naver.com/darimati/products/13462747167">
-      <div class="hint">뒤에 붙은 ?파라미터는 자동으로 떼고 새로 붙여요.</div>
+
+      <label>어디로 보낼까요</label>
+      <div class="modes">
+        <button type="button" class="mode on" data-mode="bridge">브릿지 경유 <b>(권장)</b></button>
+        <button type="button" class="mode" data-mode="naver">네이버 직행</button>
+      </div>
+      <div class="hint" id="modeHint"></div>
+
+      <div id="bridgeBox">
+        <label>브릿지 페이지 URL</label>
+        <input id="burl" value="https://www.darimati.us/pages/br001-preview">
+        <div class="hint">광고 → 이 페이지 → 네이버. 이 경로여야 <b>누가 왔고 누가 눌렀는지</b>가 남아요.</div>
+      </div>
+
+      <div id="naverBox">
+        <label>상품 URL (네이버 브랜드스토어)</label>
+        <input id="url" value="https://brand.naver.com/darimati/products/13462747167">
+        <div class="hint">뒤에 붙은 ?파라미터는 자동으로 떼고 새로 붙여요.</div>
+      </div>
 
       <div class="two">
         <div><label>캠페인 목표</label><input id="goal" value="TRF"></div>
@@ -121,7 +147,8 @@
 야외04
 화이트03
 화이트04</textarea>
-      <div class="hint">이 값이 소재명 뒷부분 + URL의 nt_keyword로 들어가요.</div>
+      <div class="hint" id="cHint"></div>
+      <div class="chain" id="chain"></div>
     </div>
 
     <!-- 출력 -->
@@ -143,6 +170,21 @@ function val(id){ return $(id).value.trim(); }
 
 function baseUrl(u){ return u.split("?")[0].replace(/\/+$/,""); }
 
+let MODE = "bridge";
+
+/* 소재 이름은 메타·우리시트·네이버 **세 곳에 같은 값**으로 들어간다.
+   한글은 인코딩 때문에 네이버 통계에서 깨질 수 있어 영문소문자+숫자를 쓴다. */
+function slug(s){
+  /* ⚠️ 한글을 지우면 안 된다. '대회02'·'야외02' 가 둘 다 '02' 가 되어
+     서로 다른 소재의 성과가 한 칸에 섞인다(2026-08-14 실측으로 잡은 버그).
+     URL 을 깨는 문자만 제거하고 나머지는 그대로 둔다. */
+  return s.trim().toLowerCase()
+    .replace(/\s+/g,"-")
+    .replace(/[&?#=/\\%+]/g,"");
+}
+/* 진짜 위험은 한글이 아니라 **이름 중복**이다.
+   같은 소재키가 둘이면 성과가 한 칸에 섞여 판단이 틀어진다. */
+
 function build(){
   const url = baseUrl(val("url"));
   const goal=val("goal").toUpperCase(), type=val("type").toUpperCase(), dest=val("dest").toUpperCase();
@@ -154,10 +196,21 @@ function build(){
   const campaign = `${goal}_${type}_${dest}_${date}`;
   const group = `AGE${age}`;
 
+  const burl = baseUrl(val("burl"));
+  const campLc = campaign.toLowerCase();
+
   return concepts.map(c=>{
     const creative = `${type}_${mtype}_${c}`;
-    const link = `${url}?nt_source=${src}&nt_medium=${typeLc}&nt_detail=${ver}&nt_keyword=${c}`;
-    return {campaign, group, creative, link, concept:c};
+    const ct = slug(c) || c;            // 소재 이름 = 세 시스템 공통 키
+    const link = MODE === "bridge"
+      /* 브릿지 경유 — utm_content 가 소재 이름. 브릿지가 이걸 네이버 nt_keyword 로 물려준다 */
+      ? `${burl}?utm_source=${src}&utm_medium=paid&utm_campaign=${campLc}&utm_content=${ct}`
+      /* 네이버 직행 — 측정이 여기서 끊긴다(우리 픽셀을 못 심음) */
+      : `${url}?nt_source=${src}&nt_medium=${typeLc}&nt_detail=${ver}&nt_keyword=${ct}`;
+    return {campaign, group, creative, link, concept:c, ct, bad:false};
+  }).map((r,_,all)=>{
+    r.bad = all.filter(x=>x.ct===r.ct).length > 1;   // 소재키 중복이면 경고
+    return r;
   });
 }
 
@@ -165,11 +218,12 @@ function render(){
   const rows = build();
   $("count").textContent = rows.length ? `${rows.length}개 생성됨` : "";
   if(!rows.length){ $("out").innerHTML = `<tr><td class="empty">소재 컨셉을 한 줄에 하나씩 입력하고 [생성하기]를 누르세요.</td></tr>`; return; }
-  const head = `<thead><tr><th>캠페인명</th><th>그룹명</th><th>소재명</th><th>추적 URL</th><th></th></tr></thead>`;
+  const head = `<thead><tr><th>캠페인명</th><th>그룹명</th><th>소재명</th><th>소재키</th><th>추적 URL</th><th></th></tr></thead>`;
   const body = rows.map((r,i)=>`<tr>
     <td class="mono">${r.campaign}</td>
     <td class="mono">${r.group}</td>
     <td class="mono">${r.creative}</td>
+    <td class="mono">${r.ct}${r.bad?' <span class="warn" title="이름이 겹칩니다">⚠︎중복</span>':''}</td>
     <td class="url mono">${r.link}</td>
     <td><button class="cp" data-i="${i}">URL 복사</button></td>
   </tr>`).join("");
@@ -183,6 +237,27 @@ function toast(msg){
 }
 function copy(text){ navigator.clipboard.writeText(text); }
 
+function paintMode(){
+  document.querySelectorAll(".mode").forEach(b=>b.classList.toggle("on", b.dataset.mode===MODE));
+  $("bridgeBox").style.display = MODE==="bridge" ? "" : "none";
+  $("naverBox").style.display  = MODE==="bridge" ? "none" : "";
+  $("modeHint").innerHTML = MODE==="bridge"
+    ? "광고 → <b>우리 페이지</b> → 네이버. 누가 왔고 어느 소재가 눌렀는지 <b>전부 남습니다</b>."
+    : "<span class='warn'>측정이 끊깁니다.</span> 네이버엔 우리 픽셀을 못 심어서, 누가 왔는지 알 수 없어요.";
+  $("cHint").innerHTML = MODE==="bridge"
+    ? "이 값이 <b>소재 이름</b>이 됩니다. 영문소문자+숫자 권장 (예: <b>louvre01</b>). 한글도 됩니다(그대로 이어져요). 다만 <b>소재끼리 이름이 겹치지 않게</b> 해주세요."
+    : "이 값이 소재명 뒷부분 + URL의 nt_keyword 로 들어가요.";
+  $("chain").innerHTML = MODE==="bridge"
+    ? "<b>한 이름이 세 곳을 지나갑니다</b><br>"+
+      "메타 <code>utm_content</code> → 우리 시트 <code>소재</code> → 네이버 <code>nt_keyword</code><br>"+
+      "그래서 <b>어느 소재가 결제까지 갔는지</b>를 끝까지 추적할 수 있어요."
+    : "<b>여기서 추적이 끝납니다.</b><br>네이버 통계의 <code>nt_</code> 값만 남고, 페이지 안 행동(스크롤·체류·버튼)은 알 수 없어요.";
+  render();
+}
+document.querySelectorAll(".mode").forEach(b=>{
+  b.addEventListener("click", ()=>{ MODE = b.dataset.mode; paintMode(); });
+});
+
 $("gen").addEventListener("click", render);
 $("out").addEventListener("click", e=>{
   const b=e.target.closest(".cp"); if(!b) return;
@@ -192,12 +267,53 @@ $("out").addEventListener("click", e=>{
 });
 $("copyAll").addEventListener("click", ()=>{
   const rows = window.__rows || build();
-  const header = ["캠페인명","그룹명","소재명","추적URL"].join("\t");
-  const tsv = [header, ...rows.map(r=>[r.campaign,r.group,r.creative,r.link].join("\t"))].join("\n");
+  const header = ["캠페인명","그룹명","소재명","소재키","추적URL"].join("\t");
+  const tsv = [header, ...rows.map(r=>[r.campaign,r.group,r.creative,r.ct,r.link].join("\t"))].join("\n");
   copy(tsv); toast(`${rows.length}줄 복사 완료 — 구글시트에 붙여넣으세요`);
 });
 
-render(); // 첫 로드시 예시로 바로 생성
+paintMode(); // 첫 로드 = 브릿지 모드로 바로 생성
+</script>
+
+<style>
+#dm-share{position:fixed;right:14px;bottom:14px;bottom:calc(14px + env(safe-area-inset-bottom));
+  z-index:2147483000;display:flex;align-items:center;gap:6px;
+  padding:11px 16px;border-radius:999px;border:0;cursor:pointer;
+  background:#14161a;color:#fff;font-size:13.5px;font-weight:650;
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",system-ui,sans-serif;
+  box-shadow:0 4px 16px rgba(0,0,0,.28);-webkit-tap-highlight-color:transparent}
+#dm-share:active{transform:scale(.96)}
+#dm-toast{position:fixed;left:50%;bottom:74px;transform:translateX(-50%) translateY(14px);
+  z-index:2147483000;max-width:min(88vw,340px);text-align:center;
+  background:#14161a;color:#fff;padding:12px 18px;border-radius:14px;
+  font-size:13px;line-height:1.5;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",system-ui,sans-serif;
+  opacity:0;pointer-events:none;transition:.22s;box-shadow:0 6px 24px rgba(0,0,0,.3)}
+#dm-toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+@media print{#dm-share,#dm-toast{display:none}}
+</style>
+<button id="dm-share">🔗 링크 복사</button>
+<div id="dm-toast"></div>
+<script>
+(function(){
+  var btn = document.getElementById('dm-share'), t = document.getElementById('dm-toast'), timer;
+  function toast(msg){
+    t.innerHTML = msg; t.classList.add('on');
+    clearTimeout(timer); timer = setTimeout(function(){ t.classList.remove('on'); }, 3200);
+  }
+  btn.addEventListener('click', async function(){
+    var url = location.href.split('#')[0];
+    /* 폰이면 카톡·메시지로 바로 보내기, 안 되면 클립보드 복사 */
+    if(navigator.share && /iPhone|iPad|Android/i.test(navigator.userAgent)){
+      try { await navigator.share({title: document.title, url: url}); return; } catch(e){ if(e.name === 'AbortError') return; }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      toast("링크를 복사했어요.");
+    } catch(e){
+      toast('복사가 막혔어요. 주소창을 길게 눌러 복사해주세요.');
+    }
+  });
+})();
 </script>
 
 <style>
