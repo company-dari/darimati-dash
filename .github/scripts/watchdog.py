@@ -12,6 +12,7 @@
 import json
 import os
 import ssl
+import time
 import sys
 import urllib.parse
 import urllib.request
@@ -105,6 +106,20 @@ for p in LANDINGS:
     h = get(f'https://darimati.github.io/inventory-dashboard/{p}')
     if h and h.count('fbq(') >= 6:
         alive += 1
+# 맹그로브(호텔 QR)는 이메일 폼이 없어 fbq 가 5개다 — 갯수 대신 핵심 요소로 본다
+mgv = get('https://darimati.github.io/inventory-dashboard/qr-mangrove.html')
+if mgv is None:
+    say('- ⚪ 맹그로브: 접속 실패')
+else:
+    need_m = {'픽셀ID': '821311187492862', 'DeepView': "'DeepView'",
+              '수집기': 'script.google.com', 'UTM이어붙이기': 'utm_medium'}
+    miss_m = [k for k, v in need_m.items() if v not in mgv]
+    if miss_m:
+        problems.append('맹그로브 페이지에서 사라진 것: ' + ', '.join(miss_m))
+        say(f'- 🔴 맹그로브: **{", ".join(miss_m)} 없음**')
+    else:
+        say('- ✅ 맹그로브: 픽셀·DeepView·수집기·UTM 정상')
+
 if alive == len(LANDINGS):
     say(f'- ✅ 영문 랜딩: {alive}/{len(LANDINGS)}')
 else:
@@ -191,6 +206,92 @@ else:
         else:
             say(f'- ✅ {who}: `{stamp}` ({hours:.1f}시간 전) · '
                 f'{s.get("count", 0)}건 {s.get("revenue", 0):,}원')
+
+
+# ── ⑥ 네이버 상품 재고 ───────────────────────────────────────────────
+#    광고·QR이 보내는 목적지가 품절이면 그 순간부터 광고비가 그대로 샌다.
+#    2026-08-18: 광고가 몰리는 원본 상품이 슈팅배송 재고 13개인 걸 우연히 발견했다.
+#    "우연히"가 반복되지 않게 매일 본다.
+say('')
+say('## ⑥ 네이버 상품 재고')
+PRODUCTS = [
+    ('원본(광고용)', '13462747167'), ('연신내', '13694694284'), ('보라매', '13694795993'),
+    ('신용산', '13694797417'), ('합정', '13700303390'), ('당산', '13700303612'),
+    ('송도', '13700304040'), ('수유', '13700304233'), ('범계', '13700304469'),
+    ('여의도', '13700321697'), ('부평', '13715323029'), ('청라', '13715323353'),
+    ('화정', '13715413871'), ('애니타임', '13700171535'),
+]
+LOW = 20        # 이 아래로 떨어지면 알린다
+MOBILE_UA = ('Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 '
+             '(KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1')
+
+def stock_of(pid):
+    """상품 페이지에서 재고를 읽는다. (재고, 판매중 여부) — 못 읽으면 (None, None).
+
+    ⚠️ 네이버는 봇을 429 로 막는다 → 모바일 UA + 요청 사이 간격이 필요하다.
+    ⚠️ 상품마다 구조가 다르다: 슈팅배송 상품은 productLogisticsStocks 안에,
+       일반 상품은 최상위 stockQuantity 에 들어 있다. 둘 다 본다.
+    """
+    req = urllib.request.Request('https://m.brand.naver.com/darimati/products/' + pid,
+                                 headers={'User-Agent': MOBILE_UA})
+    try:
+        with urllib.request.urlopen(req, timeout=25, context=CTX) as r:
+            h = r.read().decode('utf-8', 'replace')
+    except Exception:
+        return None, None
+    import re as _re
+    nums = [int(x) for x in _re.findall(r'"stockQuantity":(\d+)', h)]
+    sale = '"productStatusType":"SALE"' in h
+    return (max(nums) if nums else None), sale
+
+low, unknown = [], []
+for name, pid in PRODUCTS:
+    qty, sale = stock_of(pid)
+    if qty is None:
+        unknown.append(name)
+    elif not sale:
+        problems.append(f'네이버 상품 판매중지: {name} ({pid})')
+        say(f'- 🔴 {name}: **판매중이 아님**')
+    elif qty <= LOW:
+        low.append((name, qty, pid))
+    time.sleep(2)                      # 429 방지
+
+if low:
+    for name, qty, pid in low:
+        problems.append(f'재고 부족: {name} {qty}개 남음 (상품 {pid})')
+        say(f'- 🔴 {name}: **{qty}개** 남음')
+else:
+    say(f'- ✅ {len(PRODUCTS) - len(unknown)}개 상품 재고 {LOW}개 초과')
+if unknown:
+    # 네이버가 막은 것일 뿐 고장은 아니다 → 문제로 올리지 않고 사실만 남긴다
+    say(f'- ⚪ 확인 못 함(네이버 차단 가능): {", ".join(unknown)}')
+
+
+# ── ⑦ 사장님이 넣는 엑셀이 오래되지 않았나 ───────────────────────────
+#    구매·광고결제 숫자는 사람이 2주마다 넣어주는 엑셀에서 온다.
+#    안 넣으면 화면은 멀쩡한데 숫자만 옛것이 된다 — 가장 알아채기 어려운 고장.
+say('')
+say('## ⑦ 구매 데이터 신선도')
+st = get(f'{DASH}/br001/status.json')
+if st is None:
+    say('- ⚪ 상태 파일 없음 (다음 갱신 때 만들어집니다)')
+else:
+    try:
+        j = json.loads(st)
+        oa, aa = j.get('orders_age_days'), j.get('ads_age_days')
+        def note(label, age, limit=16):
+            if age is None:
+                problems.append(f'{label} 파일이 아직 없습니다 — orders/ 에 넣어주세요')
+                say(f'- 🔴 {label}: **파일 없음**')
+            elif age > limit:
+                problems.append(f'{label} 파일이 {age}일 됐습니다 — 새로 받아 orders/ 에 넣어주세요')
+                say(f'- 🔴 {label}: **{age}일 전** (2주 주기 초과)')
+            else:
+                say(f'- ✅ {label}: {age}일 전')
+        note('주문조회', oa)
+        note('사용자정의채널', aa)
+    except Exception as e:
+        say(f'- ⚪ 상태 파일을 읽지 못함 ({e})')
 
 # ── 경보 시험 ────────────────────────────────────────────────────────
 #    "울리지 않는 경보기"가 아닌지 확인하려고 일부러 실패시키는 스위치.
