@@ -2931,7 +2931,14 @@ function cloudJson(id){
 // 바뀐 지점만 골라 올릴 목록에 넣는다 (save() 가 부른다 — 호출부를 안 고쳐도 되게)
 function cloudMark(){
   if(!CLOUD_ON || !cloudReady) return;
-  for(const k in store){ if(cloudSnap[k]!==JSON.stringify(store[k])) cloudDirty.add(k); }
+  for(const k in store){
+    if(cloudSnap[k]===JSON.stringify(store[k])) continue;
+    /* 화면을 그릴 때 rec() 이 빈 지점까지 만들어 둔다. 아무것도 안 적힌 지점은 올리지 않는다
+       — 안 그러면 시트가 빈 껍데기 줄로 가득 찬다. 단, 전에 적었다가 지운 경우(이미 시트에
+       줄이 있는 경우)는 "지웠다"는 사실을 알려야 하므로 올린다. */
+    if(cloudEmptyRec(store[k]) && !(k in cloudSnap)) continue;
+    cloudDirty.add(k);
+  }
   if(cloudDirty.size) cloudPlan();
 }
 function cloudMarkLinks(){
@@ -3745,5 +3752,5 @@ cloudStart();
 })();
 </script>
 
-<!-- built 2026.08.23 01:50 -->
+<!-- built 2026.08.23 01:54 -->
 </body></html>
