@@ -13,15 +13,18 @@
 
 publish.py 가 배포할 때마다 자동으로 부른다. 혼자 돌려도 된다.
 """
+import hashlib
 import io
 import json
 import os
+import re
 import sys
 import urllib.parse
 import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(os.path.dirname(HERE), "q", "links.js")
+INDEX = os.path.join(os.path.dirname(HERE), "q", "index.html")
 TIMEOUT = 20
 
 HEAD = """/* 배포할 때 자동으로 다시 구워지는 파일 — 손으로 고칠 필요 없습니다.
@@ -30,6 +33,29 @@ HEAD = """/* 배포할 때 자동으로 다시 구워지는 파일 — 손으로
    왜 있냐면: 구글이 잠깐 느리거나 죽어도 인쇄된 QR이 살아 있어야 하기 때문입니다.
    평소에는 안 쓰이고, 실시간 조회가 실패한 순간에만 이 값이 손님을 구합니다. */
 """
+
+
+
+def stamp_index(body):
+    """q/index.html 의 <script src="links.js"> 에 내용 지문(v=)을 박는다.
+
+    왜 필요하냐면: 이 태그에 버전이 없으면 브라우저가 옛 links.js 를 계속
+    붙들고 있는다. 그러면 목적지를 바꿔도 그 손님만 옛 주소로 간다.
+    실제로 2026-08-03(F45 QR 3개)·2026-08-27(런공덕·크로스핏) 두 번 겪었다.
+    지문은 내용에서 나오므로, 링크표가 안 바뀌면 주소도 안 바뀐다(캐시 유지).
+    """
+    v = hashlib.sha1(body.encode("utf-8")).hexdigest()[:10]
+    try:
+        with io.open(INDEX, encoding="utf-8") as f:
+            html = f.read()
+    except IOError:
+        return None
+    new = re.sub(r'<script src="links\.js(?:\?v=[0-9a-f]+)?"></script>',
+                 '<script src="links.js?v=%s"></script>' % v, html, count=1)
+    if new != html:
+        with io.open(INDEX, "w", encoding="utf-8") as f:
+            f.write(new)
+    return v
 
 
 def creds():
@@ -79,7 +105,8 @@ def build():
     )
     with io.open(OUT, "w", encoding="utf-8") as f:
         f.write(HEAD + body)
-    return "QR %d개 구움" % len(m)
+    v = stamp_index(body)
+    return "QR %d개 구움 (지문 v=%s)" % (len(m), v or "미표기")
 
 
 if __name__ == "__main__":
