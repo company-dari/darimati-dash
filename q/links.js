@@ -23,7 +23,7 @@ window.QR = {
     "f45-hwajeong": "https://www.darimati.us/pages/br001-f45-hwajeong",
     "mangrove": "https://darimati.github.io/inventory-dashboard/qr-mangrove.html",
     "hyundai-popup": "https://www.darimati.us/pages/join",
-    "rungongdeok": "https://www.darimati.us/pages/br001-rungongdeok",
-    "crossfit-jungsim": "https://www.darimati.us/pages/br001-crossfit-jungsim"
+    "rungongdeok": "https://brand.naver.com/darimati/products/13735873447?nt_source=rungongdeok&nt_medium=branch&nt_detail=all&nt_keyword=qr",
+    "crossfit-jungsim": "https://brand.naver.com/darimati/products/13735873146?nt_source=crossfit&nt_medium=branch&nt_detail=jungsim&nt_keyword=qr"
   }
 };
