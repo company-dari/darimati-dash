@@ -22,6 +22,8 @@ window.QR = {
     "f45-cheongna": "https://www.darimati.us/pages/br001-f45-cheongna",
     "f45-hwajeong": "https://www.darimati.us/pages/br001-f45-hwajeong",
     "mangrove": "https://darimati.github.io/inventory-dashboard/qr-mangrove.html",
-    "hyundai-popup": "https://www.darimati.us/pages/join"
+    "hyundai-popup": "https://www.darimati.us/pages/join",
+    "rungongdeok": "https://www.darimati.us/pages/br001-rungongdeok",
+    "crossfit-jungsim": "https://www.darimati.us/pages/br001-crossfit-jungsim"
   }
 };
