@@ -25,10 +25,10 @@ window.QR = {
     "hyundai-popup": "https://www.darimati.us/pages/join",
     "rungongdeok": "https://brand.naver.com/darimati/products/13735873447?nt_source=rungongdeok&nt_medium=branch&nt_detail=all&nt_keyword=qr",
     "crossfit-jungsim": "https://brand.naver.com/darimati/products/13735873146?nt_source=crossfit&nt_medium=branch&nt_detail=jungsim&nt_keyword=qr",
-    "f45-yeoksam": "https://brand.naver.com/darimati/products/13743671721?nt_source=f45&nt_medium=branch&nt_detail=yeoksam&nt_keyword=qr",
-    "f45-gangnam": "https://brand.naver.com/darimati/products/13743672212?nt_source=f45&nt_medium=branch&nt_detail=gangnam&nt_keyword=qr",
-    "f45-gwanghwamun": "https://brand.naver.com/darimati/products/13743672442?nt_source=f45&nt_medium=branch&nt_detail=gwanghwamun&nt_keyword=qr",
-    "f45-gongdeok": "https://brand.naver.com/darimati/products/13743673250?nt_source=f45&nt_medium=branch&nt_detail=gongdeok&nt_keyword=qr",
-    "f45-gyodae": "https://brand.naver.com/darimati/products/13743673523?nt_source=f45&nt_medium=branch&nt_detail=gyodae&nt_keyword=qr"
+    "f45-yeoksam": "https://www.darimati.us/pages/br001-f45-yeoksam",
+    "f45-gangnam": "https://www.darimati.us/pages/br001-f45-gangnam",
+    "f45-gwanghwamun": "https://www.darimati.us/pages/br001-f45-gwanghwamun",
+    "f45-gongdeok": "https://www.darimati.us/pages/br001-f45-gongdeok",
+    "f45-gyodae": "https://www.darimati.us/pages/br001-f45-gyodae"
   }
 };
