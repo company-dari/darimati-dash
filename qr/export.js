@@ -19,7 +19,9 @@ var path = require('path');
 var zlib = require('zlib');
 
 var HERE = __dirname;
-var OUT = path.join(process.env.HOME, 'Desktop', '다리마티-QR');
+/* 기본은 바탕화면. 맥 보안설정이 바탕화면 접근을 막으면(EPERM) 홈 폴더로 피한다 —
+   여기서 멈추면 인쇄용 QR을 한 장도 못 뽑는다. QR_OUT 로 직접 지정할 수도 있다. */
+var OUT = process.env.QR_OUT || path.join(process.env.HOME, 'Desktop', '다리마티-QR');
 var BASE = 'https://company-dari.github.io/darimati-dash/q/?code=';
 var PAD = 4;          // QR 둘레 흰 여백(모듈) — 자르면 인식률이 떨어진다
 var TARGET_PX = 1200; // PNG 목표 크기
@@ -149,12 +151,33 @@ function pad(s, w) {
     return;
   }
 
-  fs.mkdirSync(OUT, { recursive: true });
+  /* 바탕화면에 정말 쓸 수 있는지 먼저 시험한다. 막혀 있으면 홈 폴더로 피한다. */
+  try {
+    fs.mkdirSync(OUT, { recursive: true });
+    var probe = path.join(OUT, '.write-test');
+    fs.writeFileSync(probe, 'x');
+    fs.unlinkSync(probe);
+  } catch (e) {
+    if (process.env.QR_OUT) throw e;
+    var alt = path.join(process.env.HOME, '다리마티-QR');
+    console.log('  (알림) 바탕화면에 쓸 수 없습니다(' + e.code + '). 대신 여기에 뽑습니다: ' + alt);
+    console.log('  → 맥 [시스템 설정 › 개인정보 보호 및 보안 › 파일 및 폴더]에서 터미널의');
+    console.log('     "데스크탑 폴더" 접근을 켜면 원래 자리(바탕화면)로 돌아갑니다.');
+    OUT = alt;
+    fs.mkdirSync(OUT, { recursive: true });
+  }
 
-  /* 옛 이름으로 뽑아둔 파일이 남아 헷갈리는 걸 막는다(같은 QR이 두 벌 보임). */
-  fs.readdirSync(OUT).forEach(function (f) {
-    if (/darimati-qr-.+\.(png|svg)$/.test(f)) fs.unlinkSync(path.join(OUT, f));
-  });
+  /* 옛 이름으로 뽑아둔 파일이 남아 헷갈리는 걸 막는다(같은 QR이 두 벌 보임).
+     맥 보안설정이 바탕화면 읽기를 막으면(EPERM) 청소만 건너뛰고 계속 뽑는다 —
+     여기서 멈추면 QR을 한 장도 못 뽑는다. 이때는 옛 이름 파일이 남을 수 있다. */
+  try {
+    fs.readdirSync(OUT).forEach(function (f) {
+      if (/darimati-qr-.+\.(png|svg)$/.test(f)) fs.unlinkSync(path.join(OUT, f));
+    });
+  } catch (e) {
+    console.log('  (알림) 바탕화면 폴더를 읽지 못해 옛 파일 청소를 건너뜁니다: ' + e.code);
+    console.log('  → 이름을 바꾼 QR이 있었다면 옛 이름 파일이 함께 남아 있을 수 있습니다.');
+  }
 
   var list = [
     '다리마티 QR 기록',
