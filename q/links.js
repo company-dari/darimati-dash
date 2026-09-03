@@ -29,6 +29,7 @@ window.QR = {
     "f45-gangnam": "https://www.darimati.us/pages/br001-f45-gangnam",
     "f45-gwanghwamun": "https://www.darimati.us/pages/br001-f45-gwanghwamun",
     "f45-gongdeok": "https://www.darimati.us/pages/br001-f45-gongdeok",
-    "f45-gyodae": "https://www.darimati.us/pages/br001-f45-gyodae"
+    "f45-gyodae": "https://www.darimati.us/pages/br001-f45-gyodae",
+    "f45-hannam": "https://www.darimati.us/pages/br001-f45-hannam"
   }
 };
