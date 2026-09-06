@@ -50,12 +50,17 @@
   var HOME = "https://www.darimati.us";
   var CK = "qr.cache";
 
-  /* 실시간 조회를 얼마나 기다릴지. 실측 응답이 0.32초라 0.7초면 거의 항상 실시간 값이 이긴다.
-     이게 곧 "대시보드에서 목적지를 바꾸면 즉시 반영된다"는 약속이다.
-     신호가 나쁘면 0.7초에 저장된 값으로 넘어가므로 부스에서 손님을 세워두지 않는다.
-     ⚠️ 이 값을 0 으로 만들거나 스냅샷 우선으로 바꾸면 목적지 교체가 배포 전까지 안 먹는다 —
-     당일 사고 때 1초 복구가 불가능해지므로 그렇게 하지 말 것. */
-  var TIMEOUT = 700;
+  /* ⚠️ 2026-09-06 — "실시간 조회 먼저, 0.7초 기다림" 방식을 버렸다.
+     예전 주석에는 구글 응답이 0.32초라 적혀 있었으나, 실측하니 2.0~3.1초로 느려져 있었다.
+     즉 0.7초 타임아웃은 **한 번도 이기지 못하고** 손님을 매번 0.7초 세워두기만 했다.
+     "대시보드에서 바꾸면 즉시 반영"이라는 약속도 그래서 이미 깨져 있었다. 요금만 내고 있던 셈.
+
+     그래서 순서를 뒤집었다 — 구운 표에 답이 있으면 **묻지 않고 즉시 보낸다.**
+     인쇄물 QR은 매장에서 찍힌다. 손님을 세워두지 않는 것이 최우선이다.
+
+     대신 목적지를 바꾸면 **배포해야 반영된다**(매일 오전 8:40 자동 · 급하면 publish.py 수동).
+     다시 실시간 우선으로 되돌리고 싶다면, 먼저 구글 응답 속도를 재서
+     1초 안쪽인지 확인할 것. 그렇지 않으면 이 함정을 그대로 반복하게 된다. */
 
   var code = (function () {
     var m = location.search.match(/[?&]code=([^&]+)/) || location.search.match(/[?&]c=([^&]+)/);
@@ -90,20 +95,24 @@
     } catch (e) {}
   }
 
-  /* 0.7초 안에 구글이 답을 못 준 경우.
-     ① 캐시/스냅샷에 답이 있으면 즉시 보낸다(빠른 길, 예전과 동일).
-     ② 없으면 여기서 포기하지 않는다 — 방금 등록한 QR이 바로 이 경우다.
-        브라우저가 붙들고 있는 links.js 가 옛 버전이면 새 코드가 안 들어 있고,
-        그 상태로 fail() 을 부르면 멀쩡한 QR이 "페이지를 찾지 못했습니다"가 된다.
-        (2026-08-03 F45 지점 QR 3개가 실제로 이렇게 죽었다.)
-        → 스냅샷을 캐시 무시하고 새로 받아보고, 그래도 없으면 느린 구글을
-          LAST 까지 계속 기다린다. 안내 화면은 둘 다 실패했을 때만 띄운다. */
-  function backup() {
-    if (done) return;
-    var u = cache(true) || SNAP[code];
-    if (u) { go(u); return; }
-    if (!code) { go(HOME); return; }
+  /* 손님 이동은 이미 끝났고, 기록만 뒤로 쏜다. 답을 기다리지 않으므로 아무도 못 세운다.
+     sendBeacon 은 페이지가 떠난 뒤에도 살아남는다. 막히면 이미지 요청으로 한 번 더 시도. */
+  function ping() {
+    if (!API) return;
+    var u = API + (API.indexOf("?") > -1 ? "&" : "?") +
+            "a=go&code=" + encodeURIComponent(code) +
+            "&d=" + encodeURIComponent(device) +
+            "&r=" + encodeURIComponent(document.referrer || "") +
+            "&_=" + new Date().getTime();
+    try { if (navigator.sendBeacon && navigator.sendBeacon(u)) return; } catch (e) {}
+    try { new Image().src = u; } catch (e) {}
+  }
 
+  /* 구운 표에도 캐시에도 없는 코드 = 방금 등록한 QR. 이때만 구글을 끝까지 기다린다.
+     여기서 성급히 포기하면 멀쩡한 QR이 "찾지 못했습니다"가 된다.
+     (2026-08-03 F45 지점 QR 3개가 실제로 그렇게 죽었다.) */
+  function refetch() {
+    if (done) return;
     fetch("links.js?_=" + new Date().getTime(), { cache: "no-store" })
       .then(function (r) { return r.text(); })
       .then(function (t) {
@@ -111,7 +120,7 @@
         var m = t.match(/"([a-z0-9-]+)"\s*:\s*"(https?:\/\/[^"]+)"/gi) || [];
         for (var i = 0; i < m.length; i++) {
           var kv = m[i].match(/"([a-z0-9-]+)"\s*:\s*"(https?:\/\/[^"]+)"/i);
-          if (kv && kv[1].toLowerCase() === code) { go(kv[2]); return; }
+          if (kv && kv[1].toLowerCase() === code) { ping(); go(kv[2]); return; }
         }
       })
       .catch(function () {});
@@ -122,11 +131,15 @@
   var device = /iPad|Tablet/i.test(navigator.userAgent) ? "태블릿"
              : /Mobi|Android|iPhone/i.test(navigator.userAgent) ? "모바일" : "PC";
 
-  if (!API) { backup(); return; }
+  /* ── 빠른 길 ─────────────────────────────────────────────
+     구운 표(SNAP)를 캐시보다 먼저 본다. 중지된 QR은 스냅샷에서 빠지므로
+     꺼둔 링크가 남의 기기 캐시에서 되살아나는 일이 없다. */
+  var fast = SNAP[code] || cache(true);
+  if (fast) { ping(); go(fast); return; }
 
-  var timer = setTimeout(backup, TIMEOUT);
-  /* 마지막 방어선 — 구글이 느려도 여기까지는 기다렸다가, 그래도 답이 없을 때만 안내 화면.
-     실측상 느릴 때 2.5초쯤 걸리므로 넉넉히 잡는다. 손님 입장에선 로딩 스피너가 도는 상태다. */
+  /* ── 느린 길 — 구운 표에 없는 새 코드만 여기로 온다 ────── */
+  if (!API) { refetch(); setTimeout(fail, 9000); return; }
+
   var last = setTimeout(fail, 9000);
 
   // 파라미터 이름은 반드시 code — c 로 보내면 구글이 400으로 막는다(Code.gs 주석 참고).
@@ -137,14 +150,13 @@
         "&_=" + new Date().getTime(), { cache: "no-store" })
     .then(function (r) { return r.json(); })
     .then(function (j) {
-      clearTimeout(timer);
       clearTimeout(last);
       if (j && j.ok && j.url) { cache(false, j.url); go(j.url); return; }
       // 시트가 "이 코드는 없다/중지다"라고 답한 경우 — 오래된 캐시로 되살리지 않는다.
       if (j && j.url) go(j.url);
       else fail();
     })
-    .catch(function () { clearTimeout(timer); backup(); });
+    .catch(function () { refetch(); });
 })();
 </script>
 </body>
