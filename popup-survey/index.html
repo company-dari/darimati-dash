@@ -38,7 +38,9 @@ img{ max-width:100%; }
 /* ── 화면 전환 ─────────────────────────────────────────── */
 .screen{ display:none !important; }
 .screen.live{ display:flex !important; animation:slide .34s cubic-bezier(.22,.72,.3,1) both; }
-@keyframes slide{ from{ opacity:0; transform:translateY(14px); } to{ opacity:1; transform:none; } }
+/* 전환은 흐려지기만 한다. transform 을 쓰면 그 0.34초 동안
+   화면 틀이 붙박이(sticky)의 기준이 되어버려 버튼이 14px 밀려 잘린다. */
+@keyframes slide{ from{ opacity:0; } to{ opacity:1; } }
 @media (prefers-reduced-motion:reduce){
   .screen.live{ animation:none; } *{ transition-duration:.01ms !important; }
 }
@@ -64,6 +66,19 @@ img{ max-width:100%; }
 
 button{ cursor:pointer; font-family:inherit; }
 [data-next]:disabled,[data-go]:disabled{ background:#DCD7D1 !important; color:#A2988F !important; cursor:not-allowed; }
+
+/* ── 하단 버튼을 화면 아래에 붙박이 (2026-09-11) ────────
+   디자인이 920px 기준인데 실제 폰은 660~750px 이라
+   인트로·이벤트선택·사이즈 화면에서 버튼이 접혀 안 보였다.
+   내용은 스크롤되고 버튼만 항상 떠 있게 한다. */
+.actions{
+  position:sticky; bottom:0; z-index:5;
+  padding-bottom:calc(16px + env(safe-area-inset-bottom)) !important;
+}
+/* 아트보드 시절 잘라내기용으로 박혀 있던 overflow:hidden 이
+   붙박이(sticky)를 무력화한다. 화면 틀에서는 걷어낸다.
+   X 크로스 장식은 좌우 16% 안쪽이라 잘라내지 않아도 삐져나오지 않는다. */
+.screen{ overflow:visible !important; }
 
 /* ── 입력 ──────────────────────────────────────────────── */
 input::placeholder{ color:#A2988F; font-weight:400; font-size:19px; }
@@ -104,7 +119,7 @@ input:focus{ outline:none; border-bottom-color:#23201E !important; }
             <dt style="color:#A2988F;font-weight:500">참여</dt><dd style="margin:0;font-weight:700">BR-001 시착 후 진행</dd>
           </dl>
         </div>
-        <div style="margin-top:auto;padding:16px 20px;display:flex;gap:10px;align-items:center;background:linear-gradient(to top,#EFEDEA 62%,transparent);flex:none">
+        <div class="actions" style="margin-top:auto;padding:16px 20px;display:flex;gap:10px;align-items:center;background:linear-gradient(to top,#EFEDEA 62%,transparent);flex:none">
           <button style="flex:1 1 auto;padding:17px 20px;font-weight:900;font-size:16px;letter-spacing:-.01em;border:0;border-radius:3px;background:#23201E;color:#F5F3F0" type="button" data-go="1">30초 만에 접수하기 →</button>
         </div>
         <div style="position:relative;height:26px;flex:none">
@@ -179,7 +194,7 @@ input:focus{ outline:none; border-bottom-color:#23201E !important; }
             </div>
           </div>
         </div>
-        <div style="margin-top:auto;padding:16px 20px;display:flex;gap:10px;align-items:center;background:linear-gradient(to top,#EFEDEA 62%,transparent);flex:none">
+        <div class="actions" style="margin-top:auto;padding:16px 20px;display:flex;gap:10px;align-items:center;background:linear-gradient(to top,#EFEDEA 62%,transparent);flex:none">
           <button style="flex:none;width:52px;padding:17px 0;background:transparent;color:#6E655F;border:1.5px solid #DCD7D1;border-radius:3px;font-size:18px;font-weight:700" type="button" data-back aria-label="이전">←</button>
           <button style="flex:1 1 auto;padding:17px 20px;font-weight:900;font-size:16px;letter-spacing:-.01em;border:0;border-radius:3px;background:#23201E;color:#F5F3F0" type="button" data-next disabled>다음</button>
         </div>
@@ -210,7 +225,7 @@ input:focus{ outline:none; border-bottom-color:#23201E !important; }
             
           </div>
         </div>
-        <div style="margin-top:auto;padding:16px 20px;display:flex;gap:10px;align-items:center;background:linear-gradient(to top,#EFEDEA 62%,transparent);flex:none">
+        <div class="actions" style="margin-top:auto;padding:16px 20px;display:flex;gap:10px;align-items:center;background:linear-gradient(to top,#EFEDEA 62%,transparent);flex:none">
           <button style="flex:none;width:52px;padding:17px 0;background:transparent;color:#6E655F;border:1.5px solid #DCD7D1;border-radius:3px;font-size:18px;font-weight:700" type="button" data-back aria-label="이전">←</button>
           <button style="flex:1 1 auto;padding:17px 20px;font-weight:900;font-size:16px;letter-spacing:-.01em;border:0;border-radius:3px;background:#23201E;color:#F5F3F0" type="button" data-next disabled>다음</button>
         </div>
@@ -241,7 +256,7 @@ input:focus{ outline:none; border-bottom-color:#23201E !important; }
             <p class="help" id="h-phone" style="margin:10px 0 0;font-size:12.5px;color:#A2988F;line-height:1.6;min-height:1.4em">입력하신 연락처는 이벤트 안내 및 참여 확인을 위해서만 사용됩니다.</p>
           </div>
         </div>
-        <div style="margin-top:auto;padding:16px 20px;display:flex;gap:10px;align-items:center;background:linear-gradient(to top,#EFEDEA 62%,transparent);flex:none">
+        <div class="actions" style="margin-top:auto;padding:16px 20px;display:flex;gap:10px;align-items:center;background:linear-gradient(to top,#EFEDEA 62%,transparent);flex:none">
           <button style="flex:none;width:52px;padding:17px 0;background:transparent;color:#6E655F;border:1.5px solid #DCD7D1;border-radius:3px;font-size:18px;font-weight:700" type="button" data-back aria-label="이전">←</button>
           <button style="flex:1 1 auto;padding:17px 20px;font-weight:900;font-size:16px;letter-spacing:-.01em;border:0;border-radius:3px;background:#DCD7D1;color:#A2988F" type="button" data-next disabled>다음</button>
         </div>
@@ -286,7 +301,7 @@ input:focus{ outline:none; border-bottom-color:#23201E !important; }
             <span style="font-size:14px;font-weight:700;line-height:1.45">위 내용을 확인했습니다.</span>
           </button>
         </div>
-        <div style="margin-top:auto;padding:16px 20px;display:flex;gap:10px;align-items:center;background:linear-gradient(to top,#EFEDEA 62%,transparent);flex:none">
+        <div class="actions" style="margin-top:auto;padding:16px 20px;display:flex;gap:10px;align-items:center;background:linear-gradient(to top,#EFEDEA 62%,transparent);flex:none">
           <button style="flex:none;width:52px;padding:17px 0;background:transparent;color:#6E655F;border:1.5px solid #DCD7D1;border-radius:3px;font-size:18px;font-weight:700" type="button" data-back aria-label="이전">←</button>
           <button style="flex:1 1 auto;padding:17px 20px;font-weight:900;font-size:16px;letter-spacing:-.01em;border:0;border-radius:3px;background:#DCD7D1;color:#A2988F" type="button" data-next disabled>다음</button>
         </div>
@@ -324,7 +339,7 @@ input:focus{ outline:none; border-bottom-color:#23201E !important; }
           </button>
           
         </div>
-        <div style="margin-top:auto;padding:16px 20px;display:flex;gap:10px;align-items:center;background:linear-gradient(to top,#EFEDEA 62%,transparent);flex:none">
+        <div class="actions" style="margin-top:auto;padding:16px 20px;display:flex;gap:10px;align-items:center;background:linear-gradient(to top,#EFEDEA 62%,transparent);flex:none">
           <button style="flex:none;width:52px;padding:17px 0;background:transparent;color:#6E655F;border:1.5px solid #DCD7D1;border-radius:3px;font-size:18px;font-weight:700" type="button" data-back aria-label="이전">←</button>
           <button style="flex:1 1 auto;padding:17px 20px;font-weight:900;font-size:16px;letter-spacing:-.01em;border:0;border-radius:3px;background:#23201E;color:#F5F3F0" type="button" data-next disabled>접수 완료하기</button>
         </div>
@@ -362,7 +377,7 @@ input:focus{ outline:none; border-bottom-color:#23201E !important; }
           </div>
           <p style="margin:22px 0 0;font-size:13px;line-height:1.7;color:#6E655F">당일 <strong style="color: rgb(35, 32, 30);">시작 10분 전(<span id="t-arrive">13:50</span>)</strong>까지 EVENT ZONE으로 와주세요.<br>늦으면 현장 참여 고객에게 순번이 넘어갈 수 있습니다.</p>
         </div>
-        <div style="margin-top:auto;padding:16px 20px;display:flex;gap:10px;align-items:center;background:linear-gradient(to top,#EFEDEA 62%,transparent);flex:none">
+        <div class="actions" style="margin-top:auto;padding:16px 20px;display:flex;gap:10px;align-items:center;background:linear-gradient(to top,#EFEDEA 62%,transparent);flex:none">
           <button style="flex:1 1 auto;padding:17px 20px;font-weight:900;font-size:16px;letter-spacing:-.01em;border:0;border-radius:3px;background:#23201E;color:#F5F3F0" type="button" id="again">다음 분 접수하기</button>
         </div>
         <div style="position:relative;height:26px;flex:none">
