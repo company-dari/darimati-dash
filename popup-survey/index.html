@@ -86,6 +86,8 @@ button{ cursor:pointer; font-family:inherit; }
 /* 붙박이 버튼바가 마지막 내용을 덮지 않게, 본문 아래에 버튼바 높이만큼 여유를 준다.
    이게 없으면 스크롤을 끝까지 내려도 마지막 줄이 버튼에 가린다. */
 .body{ padding-bottom:96px !important; }
+/* 완료 화면은 버튼이 둘이라 버튼바가 더 높다. 그만큼 여유도 더 준다. */
+.screen[data-screen="6"] .body{ padding-bottom:156px !important; }
 
 /* ── 입력 ──────────────────────────────────────────────── */
 input::placeholder{ color:#A2988F; font-weight:400; font-size:19px; }
@@ -349,8 +351,9 @@ input:focus{ outline:none; border-bottom-color:#23201E !important; }
           </div>
           <p style="margin:22px 0 0;font-size:13px;line-height:1.7;color:#6E655F">당일 <strong id="t-arrive" style="color: rgb(35, 32, 30);">시작 10분 전</strong>까지 EVENT ZONE으로 와주세요.<br>늦으면 현장 참여 고객에게 순번이 넘어갈 수 있습니다.</p>
         </div>
-        <div class="actions" style="margin-top:auto;padding:16px 20px;display:flex;gap:10px;align-items:center;background:linear-gradient(to top,#EFEDEA 62%,transparent);flex:none">
-          <button style="flex:1 1 auto;padding:17px 20px;font-weight:900;font-size:16px;letter-spacing:-.01em;border:0;border-radius:3px;background:#23201E;color:#F5F3F0" type="button" id="again">다음 분 접수하기</button>
+        <div class="actions" style="margin-top:auto;padding:16px 20px;display:flex;flex-direction:column;gap:8px;background:linear-gradient(to top,#EFEDEA 62%,transparent);flex:none">
+          <button style="width:100%;padding:17px 20px;font-weight:900;font-size:16px;letter-spacing:-.01em;border:0;border-radius:3px;background:#23201E;color:#F5F3F0" type="button" id="share">친구에게 알려주기</button>
+          <button style="width:100%;padding:14px 20px;font-weight:700;font-size:14px;letter-spacing:-.01em;border:1.5px solid #DCD7D1;border-radius:3px;background:transparent;color:#6E655F" type="button" id="again">다음 분 접수하기</button>
         </div>
         <div style="position:relative;height:26px;flex:none">
           <div style="position:absolute;left:0;right:0;top:9px;height:8px;background:#23201E"></div>
@@ -568,6 +571,40 @@ function submit(){
   };
   sendNext();
 }
+
+/* ── 친구에게 알려주기 ─────────────────────────────────── */
+/* 폰의 기본 공유 시트를 띄운다 — 카카오톡·인스타·문자가 전부 거기서 나온다.
+   공유하는 주소는 이 페이지가 아니라 /q/?code= 고정 주소다.
+   목적지가 바뀌어도 이미 퍼진 링크가 안 죽는다. */
+const SHARE_URL  = "https://company-dari.github.io/darimati-dash/q/?code=hyundai-popup-survey";
+const SHARE_TEXT = "다리마티 팝업 이벤트, 같이 갈래요?\n9/19(토)–20(일) · 현대백화점 판교점 U-PLEX 4F";
+
+const shareBtn = $("#share");
+shareBtn.addEventListener("click", async () => {
+  track("Share", { content_name: "popup_main_event" });
+  const 원래 = shareBtn.textContent;
+  const 알림 = (t) => {
+    shareBtn.textContent = t;
+    setTimeout(() => { shareBtn.textContent = 원래; }, 1800);
+  };
+  // 1순위: 폰 기본 공유 시트
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: "다리마티 POP-UP 이벤트 참여 설문",
+                              text: SHARE_TEXT, url: SHARE_URL });
+      return;
+    } catch (e) {
+      if (e && e.name === "AbortError") return;   // 손님이 그냥 닫은 것. 아무 일 없던 듯이
+    }
+  }
+  // 2순위: 링크 복사 (주로 PC)
+  try {
+    await navigator.clipboard.writeText(SHARE_TEXT + "\n" + SHARE_URL);
+    알림("링크를 복사했어요 ✓");
+  } catch (e) {
+    알림("주소: " + SHARE_URL);
+  }
+});
 
 /* ── 다시 접수 ─────────────────────────────────────────── */
 $("#again").addEventListener("click", () => {
