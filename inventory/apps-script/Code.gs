@@ -236,7 +236,7 @@ var CB_CACHE = 60;   // 초. 새로고침을 연타해도 쇼피파이를 때리
 function getCoreBlack() {
   var cache = CacheService.getScriptCache();
   var hit = cache.get('coreblack');
-  if (hit) return JSON.parse(hit);
+  if (hit) { var c = JSON.parse(hit); c.memo = getCbMemo(); return c; }
 
   var res = UrlFetchApp.fetch(CB_FEED, { muteHttpExceptions: true, followRedirects: true });
   var code = res.getResponseCode();
@@ -263,5 +263,32 @@ function getCoreBlack() {
 
   var out = { product: body.product, rows: rows, tot: tot, feedTs: body.ts, ts: stamp_() };
   cache.put('coreblack', JSON.stringify(out), CB_CACHE);
+  out.memo = getCbMemo();   // 메모는 캐시에 넣지 않는다 — 저장하자마자 바로 보여야 한다
   return out;
+}
+
+
+/* ── BR-001 블랙 메모장 ─────────────────────────────────────────────────
+   왜 시트가 아니라 스크립트 속성인가: 메모 하나 때문에 시트에 탭을 새로
+   만들면 그 탭을 누가 지우거나 줄을 밀면 깨진다. 속성은 그럴 일이 없다.
+   ⚠️ 속성 하나는 9KB 까지. 메모로는 넉넉하다(한글 4천 자쯤).            */
+var CB_MEMO_KEY = 'CB_MEMO';
+
+function getCbMemo() {
+  var raw = PropertiesService.getScriptProperties().getProperty(CB_MEMO_KEY);
+  if (!raw) return { text: '', by: '', ts: '' };
+  try { return JSON.parse(raw); } catch (e) { return { text: String(raw), by: '', ts: '' }; }
+}
+
+// 여러 사람이 동시에 저장해도 뒤엣것만 남게(덮어쓰기) — 메모는 한 덩어리라 이게 맞다
+function saveCbMemo(text) {
+  return withLock_(function () {
+    var t = String(text == null ? '' : text);
+    if (t.length > 8000) throw new Error('메모가 너무 길어요 (8000자까지)');
+    var who = '';
+    try { who = Session.getActiveUser().getEmail() || ''; } catch (e) {}
+    var rec = { text: t, by: who, ts: stamp_() };
+    PropertiesService.getScriptProperties().setProperty(CB_MEMO_KEY, JSON.stringify(rec));
+    return rec;
+  });
 }

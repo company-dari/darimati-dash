@@ -118,6 +118,7 @@
 <script>
   var SIZES=[230,240,250,260,270,280];
   var TAB='ship';
+  var SEQ=0;   // 요청 번호. 늦게 온 답을 걸러내는 데 쓴다
   function go(t){
     TAB=t;
     document.getElementById('tabShip').className = t==='ship'?'on':'';
@@ -129,10 +130,16 @@
   }
   function load(){
     document.getElementById('content').innerHTML='<div class="loading">불러오는 중…</div>';
-    var fail=function(e){document.getElementById('content').innerHTML='<div class="empty">불러오기 실패: '+e.message+'</div>';};
-    if(TAB==='rs')      google.script.run.withSuccessHandler(renderRs).withFailureHandler(fail).getRestock();
-    else if(TAB==='cb') google.script.run.withSuccessHandler(renderCb).withFailureHandler(fail).getCoreBlack();
-    else                google.script.run.withSuccessHandler(render).withFailureHandler(fail).getData();
+    /* 🪤 화면이 다 뜨기 전에 탭을 누르면, 먼저 보낸 요청의 답이 **나중에** 와서
+       새 화면을 덮어쓴다(2026-09-14 실제로 겪음). 요청마다 표를 달아 두고
+       돌아왔을 때 아직 그 탭인지 확인한다. */
+    var my = ++SEQ;
+    var guard=function(fn){ return function(d){ if(my===SEQ) fn(d); }; };
+    var fail=function(e){ if(my!==SEQ) return;
+      document.getElementById('content').innerHTML='<div class="empty">불러오기 실패: '+e.message+'</div>';};
+    if(TAB==='rs')      google.script.run.withSuccessHandler(guard(renderRs)).withFailureHandler(fail).getRestock();
+    else if(TAB==='cb') google.script.run.withSuccessHandler(guard(renderCb)).withFailureHandler(fail).getCoreBlack();
+    else                google.script.run.withSuccessHandler(guard(render)).withFailureHandler(fail).getData();
   }
   /* ── BR-001 Core Black 사전예약 재고 ───────────────────────────────────
      쇼피파이가 원본이다. 주문이 들어오면 그 자리에서 깎이고, 현대백화점
@@ -155,7 +162,39 @@
     h+='<div class="legend"><span><i style="background:var(--crit-bg)"></i>품절</span>'
       +'<span><i style="background:var(--warn-bg)"></i>부족(1-3)</span>'
       +'<span><i style="background:var(--ok-bg)"></i>충분</span></div>';
+
+    /* 메모 — 숫자만으로는 안 남는 것을 적는 자리.
+       「현백 3족 아직 안 뺐음」, 「270 재입고 10/2」 같은 것. */
+    var m=d.memo||{};
+    h+='<h2>📝 메모</h2>'
+      +'<textarea id="cbMemo" placeholder="여기에 적고 저장을 누르세요.&#10;예) 현백 현장 신청 3족 아직 안 뺐음 / 270 재입고 10월 2일"'
+      +' style="width:100%;min-height:130px;box-sizing:border-box;background:var(--surface);color:var(--ink);'
+      +'border:1px solid var(--line);border-radius:10px;padding:12px 13px;font:inherit;font-size:15px;line-height:1.6;resize:vertical"></textarea>'
+      +'<div style="display:flex;align-items:center;gap:10px;margin-top:9px;flex-wrap:wrap">'
+      +'<button id="cbMemoSave" onclick="saveMemo()" class="refresh" style="font-size:14px;padding:10px 18px;font-weight:700">저장</button>'
+      +'<span id="cbMemoMeta" class="ts">'+(m.ts?('마지막 저장 '+m.ts+(m.by?' · '+m.by:'')):'아직 저장한 메모가 없어요')+'</span>'
+      +'</div>';
+
     document.getElementById('content').innerHTML=h;
+    /* 값은 innerHTML 에 끼우지 않고 따로 넣는다 — 따옴표·꺾쇠가 들어가면 화면이 깨진다 */
+    document.getElementById('cbMemo').value = m.text || '';
+  }
+
+  function saveMemo(){
+    var ta=document.getElementById('cbMemo'), btn=document.getElementById('cbMemoSave');
+    if(!ta) return;
+    btn.disabled=true; btn.textContent='저장 중…';
+    google.script.run
+      .withSuccessHandler(function(rec){
+        btn.disabled=false; btn.textContent='저장';
+        document.getElementById('cbMemoMeta').textContent='마지막 저장 '+rec.ts+(rec.by?' · '+rec.by:'');
+        toast('메모를 저장했어요');
+      })
+      .withFailureHandler(function(e){
+        btn.disabled=false; btn.textContent='저장';
+        toast('저장 실패: '+e.message);
+      })
+      .saveCbMemo(ta.value);
   }
   function render(d){
     document.getElementById('ts').textContent='업데이트 '+d.ts;
