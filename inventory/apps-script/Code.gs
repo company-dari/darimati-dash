@@ -233,10 +233,10 @@ function fmtDate_(v) {
 var CB_FEED  = 'https://www.darimati.us/pages/cb-stock-7f3a91';
 var CB_CACHE = 60;   // 초. 새로고침을 연타해도 쇼피파이를 때리지 않게
 
-function getCoreBlack() {
+function getCoreBlack(fresh) {
   var cache = CacheService.getScriptCache();
-  var hit = cache.get('coreblack');
-  if (hit) { var c = JSON.parse(hit); c.memo = getCbMemo(); return c; }
+  var hit = fresh ? null : cache.get('coreblack');
+  if (hit) return cbDress_(JSON.parse(hit));
 
   var res = UrlFetchApp.fetch(CB_FEED, { muteHttpExceptions: true, followRedirects: true });
   var code = res.getResponseCode();
@@ -261,10 +261,28 @@ function getCoreBlack() {
   });
   rows.sort(function (a, b) { return a.size - b.size; });
 
-  var out = { product: body.product, rows: rows, tot: tot, feedTs: body.ts, ts: stamp_() };
+  var out = { product: body.product, rows: rows, shopTot: tot, feedTs: body.ts, ts: stamp_() };
   cache.put('coreblack', JSON.stringify(out), CB_CACHE);
-  out.memo = getCbMemo();   // 메모는 캐시에 넣지 않는다 — 저장하자마자 바로 보여야 한다
-  return out;
+  return cbDress_(out);
+}
+
+/* 쇼피파이에서 읽은 숫자에 **우리 수기 차감**을 입혀 진짜 재고를 만든다.
+   🪤 이 부분은 캐시에 넣지 않는다. 수기로 하나 넣자마자 화면에 보여야 하는데
+      캐시에 섞어두면 최대 60초 동안 옛 숫자가 남는다. */
+function cbDress_(o) {
+  var man = getCbManual();
+  var tot = 0;
+  o.rows = o.rows.map(function (r) {
+    var cut = man.cut[r.size] || 0;
+    var left = r.available - cut;
+    tot += left;
+    return { size: r.size, shop: r.available, cut: cut, left: left, sellable: r.sellable };
+  });
+  o.tot = tot;                 // 진짜 남은 수량
+  o.cutTot = o.shopTot - tot;  // 수기로 빠진 합계
+  o.log = man.rows;
+  o.memo = getCbMemo();
+  return o;
 }
 
 
@@ -290,5 +308,103 @@ function saveCbMemo(text) {
     var rec = { text: t, by: who, ts: stamp_() };
     PropertiesService.getScriptProperties().setProperty(CB_MEMO_KEY, JSON.stringify(rec));
     return rec;
+  });
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   BR-001 블랙 — 수기 차감 (2026-09-14 신설)
+
+   무엇을 하는 건가
+     현대백화점 현장 신청처럼 **쇼피파이를 안 거치고 나가는 물량**을 여기 적는다.
+     그러면 이 화면의 「남은 수량」에서 바로 빠진다.
+     → 그래서 **진짜 재고는 이 대시보드**다. 쇼피파이는 온라인 판매분만 안다.
+
+   🪤 두 번 빠지는 사고를 막는 장치
+      사장님이 나중에 쇼피파이 관리자에서 그 수량을 직접 깎으실 수 있다.
+      그때 이 줄이 그대로 남아 있으면 **같은 물량이 두 번 빠진다.**
+      → 줄마다 「쇼피파이 반영함」을 누를 수 있게 했다. 누르면 F열에 날짜가
+        박히고, 그 줄부터는 차감에 안 들어간다.
+
+   🪤 로그는 속성이 아니라 시트에 쌓는다. 언젠가 수백 줄이 되고,
+      사장님이 눈으로 훑거나 내보내야 할 수도 있기 때문이다.
+      탭이 없으면 처음 쓸 때 자동으로 만든다.
+   ═══════════════════════════════════════════════════════════════════════ */
+var CB_LOG_TAB = 'CB수기차감';
+var CB_LOG_HEAD = ['날짜', '사이즈', '수량', '메모', '적은사람', '쇼피파이 반영일'];
+
+function cbLogSheet_() {
+  var ss = SpreadsheetApp.openById(INV_ID);
+  var sh = ss.getSheetByName(CB_LOG_TAB);
+  if (!sh) {
+    sh = ss.insertSheet(CB_LOG_TAB);
+    sh.getRange(1, 1, 1, CB_LOG_HEAD.length).setValues([CB_LOG_HEAD]).setFontWeight('bold');
+    sh.setFrozenRows(1);
+    sh.setColumnWidth(4, 320);
+  }
+  return sh;
+}
+
+// 로그를 읽어 사이즈별 차감량을 낸다. 반영일(F)이 찍힌 줄은 이미 쇼피파이가 알고 있으므로 뺀다.
+function getCbManual() {
+  var sh = cbLogSheet_();
+  var v = sh.getDataRange().getValues();
+  var rows = [], cut = {};
+  for (var i = 1; i < v.length; i++) {
+    var sz = Number(v[i][1]) || 0, q = Number(v[i][2]) || 0;
+    if (!sz || !q) continue;
+    var applied = !!v[i][5];
+    if (!applied) cut[sz] = (cut[sz] || 0) + q;
+    rows.push({
+      row: i + 1, date: fmtDate_(v[i][0]), size: sz, qty: q,
+      memo: String(v[i][3] || ''), by: String(v[i][4] || ''),
+      applied: applied ? fmtDate_(v[i][5]) : ''
+    });
+  }
+  rows.reverse();                       // 최근 것이 위로
+  return { rows: rows, cut: cut };
+}
+
+function addCbManual(size, qty, memo) {
+  var sz = Number(size) || 0, q = Number(qty) || 0;
+  if (!sz) throw new Error('사이즈를 골라주세요');
+  if (q <= 0) throw new Error('수량은 1 이상이어야 해요');
+  var who = '';
+  try { who = Session.getActiveUser().getEmail() || ''; } catch (e) {}
+  return withLock_(function () {
+    var sh = cbLogSheet_();
+    var r = firstEmptyRow_(sh);
+    sh.getRange(r, 1, 1, 5).setValues([[today_(), sz, q, String(memo || ''), who]]);
+    sh.getRange(r, 1).setNumberFormat('yyyy-mm-dd');
+    SpreadsheetApp.flush();
+    return getCoreBlack(true);
+  });
+}
+
+// 잘못 넣은 줄 지우기. 줄 번호만 믿으면 남이 먼저 지웠을 때 엉뚱한 줄이 날아간다.
+function delCbManual(rowIdx, size, qty) {
+  return withLock_(function () {
+    var sh = cbLogSheet_();
+    var v = sh.getRange(rowIdx, 2, 1, 2).getValues()[0];
+    if (Number(v[0]) !== Number(size) || Number(v[1]) !== Number(qty)) {
+      throw new Error('그 사이 목록이 바뀌었어요. 새로고침 후 다시 눌러주세요.');
+    }
+    sh.deleteRow(rowIdx);
+    SpreadsheetApp.flush();
+    return getCoreBlack(true);
+  });
+}
+
+// 「쇼피파이에 반영함」 — 이 줄은 이제 차감에서 빠진다
+function applyCbManual(rowIdx, size, qty) {
+  return withLock_(function () {
+    var sh = cbLogSheet_();
+    var v = sh.getRange(rowIdx, 2, 1, 2).getValues()[0];
+    if (Number(v[0]) !== Number(size) || Number(v[1]) !== Number(qty)) {
+      throw new Error('그 사이 목록이 바뀌었어요. 새로고침 후 다시 눌러주세요.');
+    }
+    sh.getRange(rowIdx, 6).setValue(today_()).setNumberFormat('yyyy-mm-dd');
+    SpreadsheetApp.flush();
+    return getCoreBlack(true);
   });
 }
