@@ -408,3 +408,83 @@ function applyCbManual(rowIdx, size, qty) {
     return getCoreBlack(true);
   });
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   현백 현장판매 (2026-09-14 신설)
+
+   무엇인가: 현대백화점 팝업에서 **직접 건네고 끝난** 판매다.
+   택배가 안 나가므로 기존 출고 화면에는 뜰 이유가 없고, 실제로 안 뜬다.
+   그런데 재고는 분명히 빠졌으니 **얼마가 어디로 나갔는지는 봐야 한다.**
+
+   🪤 기존 getData() 는 이 건을 절대 못 잡는다. 두 겹으로 막혀 있다.
+        ① ship(D열)에 '한진'이 없으면 건너뛴다 — 현백은 '직접전달'
+        ② stat(E열)에 '출고'가 있으면 건너뛴다 — 현백은 이미 '3) 출고 완료'
+      그래서 그 필터를 손대지 않고 **함수를 따로 뺐다** (사장님 요구사항 4번).
+      기존 택배 출고 로직은 한 글자도 안 건드렸다.
+
+   🪤 병합셀 — 이 시트는 날짜(A)·판매처(B)가 여러 줄에 걸쳐 병합돼 있다.
+      병합된 줄은 값이 **빈칸으로 읽힌다.** 그대로 두면 24건 중 첫 줄만 잡힌다.
+      → 마지막으로 본 값을 이어서 쓴다(carry forward). 새 값이 나오면 갈아탄다.
+
+   🪤 이어쓰기가 엉뚱한 줄까지 먹지 않도록 **사이즈(J)와 수량(AD)이 둘 다
+      있는 줄만** 센다. 빈 줄·소계 줄은 자동으로 걸러진다.
+   ═══════════════════════════════════════════════════════════════════════ */
+var HY_SELLER = '현백';     // B열에 이 말이 들어간 행만
+
+function getHyundai() {
+  var ord = SpreadsheetApp.openById(ORDER_ID).getSheetByName(ORDER_TAB).getDataRange().getValues();
+
+  var rows = [], bySize = {}, byColor = {}, tot = 0;
+  var curDate = '', curSeller = '';
+
+  for (var r = 1; r < ord.length; r++) {
+    var row = ord[r];
+
+    // 병합셀 이어쓰기 — 값이 있으면 갈아타고, 없으면 앞의 것을 그대로 쓴다
+    if (String(row[0] || '').trim() || Object.prototype.toString.call(row[0]) === '[object Date]') curDate = row[0];
+    if (String(row[1] || '').trim()) curSeller = String(row[1]).trim();
+
+    if (curSeller.indexOf(HY_SELLER) < 0) continue;
+
+    var size = String(row[9] || '').trim();
+    var qty  = Number(row[29]) || 0;
+    if (!size || qty <= 0) continue;          // 빈 줄·소계 줄 거르기
+
+    var color = String(row[8] || '').trim();
+    var mm = (size.match(/(\d{3})/) || [])[1] || '';
+    var ck = /그레이|grey|oyster/i.test(color) ? '그레이'
+           : /베이지|beige|sand/i.test(color) ? '베이지' : (color || '기타');
+
+    if (mm) {
+      bySize[mm] = bySize[mm] || { 그레이: 0, 베이지: 0, 기타: 0, 합: 0 };
+      bySize[mm][ck === '그레이' || ck === '베이지' ? ck : '기타'] += qty;
+      bySize[mm]['합'] += qty;
+    }
+    byColor[ck] = (byColor[ck] || 0) + qty;
+    tot += qty;
+
+    rows.push({
+      row: r + 1,
+      date: fmtDate_(curDate),
+      who: String(row[6] || '').trim(),
+      color: ck,
+      size: mm ? mm + 'mm' : size,
+      qty: qty,
+      stat: String(row[4] || '').replace(/^\d\)\s*/, '')
+    });
+  }
+
+  // 날짜 → 담당자 순으로 묶는다. 화면에서 「9/14 승민」 한 덩어리로 보여주기 위함.
+  var groups = [], idx = {};
+  rows.forEach(function (x) {
+    var k = x.date + '|' + x.who;
+    if (!idx[k]) { idx[k] = { date: x.date, who: x.who, qty: 0, items: [] }; groups.push(idx[k]); }
+    idx[k].qty += x.qty;
+    idx[k].items.push(x);
+  });
+  groups.reverse();   // 최근 것이 위로
+
+  var sizes = Object.keys(bySize).sort(function (a, b) { return a - b; });
+  return { rows: rows, groups: groups, sizes: sizes, bySize: bySize,
+           byColor: byColor, tot: tot, cnt: rows.length, ts: stamp_() };
+}

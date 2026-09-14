@@ -109,6 +109,7 @@
     <button id="tabShip" class="on" onclick="go('ship')">🚚 출고</button>
     <button id="tabRs" onclick="go('rs')">📥 양품화 입고</button>
     <button id="tabCb" onclick="go('cb')">👟 BR-001 블랙</button>
+    <button id="tabHy" onclick="go('hy')">🏬 현백 현장</button>
   </div>
 
   <div id="content"><div class="loading">불러오는 중…</div></div>
@@ -124,8 +125,10 @@
     document.getElementById('tabShip').className = t==='ship'?'on':'';
     document.getElementById('tabRs').className   = t==='rs'  ?'on':'';
     document.getElementById('tabCb').className   = t==='cb'  ?'on':'';
+    document.getElementById('tabHy').className   = t==='hy'  ?'on':'';
     document.getElementById('h1').textContent =
-      t==='ship' ? '오늘 출고 · 재고' : t==='rs' ? '양품화 입고' : 'BR-001 블랙 사전예약 재고';
+      t==='ship' ? '오늘 출고 · 재고' : t==='rs' ? '양품화 입고'
+      : t==='hy' ? '현백 현장판매' : 'BR-001 블랙 사전예약 재고';
     load();
   }
   function load(){
@@ -139,6 +142,7 @@
       document.getElementById('content').innerHTML='<div class="empty">불러오기 실패: '+e.message+'</div>';};
     if(TAB==='rs')      google.script.run.withSuccessHandler(guard(renderRs)).withFailureHandler(fail).getRestock();
     else if(TAB==='cb') google.script.run.withSuccessHandler(guard(renderCb)).withFailureHandler(fail).getCoreBlack();
+    else if(TAB==='hy') google.script.run.withSuccessHandler(guard(renderHy)).withFailureHandler(fail).getHyundai();
     else                google.script.run.withSuccessHandler(guard(render)).withFailureHandler(fail).getData();
   }
   /* ── BR-001 Core Black 사전예약 재고 ───────────────────────────────────
@@ -221,6 +225,56 @@
     document.getElementById('content').innerHTML=h;
     /* 값은 innerHTML 에 끼우지 않고 따로 넣는다 — 따옴표·꺾쇠가 들어가면 화면이 깨진다 */
     document.getElementById('cbMemo').value = m.text || '';
+  }
+
+  /* ── 현백 현장판매 ────────────────────────────────────────────────────
+     택배가 안 나간 판매라 기존 출고 화면에는 안 뜬다(뜰 이유도 없다).
+     그런데 재고는 분명히 빠졌으니 **얼마가 어디로 나갔는지**는 봐야 한다. */
+  function renderHy(d){
+    document.getElementById('ts').textContent='업데이트 '+d.ts;
+    if(!d.cnt){
+      document.getElementById('content').innerHTML=
+        '<div class="empty">현백 현장판매 기록이 없어요.<br>'
+        +'<span style="font-size:12px">(발주시트 「1) 발주_취합양식」 B열이 「현백 현장판매」인 줄을 읽어요)</span></div>';
+      return;
+    }
+    var h='<h2>🏬 현백 현장판매 <span class="cnt">'+d.tot+'족</span></h2>';
+
+    // 사이즈별 합계 — 재고 대조할 때 제일 먼저 보는 표
+    h+='<div class="scroll"><table class="gtable"><thead><tr><th></th>';
+    d.sizes.forEach(function(z){h+='<th>'+z+'</th>';});
+    h+='<th>계</th></tr></thead><tbody>';
+    ['그레이','베이지'].forEach(function(ck){
+      if(!d.byColor[ck]) return;
+      h+='<tr><th>'+ck+'</th>';
+      d.sizes.forEach(function(z){
+        var q=(d.bySize[z]||{})[ck]||0;
+        h+='<td><div class="cell'+(q?'':' ')+'">'+(q||'·')+'</div></td>';
+      });
+      h+='<td><div class="cell ok">'+d.byColor[ck]+'</div></td></tr>';
+    });
+    h+='<tr><th>계</th>';
+    d.sizes.forEach(function(z){h+='<td><div class="cell ok">'+((d.bySize[z]||{})['합']||0)+'</div></td>';});
+    h+='<td><div class="cell ok">'+d.tot+'</div></td></tr>';
+    h+='</tbody></table></div>';
+    h+='<div class="note">현장에서 <b>직접 건네고 끝난</b> 판매예요. 택배가 안 나가서 위 「출고」 탭에는 안 떠요.<br>'
+      +'총 <b>'+d.cnt+'줄 · '+d.tot+'족</b>이 나갔습니다.</div>';
+
+    // 날짜 · 담당자로 묶어서
+    h+='<h2>📅 날짜별 <span class="cnt">'+d.groups.length+'</span></h2>';
+    d.groups.forEach(function(g){
+      h+='<div class="card" style="padding:12px 13px;margin-bottom:8px">'
+        +'<div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap">'
+        +'<div style="font-size:16px;font-weight:750">'+esc(g.date)+(g.who?' <span style="color:var(--muted);font-weight:600;font-size:14px">'+esc(g.who)+'</span>':'')+'</div>'
+        +'<div style="font-size:15px;font-weight:800;color:var(--accent)">'+g.qty+'족</div>'
+        +'</div><div style="margin-top:7px;display:flex;flex-wrap:wrap;gap:6px">';
+      g.items.forEach(function(it){
+        h+='<span style="background:var(--surface-2);border-radius:7px;padding:5px 9px;font-size:13px;white-space:nowrap">'
+          +esc(it.color)+' '+esc(it.size)+' <b>×'+it.qty+'</b></span>';
+      });
+      h+='</div></div>';
+    });
+    document.getElementById('content').innerHTML=h;
   }
 
   // 사람이 적은 글이 화면을 깨뜨리지 않게
