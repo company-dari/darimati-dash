@@ -210,3 +210,58 @@ function fmtDate_(v) {
   if (Object.prototype.toString.call(v) === '[object Date]') return Utilities.formatDate(v, 'Asia/Seoul', 'MM/dd');
   return String(v);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   BR-001 Core Black 재고 — 쇼피파이에서 직접 읽는다 (2026-09-14 신설)
+
+   왜 시트가 아니라 쇼피파이인가
+     사전예약은 쇼피파이가 결제를 받고 **주문이 들어오는 순간 재고를 깎는다.**
+     시트에 옮겨 적으면 두 곳이 생기고, 두 곳은 반드시 어긋난다.
+     그래서 쇼피파이를 유일한 원본으로 두고 여기서는 보여주기만 한다.
+
+   🪤 왜 Admin API 를 안 쓰나 — 열쇠(토큰)를 받을 수가 없다.
+      Dev Dashboard 로 만드는 앱은 **서버가 있어야** 토큰을 받는다(설치하면
+      토큰을 앱 주소로 보낸다). 우리는 서버가 없어서 2026-09-14 여기서 막혔다.
+      → 대신 **우리 테마가 JSON 을 뱉는 페이지**를 하나 만들었다.
+        테마 Liquid 는 재고 숫자를 그냥 알기 때문에 열쇠가 필요 없다.
+        원본: darimati-theme/kr-work/templates/page.cb-stock-7f3a91.liquid
+
+   🪤 주소는 아무 데도 링크하지 않는다. 핸들에 임의 문자열이 붙어 있는 이유다.
+      재고 숫자가 손님에게 보일 이유가 없다.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+var CB_FEED  = 'https://www.darimati.us/pages/cb-stock-7f3a91';
+var CB_CACHE = 60;   // 초. 새로고침을 연타해도 쇼피파이를 때리지 않게
+
+function getCoreBlack() {
+  var cache = CacheService.getScriptCache();
+  var hit = cache.get('coreblack');
+  if (hit) return JSON.parse(hit);
+
+  var res = UrlFetchApp.fetch(CB_FEED, { muteHttpExceptions: true, followRedirects: true });
+  var code = res.getResponseCode();
+  if (code !== 200) {
+    throw new Error('재고 창구가 ' + code + ' 를 돌려줬어요.\n' +
+      '페이지가 지워졌거나 비공개일 수 있어요 — ' + CB_FEED);
+  }
+
+  var body;
+  try { body = JSON.parse(res.getContentText()); }
+  catch (e) {
+    // 테마가 오류 화면(HTML)을 뱉은 경우다. 그대로 두면 무슨 일인지 모른다.
+    throw new Error('재고 창구가 JSON 이 아닌 걸 돌려줬어요.\n' + res.getContentText().slice(0, 200));
+  }
+  if (!body.rows || !body.rows.length) throw new Error('재고 창구에 사이즈가 하나도 없어요.');
+
+  var rows = [], tot = 0;
+  body.rows.forEach(function (r) {
+    var q = Number(r.available) || 0;
+    tot += q;
+    rows.push({ size: Number(r.size), available: q, sellable: !!r.sellable });
+  });
+  rows.sort(function (a, b) { return a.size - b.size; });
+
+  var out = { product: body.product, rows: rows, tot: tot, feedTs: body.ts, ts: stamp_() };
+  cache.put('coreblack', JSON.stringify(out), CB_CACHE);
+  return out;
+}
