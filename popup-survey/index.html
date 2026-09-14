@@ -144,7 +144,7 @@ input:focus{ outline:none; border-bottom-color:#23201E !important; }
         <div class="body" style="padding-inline:20px">
           <p style="font-family:Archivo,'Noto Sans KR',sans-serif;font-weight:700;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6E655F;margin:0 0 10px">Question 01</p>
           <h2 style="font-weight:900;font-size:29.64px;line-height:1.18;letter-spacing:-.02em;margin:0;text-wrap:balance;font-size:27px">어느 이벤트에<br>참여하시나요?</h2>
-          <p style="margin:8px 0 0;color:#6E655F;font-size:13.5px;line-height:1.6">요일과 이벤트를 함께 골라주세요. <br>여러 이벤트에 참여하시려면 접수를 한 번 더 해주세요.</p>
+          <p style="margin:8px 0 0;color:#6E655F;font-size:13.5px;line-height:1.6">요일과 이벤트를 함께 골라주세요. <br><strong style="color:#23201E;font-weight:700">여러 개 고르셔도 됩니다.</strong> 고른 만큼 자리를 잡아둡니다.</p>
           <div style="display:flex;flex-direction:column;gap:9px;margin:12px 0 0">
             <div style="display:flex;flex-direction:column;gap:7px">
               <div style="display:flex;align-items:baseline;gap:9px">
@@ -347,7 +347,7 @@ input:focus{ outline:none; border-bottom-color:#23201E !important; }
               <p style="margin:0;font-size:12.5px;line-height:1.55;color:#6E655F"><strong style="color:#23201E;font-weight:900;display:block;font-size:13.5px">럭키드로우 응모도 끝났습니다.</strong>추첨 9월 22일(월) · 당첨자에게만 문자</p>
             </div>
           </div>
-          <p style="margin:22px 0 0;font-size:13px;line-height:1.7;color:#6E655F">당일 <strong style="color: rgb(35, 32, 30);">시작 10분 전(<span id="t-arrive">13:50</span>)</strong>까지 EVENT ZONE으로 와주세요.<br>늦으면 현장 참여 고객에게 순번이 넘어갈 수 있습니다.</p>
+          <p style="margin:22px 0 0;font-size:13px;line-height:1.7;color:#6E655F">당일 <strong id="t-arrive" style="color: rgb(35, 32, 30);">시작 10분 전</strong>까지 EVENT ZONE으로 와주세요.<br>늦으면 현장 참여 고객에게 순번이 넘어갈 수 있습니다.</p>
         </div>
         <div class="actions" style="margin-top:auto;padding:16px 20px;display:flex;gap:10px;align-items:center;background:linear-gradient(to top,#EFEDEA 62%,transparent);flex:none">
           <button style="flex:1 1 auto;padding:17px 20px;font-weight:900;font-size:16px;letter-spacing:-.01em;border:0;border-radius:3px;background:#23201E;color:#F5F3F0" type="button" id="again">다음 분 접수하기</button>
@@ -387,7 +387,7 @@ for (const [id, src] of Object.entries(IMAGES)) {
 }
 
 const LAST = 6;
-const state = { event:null, evName:"", evWhen:"", evArrive:"", name:"", phone:"", size:null, confirm:false, privacy:false };
+const state = { events:[], name:"", phone:"", size:null, confirm:false, privacy:false };
 let at = 0;
 
 const $  = (s, r=document) => r.querySelector(s);
@@ -408,7 +408,7 @@ function show(n){
 
 /* ── 다음 버튼 활성 조건 ───────────────────────────────── */
 function ok(n){
-  if (n === 1) return !!state.event;
+  if (n === 1) return state.events.length > 0;
   if (n === 2) return state.name.trim().length >= 2;
   if (n === 3) return /^01[016-9]-\d{3,4}-\d{4}$/.test(state.phone);
   if (n === 4) return !!state.size && state.confirm;
@@ -431,12 +431,13 @@ function markPick(){
   });
 }
 $$(".pick").forEach(p => p.addEventListener("click", () => {
-  $$(".pick").forEach(o => o.setAttribute("aria-pressed", String(o === p)));
+  // 여러 개 고를 수 있다. 누를 때마다 켜고 끈다.
+  const on = p.getAttribute("aria-pressed") !== "true";
+  p.setAttribute("aria-pressed", String(on));
   markPick();
-  state.event  = p.dataset.ev;
-  state.evName = p.dataset.name;
-  state.evWhen = p.dataset.when;
-  state.evArrive = p.dataset.arrive;
+  state.events = $$('.pick')
+    .filter(o => o.getAttribute("aria-pressed") === "true")
+    .map(o => ({ ev:o.dataset.ev, name:o.dataset.name, when:o.dataset.when, arrive:o.dataset.arrive }));
   gate();
 }));
 
@@ -515,6 +516,9 @@ $$("[data-next]").forEach(b => b.addEventListener("click", () => {
 }));
 
 /* ── 접수 ──────────────────────────────────────────────── */
+function esc(t){
+  return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
 function ticketNo(){
   return "A-" + String(Math.floor(Math.random() * 9000) + 1000);
 }
@@ -527,36 +531,47 @@ function submit(){
   const no = ticketNo();          // 접수번호를 먼저 뽑아 시트에도 같이 보낸다
                                   // (현장에서 손님 화면의 번호로 명단을 찾을 수 있게)
   const finish = () => {
-    $("#t-no").textContent   = no;
-    $("#t-ev").textContent   = state.evName;
-    $("#t-when").textContent = state.evWhen;
-    $("#t-arrive").textContent = state.evArrive;
+    $("#t-no").textContent = no;
+    // 고른 만큼 줄을 늘려 적는다 (이벤트 칸과 일시 칸의 줄이 서로 맞는다)
+    $("#t-ev").innerHTML   = state.events.map(e => esc(e.name)).join("<br>");
+    $("#t-when").innerHTML = state.events.map(e => esc(e.when)).join("<br>");
+    $("#t-arrive").textContent = state.events.length === 1
+      ? "시작 10분 전(" + state.events[0].arrive + ")"
+      : "각 이벤트 시작 10분 전";
     show(LAST);
     btn.textContent = label;
   };
 
-  track("Lead", { content_name: "popup_main_event", content_category: state.event });
+  track("Lead", { content_name: "popup_main_event",
+                  content_category: state.events.map(e => e.ev).join(" | ") });
 
   if (PREVIEW){ setTimeout(finish, 450); return; }
 
-  const body = new URLSearchParams({
-    no:      no,
-    event:   state.event,
-    name:    state.name.trim(),
-    phone:   state.phone,
-    size:    state.size || "",
-    confirm: state.confirm ? "Y" : "",
-    privacy: state.privacy ? "Y" : ""
-  });
-
-  fetch(SHEET_URL, { method:"POST", mode:"no-cors", body })
-    .then(finish)
-    .catch(finish);   // no-cors 는 결과를 읽을 수 없으므로 양쪽 다 완료 처리
+  /* 고른 이벤트마다 한 줄씩 보낸다. 접수번호는 같은 것으로 묶는다.
+     한 칸에 몰아 넣지 않는 이유: 시트에서 "한 줄 = 한 자리" 가 유지돼야
+     요일·이벤트별 인원 세는 것이 안 깨진다. */
+  let i = 0;
+  const sendNext = () => {
+    if (i >= state.events.length) { finish(); return; }
+    const ev = state.events[i++];
+    const body = new URLSearchParams({
+      no:      no,
+      event:   ev.ev,
+      name:    state.name.trim(),
+      phone:   state.phone,
+      size:    state.size || "",
+      confirm: state.confirm ? "Y" : "",
+      privacy: state.privacy ? "Y" : ""
+    });
+    // no-cors 는 결과를 읽을 수 없으므로 성공·실패 양쪽 다 다음으로 넘어간다
+    fetch(SHEET_URL, { method:"POST", mode:"no-cors", body }).then(sendNext).catch(sendNext);
+  };
+  sendNext();
 }
 
 /* ── 다시 접수 ─────────────────────────────────────────── */
 $("#again").addEventListener("click", () => {
-  state.event = null; state.evName = ""; state.evWhen = ""; state.evArrive = "";
+  state.events = [];
   state.name = ""; state.phone = ""; state.size = null;
   state.confirm = false; state.privacy = false;
   $$(".pick,.size,[data-check]").forEach(el => el.setAttribute("aria-pressed","false"));
