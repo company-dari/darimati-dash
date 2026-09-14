@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<style>
+  :root{
+    --bg:#f6f7f9;--surface:#fff;--surface-2:#eef1f4;--line:#e2e7ec;
+    --ink:#101720;--ink-2:#39454f;--muted:#69747f;
+    --accent:#0e7c86;--accent-soft:#e1f1f2;
+    --ok:#2f7a57;--ok-bg:#e7f2ec;--warn:#9a6b15;--warn-bg:#f7edd6;--crit:#c0473c;--crit-bg:#fae7e4;
+    --sans:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#0c1116;--surface:#151c23;--surface-2:#1b242c;--line:#28323c;
+    --ink:#e9eef2;--ink-2:#c3cdd6;--muted:#8b98a4;--accent:#37b4be;--accent-soft:#123138;
+    --ok:#59b487;--ok-bg:#163025;--warn:#d5a24f;--warn-bg:#31260f;--crit:#e0776d;--crit-bg:#331c19;
+  }}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:920px;margin:0 auto;padding:18px 16px 60px}
+  header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+  .brand{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:800}
+  h1{font-size:20px;font-weight:800;letter-spacing:-.02em;margin:2px 0 0}
+  .ts{font-size:12px;color:var(--muted);font-family:var(--mono)}
+  .refresh{appearance:none;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:8px;padding:8px 12px;font:inherit;font-size:12.5px;cursor:pointer}
+  a.refresh{text-decoration:none;display:inline-block;margin-right:6px}
+  a.refresh:focus-visible,.refresh:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+  h2{font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:24px 0 10px;display:flex;align-items:center;gap:8px}
+  h2 .cnt{background:var(--warn-bg);color:var(--warn);font-size:12px;padding:1px 9px;border-radius:999px;font-weight:700}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+  .ordhead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+  .ord .prod{font-size:15px;font-weight:700}
+  .ord .comps{font-size:12.5px;color:var(--muted);margin-top:3px}
+  .ord .meta{font-size:12px;color:var(--muted);margin-top:5px;font-variant-numeric:tabular-nums}
+  .ord .meta b{color:var(--ink-2);font-weight:600}
+  .shipbtn{appearance:none;border:0;background:var(--accent);color:#fff;border-radius:9px;padding:10px 16px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex:none}
+  .shipbtn:disabled{background:var(--ok);opacity:.85}
+  .empty{text-align:center;color:var(--muted);padding:26px;font-size:13px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+  .gtable{border-collapse:separate;border-spacing:4px;width:100%;min-width:440px}
+  .gtable th{font-size:11px;color:var(--muted);font-weight:600}
+  .gtable tbody th{text-align:left;font-size:12px;font-weight:650;color:var(--ink-2);white-space:nowrap;padding-right:6px}
+  .cell{border-radius:7px;font-size:13px;font-weight:650;padding:7px 0;text-align:center;background:var(--surface-2);font-variant-numeric:tabular-nums}
+  .cell.crit{background:var(--crit-bg);color:var(--crit)}.cell.warn{background:var(--warn-bg);color:var(--warn)}.cell.ok{background:var(--ok-bg);color:var(--ok)}
+  .cell.flat{color:var(--muted);font-weight:400}
+  .scroll{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .legend{display:flex;gap:14px;margin-top:8px;font-size:11.5px;color:var(--muted)}
+  .legend i{width:11px;height:11px;border-radius:3px;display:inline-block;margin-right:4px;vertical-align:-1px}
+  .loading{text-align:center;color:var(--muted);padding:40px;font-size:14px}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ok);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;z-index:50}
+  .toast.show{opacity:1}
+  .note{font-size:12px;color:var(--muted);margin-top:8px}
+  /* 탭 */
+  .tabs{display:flex;gap:6px;background:var(--surface-2);padding:4px;border-radius:11px;margin-bottom:14px}
+  .tabs button{flex:1;appearance:none;border:0;background:transparent;color:var(--muted);font:inherit;font-size:14px;font-weight:700;padding:9px 0;border-radius:8px;cursor:pointer}
+  .tabs button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+  /* 양품화 입력 */
+  /* 스크롤해도 "지금 그레이인지 베이지인지" 안 잃어버리게 제목이 위에 붙어 있음 */
+  .sec{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2);font-weight:800;margin:20px 0 8px;padding:9px 2px;background:var(--bg)}
+  .sec .dot{width:13px;height:13px;border-radius:50%;border:1px solid rgba(0,0,0,.18);flex:none}
+  .sec .tag{margin-left:auto;font-size:11.5px;font-weight:700;color:var(--crit);background:var(--crit-bg);padding:2px 8px;border-radius:999px}
+  .rlist{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .rhead{display:flex;align-items:center;gap:12px;padding:6px 14px;background:var(--surface-2);font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.03em}
+  .rhead .h1{flex:1}.rhead .h2{width:56px;text-align:center}.rhead .h3{width:78px;text-align:center}
+  .row{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--line)}
+  .row:last-child{border-bottom:0}
+  .row .lbl{flex:1;font-size:17px;font-weight:750;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+  .row .lbl small{font-size:12px;font-weight:600;color:var(--muted);margin-left:3px}
+  .row .now{width:56px;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;padding:4px 0;border-radius:7px;background:var(--surface-2);color:var(--muted);text-align:center;flex:none}
+  .row .now.neg{background:var(--crit-bg);color:var(--crit)}
+  .row .now.pos{background:var(--ok-bg);color:var(--ok)}
+  .row input{width:78px;flex:none;font:inherit;font-size:18px;font-weight:800;text-align:center;padding:9px 4px;border:1.5px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);-moz-appearance:textfield}
+  details.fold{margin-top:20px}
+  details.fold>summary{cursor:pointer;list-style:none;font-size:13px;font-weight:800;color:var(--muted);padding:11px 14px;background:var(--surface);border:1px solid var(--line);border-radius:11px}
+  details.fold>summary::-webkit-details-marker{display:none}
+  details.fold[open]>summary{border-radius:11px 11px 0 0;border-bottom:0}
+  details.fold .rlist{border-radius:0 0 11px 11px;border-top:0}
+  .row input::-webkit-outer-spin-button,.row input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .row input:focus{outline:2px solid var(--accent);border-color:transparent}
+  .row.has input{border-color:var(--accent);background:var(--accent-soft)}
+  /* 아이폰 하단 홈바에 저장 버튼이 가려지지 않게 여백 확보 */
+  .savebar{position:sticky;bottom:0;z-index:10;margin:16px -16px -60px;padding:12px 16px calc(22px + env(safe-area-inset-bottom));background:linear-gradient(to top,var(--bg) 78%,transparent);display:flex;align-items:center;gap:12px}
+  .savebar .sum{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .savebtn{flex:1;appearance:none;border:0;background:var(--accent);color:#fff;border-radius:11px;padding:17px;font:inherit;font-size:16px;font-weight:800;cursor:pointer}
+  .savebtn:disabled{opacity:.4}
+  .tline{display:flex;align-items:center;gap:10px;padding:10px 13px;border-bottom:1px solid var(--line);font-size:14px}
+  .tline:last-child{border-bottom:0}
+  .tline .q{font-weight:800;color:var(--ok);font-variant-numeric:tabular-nums}
+  .undo{appearance:none;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:8px;padding:9px 14px;font:inherit;font-size:13px;cursor:pointer}
+  .banner{background:var(--warn-bg);color:var(--warn);border-radius:10px;padding:11px 14px;font-size:13px;line-height:1.45;margin-bottom:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="brand">DARIMATI · 창고</div>
+      <h1 id="h1">오늘 출고 · 재고</h1>
+    </div>
+    <div style="text-align:right">
+      <a class="refresh" href="https://company-dari.github.io/darimati-dash/inventory/"
+         target="_blank" rel="noopener">📖 가이드</a>
+      <button class="refresh" onclick="load()">↻ 새로고침</button>
+      <div class="ts" id="ts"></div>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button id="tabShip" class="on" onclick="go('ship')">🚚 출고</button>
+    <button id="tabRs" onclick="go('rs')">📥 양품화 입고</button>
+  </div>
+
+  <div id="content"><div class="loading">불러오는 중…</div></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+  var SIZES=[230,240,250,260,270,280];
+  var TAB='ship';
+  function go(t){
+    TAB=t;
+    document.getElementById('tabShip').className = t==='ship'?'on':'';
+    document.getElementById('tabRs').className   = t==='rs'  ?'on':'';
+    document.getElementById('h1').textContent = t==='ship'?'오늘 출고 · 재고':'양품화 입고';
+    load();
+  }
+  function load(){
+    document.getElementById('content').innerHTML='<div class="loading">불러오는 중…</div>';
+    var fail=function(e){document.getElementById('content').innerHTML='<div class="empty">불러오기 실패: '+e.message+'</div>';};
+    if(TAB==='rs') google.script.run.withSuccessHandler(renderRs).withFailureHandler(fail).getRestock();
+    else           google.script.run.withSuccessHandler(render).withFailureHandler(fail).getData();
+  }
+  function render(d){
+    document.getElementById('ts').textContent='업데이트 '+d.ts;
+    var h='';
+    // 오늘 향동 출고대상
+    h+='<h2>🚚 오늘 향동 출고 대상 <span class="cnt">'+d.orders.length+'</span></h2>';
+    if(!d.orders.length){
+      h+='<div class="empty">지금 출고할 향동 건이 없어요.<br><span style="font-size:12px">(발주시트에 한진택배 주문이 들어오면 여기 떠요)</span></div>';
+    } else {
+      d.orders.forEach(function(o){
+        h+='<div class="card ord" id="ord'+o.rowIdx+'">'
+          +'<div class="ordhead"><div>'
+          +'<div class="prod">'+o.color+' '+o.size+' <span style="color:var(--muted);font-weight:500;font-size:13px">('+o.shoeCode+')</span></div>'
+          +'<div class="comps">'+(o.comps||'구성품 없음')+'</div>'
+          +'<div class="meta">📅 <b>'+o.date+'</b> · 👤 '+(o.recipient||'-')+' · '+o.stat+'</div>'
+          +'</div>'
+          +'<button class="shipbtn" onclick="ship('+o.rowIdx+',this,'+JSON.stringify(o.sig)+')">출고완료</button>'
+          +'</div></div>';
+      });
+    }
+    // 재고 현황 — 창고별로 나눠서
+    var idx={};d.stock.forEach(function(s){idx[s.code]=s;});
+    h+='<h2>🏠 향동 창고 재고</h2>'+stockTable(idx,'hy',true);
+    var accs=[['ACC-깔창','깔창'],['ACC-슈레이스','슈레이스'],['ACC-스티커','스티커'],['ACC-벨트','벨트'],['ACC-모자','모자'],['ACC-타월','타월'],['ACC-슈백','슈백']];
+    h+='<div class="note">구성품: '
+      +accs.map(function(a){var it=idx[a[0]];return a[1]+' '+(it?it.hy:'-');}).join(' · ')+'</div>';
+    h+='<h2>🚚 N배송 창고 재고</h2>'+stockTable(idx,'nb',false);
+    h+='<div class="note">네이버가 관리하는 창고예요. 하루 두 번(10시·18시) 자동으로 갱신됩니다.</div>';
+    var dsum=0,dd=d.defect||{}; for(var dk in dd) dsum+=Number(dd[dk])||0;
+    h+='<h2>🔧 불량품<span class="cnt">'+dsum+'</span></h2>'+defectTable(dd);
+    h+='<div class="note">따로 보관 중이라 <b>위 재고 숫자에는 안 들어가 있어요.</b> 양품화하면 그만큼 향동 재고로 올라갑니다.</div>';
+    h+='<div class="legend"><span><i style="background:var(--crit-bg)"></i>품절</span><span><i style="background:var(--warn-bg)"></i>부족(1-3)</span><span><i style="background:var(--ok-bg)"></i>충분</span></div>';
+    document.getElementById('content').innerHTML=h;
+  }
+  // 창고 하나짜리 재고표. key = hy(향동) / nb(N배송)
+  // dimFull: 향동은 풀 패키지를 조립해서 내보내니 늘 0 → 회색으로 눕힘
+  function stockTable(idx,key,dimFull){
+    var rows=[['그레이 단품','GR','S'],['베이지 단품','BG','S'],['그레이 풀','GR','F'],['베이지 풀','BG','F']];
+    var h='<div class="scroll"><table class="gtable"><thead><tr><th></th>';
+    SIZES.forEach(function(s){h+='<th>'+s+'</th>';});
+    h+='</tr></thead><tbody>';
+    rows.forEach(function(rw){
+      var isFull=rw[2]==='F';
+      h+='<tr><th>'+rw[0]+'</th>';
+      SIZES.forEach(function(s){
+        var it=idx[rw[1]+'-'+s+'-'+rw[2]]; var v=it?Number(it[key])||0:0;
+        var cls=(dimFull&&isFull)?'flat':(v===0?'crit':v<=3?'warn':'ok');
+        h+='<td><div class="cell '+cls+'">'+v+'</div></td>';
+      });
+      h+='</tr>';
+    });
+    return h+'</tbody></table></div>';
+  }
+  // 불량품표 — 신발 단품(S)만 있다. 숫자가 있으면 눈에 띄게, 0이면 흐리게.
+  function defectTable(def){
+    var rows=[['그레이','GR'],['베이지','BG']];
+    var h='<div class="scroll"><table class="gtable"><thead><tr><th></th>';
+    SIZES.forEach(function(s){h+='<th>'+s+'</th>';});
+    h+='</tr></thead><tbody>';
+    rows.forEach(function(rw){
+      h+='<tr><th>'+rw[0]+'</th>';
+      SIZES.forEach(function(s){
+        var v=Number(def[rw[1]+'-'+s+'-S'])||0;
+        h+='<td><div class="cell '+(v?'warn':'flat')+'">'+v+'</div></td>';
+      });
+      h+='</tr>';
+    });
+    return h+'</tbody></table></div>';
+  }
+  function ship(rowIdx,btn,sig){
+    btn.disabled=true; btn.textContent='처리중…';
+    google.script.run.withSuccessHandler(function(res){
+      btn.textContent='✓ 출고완료';
+      toast(res==='already' ? '이미 다른 분이 처리한 건이에요' : '출고완료 처리됨 — 재고는 곧 자동 차감돼요');
+      var card=document.getElementById('ord'+rowIdx);
+      if(card) card.style.opacity='.5';
+      setTimeout(load, 900);
+    }).withFailureHandler(function(e){
+      btn.disabled=false; btn.textContent='출고완료'; toast(e.message);
+      if(/목록이 바뀌/.test(e.message)) setTimeout(load, 1200);
+    }).markShipped(rowIdx, sig);
+  }
+  /* ── 양품화 입고 ── */
+  var RS={}, ITEMS=[];
+  function shortName(it){
+    if(it.code.indexOf('ACC-')===0) return it.opt||it.code;
+    var p=String(it.opt).split('/');   // "그레이 / 250mm / 단품"
+    return p.length>2 ? (p[0].trim()+' '+p[1].trim().replace('mm','')+' '+p[2].trim()) : it.code;
+  }
+  // 목록 한 덩어리 그리기
+  function rlist(list,labelFn){
+    var h='<div class="rlist"><div class="rhead"><span class="h1">품목</span>'
+      +'<span class="h2">현재고</span><span class="h3">양품화</span></div>';
+    list.forEach(function(i){
+      var cls = i.hy<0?' neg' : i.hy>0?' pos' : '';
+      h+='<div class="row" id="r_'+i.code+'">'
+        +'<span class="lbl">'+labelFn(i)+'</span>'
+        +'<span class="now'+cls+'" id="n_'+i.code+'">'+i.hy+'</span>'
+        +'<input type="number" inputmode="numeric" min="0" placeholder="0" '
+        +'oninput="setQ(\''+i.code+'\',this)" onfocus="this.select()">'
+        +'</div>';
+    });
+    return h+'</div>';
+  }
+  function renderRs(d){
+    ITEMS=d.items; RS={};
+    document.getElementById('ts').textContent='업데이트 '+d.ts;
+    var neg=d.items.filter(function(i){return i.hy<0;}).length;
+    var h='';
+    if(neg) h+='<div class="banner">향동 재고 <b>'+neg+'종이 마이너스</b>예요. 양품화한 수량을 넣으면 그만큼 올라갑니다.</div>';
+
+    var sizeLbl=function(i){ var m=String(i.opt).match(/(\d{3})/); return (m?m[1]:i.code)+'<small>mm</small>'; };
+    var accLbl =function(i){ return i.opt||i.code; };
+    // ① 단품 — 컬러별로 나눠 맨 위 고정 (재고 대부분이 여기)
+    [['그레이 단품','#8d9298',/^GR-\d{3}-S$/],['베이지 단품','#c9b697',/^BG-\d{3}-S$/]].forEach(function(g){
+      var list=d.items.filter(function(i){return g[2].test(i.code);});
+      if(!list.length) return;
+      var n=list.filter(function(i){return i.hy<0;}).length;
+      h+='<div class="sec"><span class="dot" style="background:'+g[1]+'"></span>'+g[0]
+        +(n?'<span class="tag">−'+n+'종</span>':'')+'</div>'+rlist(list,sizeLbl);
+    });
+    // ② 구성품
+    var acc=d.items.filter(function(i){return i.code.indexOf('ACC-')===0;});
+    if(acc.length){
+      var an=acc.filter(function(i){return i.hy<0;}).length;
+      h+='<div class="sec">구성품'+(an?'<span class="tag">−'+an+'종</span>':'')+'</div>'+rlist(acc,accLbl);
+    }
+    // ③ 풀 패키지 — 향동엔 거의 없으므로 접어둠
+    var full=d.items.filter(function(i){return /-F$/.test(i.code);});
+    if(full.length){
+      h+='<details class="fold"><summary>▸ 풀 패키지 '+full.length+'종 (거의 안 씀 · 눌러서 펼치기)</summary>'
+        +rlist(full,function(i){var p=String(i.opt).split('/');return (p[0]||'').trim()+' '+((p[1]||'').trim().replace('mm',''))+'<small>mm</small>';})
+        +'</details>';
+    }
+    // 오늘 입력분
+    h+='<div class="sec">오늘 넣은 것</div>';
+    if(!d.today.length){ h+='<div class="empty">아직 없어요.</div>'; }
+    else{
+      var nm={}; d.items.forEach(function(i){nm[i.code]=shortName(i);});
+      h+='<div class="rlist">';
+      d.today.forEach(function(t){
+        h+='<div class="tline"><span style="flex:1">'+(nm[t.code]||t.code)+'</span>'
+          +'<span class="q">+'+t.qty+'</span>'
+          +'<button class="undo" onclick="undoRs('+t.row+','+JSON.stringify(t.code)+','+t.qty+',this)">되돌리기</button></div>';
+      });
+      h+='</div>';
+    }
+    h+='<p class="note" style="text-align:center;margin-top:20px">헷갈리면 → '
+      +'<a href="https://company-dari.github.io/darimati-dash/inventory/" target="_blank" rel="noopener" '
+      +'style="color:var(--accent);font-weight:600">📖 창고 작업 가이드</a></p>';
+    h+='<div class="savebar"><span class="sum" id="sum">0종 · 0개</span>'
+      +'<button class="savebtn" id="save" disabled onclick="saveRs()">저장</button></div>';
+    document.getElementById('content').innerHTML=h;
+  }
+  function setQ(code,el){
+    var v=parseInt(el.value,10);
+    if(isNaN(v)||v<=0) delete RS[code]; else RS[code]=v;
+    document.getElementById('r_'+code).className='row'+(RS[code]?' has':'');
+    var codes=Object.keys(RS), tot=0;
+    codes.forEach(function(c){tot+=RS[c];});
+    document.getElementById('sum').textContent=codes.length+'종 · '+tot+'개';
+    document.getElementById('save').disabled=!codes.length;
+  }
+  function saveRs(){
+    var list=Object.keys(RS).map(function(c){return {code:c,qty:RS[c]};});
+    if(!list.length) return;
+    var b=document.getElementById('save'); b.disabled=true; b.textContent='저장 중…';
+    google.script.run.withSuccessHandler(function(res){
+      toast(res.added+'줄 저장됨 — 향동 재고 반영 완료');
+      load();
+    }).withFailureHandler(function(e){
+      b.disabled=false; b.textContent='저장'; toast('실패: '+e.message);
+    }).addRestock(list);
+  }
+  function undoRs(row,code,qty,btn){
+    btn.disabled=true; btn.textContent='…';
+    google.script.run.withSuccessHandler(function(){ toast('되돌렸어요'); load(); })
+      .withFailureHandler(function(e){
+        btn.disabled=false; btn.textContent='되돌리기'; toast(e.message);
+        if(/목록이 바뀌|이미 지워/.test(e.message)) setTimeout(load, 1200);
+      })
+      .delRestock(row, code, qty);
+  }
+
+  var tt;
+  function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(function(){t.classList.remove('show');},2600);}
+  load();
+</script>
+</body>
+</html>
