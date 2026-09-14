@@ -31,7 +31,7 @@ window.QR = {
     "f45-gongdeok": "https://www.darimati.us/pages/br001-f45-gongdeok",
     "f45-gyodae": "https://www.darimati.us/pages/br001-f45-gyodae",
     "f45-hannam": "https://www.darimati.us/pages/br001-f45-hannam",
-    "hyundai-popup-survey": "https://docs.google.com/forms/d/e/1FAIpQLScGrlD-ND9VX_vIdOo4uuNmTWjBqV7NFnmVNVzfFbCaBWSa1g/viewform",
+    "hyundai-popup-survey": "https://company-dari.github.io/darimati-dash/popup-survey/",
     "br001-preorder": "https://www.darimati.us/pages/br001-preorder?utm_source=qr&utm_medium=offline&utm_campaign=qr-br001-preorder"
   }
 };
