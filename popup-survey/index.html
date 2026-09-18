@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#EFEDEA">
 <!--
-  다리마티 × 더현대 판교 팝업 — 메인 이벤트 사전 접수
+  다리마티 × 더현대 판교 팝업 — 현장 이벤트 참가 접수
   ────────────────────────────────────────────────────────────
   · 손으로 고치지 않는다. 원본은
       ~/darimati-theme/pages-src/hyundai-popup-survey/popup-event-form.html
@@ -16,7 +16,24 @@
       https://company-dari.github.io/darimati-dash/q/?code=hyundai-popup-survey
     를 쓴다. 목적지가 바뀌어도 인쇄물·QR 을 다시 만들지 않기 위해서다.
 -->
-<title>메인 이벤트 자리 잡기</title>
+<!-- ── 메타 픽셀 ───────────────────────────────────────────────
+     🚨 이 페이지는 쇼피파이가 아니라 깃허브 페이지다. 픽셀을 넣어줄
+        사람이 아무도 없어서 **2026-09-18 까지 측정이 0 이었다.**
+        QR 로 들어온 손님이 전부 그냥 사라지고 있었다. 여기서 직접 심는다.
+     · 쇼피파이판(build-shopify.py)은 dm-track 이 심으므로 넣지 않는다.
+       양쪽에 다 들어가면 PageView 가 두 번 나간다.                      -->
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init','821311187492862');
+fbq('track','PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none" alt=""
+  src="https://www.facebook.com/tr?id=821311187492862&ev=PageView&noscript=1"></noscript>
+<title>현장 이벤트 참가 접수</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
@@ -116,11 +133,11 @@ input:focus{ outline:none; border-bottom-color:#23201E !important; }
         </div>
         
         <div class="body" style="padding-inline:20px">
-          <p style="font-family:Archivo,sans-serif;font-weight:700;font-size:12px;letter-spacing:.16em;color:#6E655F;margin:0;font-variant-numeric:tabular-nums">2026.09.19 &#8211; 2026.09.20</p>
-          <h1 style="font-family:Archivo,sans-serif;font-weight:800;font-size:clamp(34px,9.6vw,44px);line-height:1.04;letter-spacing:-.025em;margin:14px 0 0;color:#23201E">POP-UP<br>EVENT<br>SURVEY</h1>
+          <p style="font-family:Archivo,sans-serif;font-weight:700;font-size:12px;letter-spacing:.16em;color:#6E655F;margin:0;font-variant-numeric:tabular-nums" id="d-range">2026.09.19 &#8211; 2026.09.20</p>
+          <h1 style="font-family:Archivo,sans-serif;font-weight:800;font-size:clamp(34px,9.6vw,44px);line-height:1.04;letter-spacing:-.025em;margin:14px 0 0;color:#23201E">POP-UP<br>EVENT<br>ENTRY</h1>
           <div style="width:44px;height:4px;background:#23201E;margin:22px 0 0"></div>
-          <p style="margin:22px 0 0;color:#6E655F;font-size:14.5px;line-height:1.8">현대백화점 판교점 UPLEX 4F 이벤트 존에서<br>다리마티 팝업 이벤트에 참여하고<br><strong style="color:#23201E;font-weight:900;font-size:16px">BR-001의 주인공</strong><span style="color:#23201E;font-weight:700;font-size:16px">이 되어보세요 👟</span></p>
-          <p style="margin:18px 0 0;padding:14px 16px;background:#F5F3F0;border-radius:3px;color:#6E655F;font-size:13.5px;line-height:1.7">간단한 설문 후 이벤트에 참여하면<br><strong style="color:#23201E;font-weight:700">럭키드로우에 자동 응모</strong>됩니다.</p>
+          <p style="margin:22px 0 0;color:#6E655F;font-size:14.5px;line-height:1.8">지금 <strong style="color:#23201E;font-weight:900;font-size:16px">U-PLEX 4층 EVENT ZONE</strong>에서<br>진행 중인 이벤트의 <span style="color:#23201E;font-weight:700;font-size:16px">현장 참가 접수</span>입니다.<br>접수하시면 순서가 될 때 불러드립니다 👟</p>
+          <p style="margin:18px 0 0;padding:14px 16px;background:#F5F3F0;border-radius:3px;color:#6E655F;font-size:13.5px;line-height:1.7">접수를 마치면 <strong style="color:#23201E;font-weight:700">경품 럭키드로우에 자동 응모</strong>됩니다.<br>완료 화면을 스태프에게 보여주시면 접수가 확정됩니다.</p>
         </div>
         <div class="actions" style="margin-top:auto;padding:16px 20px;display:flex;gap:10px;align-items:center;background:linear-gradient(to top,#EFEDEA 62%,transparent);flex:none">
           <button style="flex:1 1 auto;padding:17px 20px;font-weight:900;font-size:16px;letter-spacing:-.01em;border:0;border-radius:3px;background:#23201E;color:#F5F3F0" type="button" data-go="1">30초 만에 접수하기 →</button>
@@ -145,10 +162,10 @@ input:focus{ outline:none; border-bottom-color:#23201E !important; }
         </div>
         <div class="body" style="padding-inline:20px">
           <p style="font-family:Archivo,'Noto Sans KR',sans-serif;font-weight:700;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6E655F;margin:0 0 10px">Question 01</p>
-          <h2 style="font-weight:900;font-size:29.64px;line-height:1.18;letter-spacing:-.02em;margin:0;text-wrap:balance;font-size:27px">어느 이벤트에<br>참여하시나요?</h2>
-          <p style="margin:8px 0 0;color:#6E655F;font-size:13.5px;line-height:1.6">요일과 이벤트를 함께 골라주세요. <br><strong style="color:#23201E;font-weight:700">여러 개 고르셔도 됩니다.</strong> 고른 만큼 자리를 잡아둡니다.</p>
+          <h2 style="font-weight:900;font-size:29.64px;line-height:1.18;letter-spacing:-.02em;margin:0;text-wrap:balance;font-size:27px">참가 종목을<br>선택해주세요.</h2>
+          <p style="margin:8px 0 0;color:#6E655F;font-size:13.5px;line-height:1.6"><strong id="d-label" style="color:#23201E;font-weight:700">오늘</strong> 진행하는 종목입니다. <br><strong style="color:#23201E;font-weight:700">여러 개 고르셔도 됩니다.</strong> 고른 만큼 자리를 잡아둡니다.</p>
           <div style="display:flex;flex-direction:column;gap:9px;margin:12px 0 0">
-            <div style="display:flex;flex-direction:column;gap:7px">
+            <div data-day="sat" style="display:flex;flex-direction:column;gap:7px">
               <div style="display:flex;align-items:baseline;gap:9px">
                 <span style="font-size:19px;font-weight:900;letter-spacing:-.02em;line-height:1.2">토요일</span>
                 <span style="font-family:Archivo,sans-serif;font-weight:800;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#6E655F">09.19 Sat</span>
@@ -157,7 +174,7 @@ input:focus{ outline:none; border-bottom-color:#23201E !important; }
               <button style="position:relative;display:block;width:100%;padding:15px 16px;overflow:hidden;background:#FFFFFF;border:1.5px solid #DCD7D1;border-radius:3px;text-align:left;color:inherit" type="button" class="pick" aria-pressed="false" data-ev="9/19(토) 14:00~16:00 다리마티 패밀리 운동회" data-name="다리마티 패밀리 운동회" data-when="9월 19일(토) 14:00 – 16:00" data-arrive="13:50"><span style="display:flex;align-items:baseline;justify-content:space-between;gap:10px"><span style="font-family:Archivo,sans-serif;font-weight:800;font-size:21px;letter-spacing:-.01em;line-height:1.1;color:#23201E;font-variant-numeric:tabular-nums">14:00 – 16:00</span><span style="font-family:Archivo,sans-serif;font-weight:700;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#A2988F;white-space:nowrap">Event 01</span></span><span style="display:block;margin:9px 0 0;font-size:16px;font-weight:900;letter-spacing:-.01em;line-height:1.3">다리마티 패밀리 운동회</span><span style="display:block;margin:4px 0 0;font-size:12px;color:#6E655F;line-height:1.45">아이·가족 동반 참여 가능</span><span class="pickmark" style="opacity:0;transform:translate(6px,-6px);transition:opacity .22s ease,transform .22s ease;position:absolute;top:0;right:0;width:40px;height:40px;background:#23201E;clip-path:polygon(100% 0,0 0,100% 100%)"></span></button>
               <button style="position:relative;display:block;width:100%;padding:15px 16px;overflow:hidden;background:#FFFFFF;border:1.5px solid #DCD7D1;border-radius:3px;text-align:left;color:inherit" type="button" class="pick" aria-pressed="false" data-ev="9/19(토) 16:30~18:30 다리마티 × 현대 피트니스 레이스" data-name="다리마티 × 현대 피트니스 레이스" data-when="9월 19일(토) 16:30 – 18:30" data-arrive="16:20"><span style="display:flex;align-items:baseline;justify-content:space-between;gap:10px"><span style="font-family:Archivo,sans-serif;font-weight:800;font-size:21px;letter-spacing:-.01em;line-height:1.1;color:#23201E;font-variant-numeric:tabular-nums">16:30 – 18:30</span><span style="font-family:Archivo,sans-serif;font-weight:700;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#A2988F;white-space:nowrap">Event 02</span></span><span style="display:block;margin:9px 0 0;font-size:16px;font-weight:900;letter-spacing:-.01em;line-height:1.3">다리마티 × 현대 피트니스 레이스</span><span style="display:block;margin:4px 0 0;font-size:12px;color:#6E655F;line-height:1.45">운동복 착용 권장</span><span class="pickmark" style="opacity:0;transform:translate(6px,-6px);transition:opacity .22s ease,transform .22s ease;position:absolute;top:0;right:0;width:40px;height:40px;background:#23201E;clip-path:polygon(100% 0,0 0,100% 100%)"></span></button>
             </div>
-            <div style="display:flex;flex-direction:column;gap:7px">
+            <div data-day="sun" style="display:flex;flex-direction:column;gap:7px">
               <div style="display:flex;align-items:baseline;gap:9px">
                 <span style="font-size:19px;font-weight:900;letter-spacing:-.02em;line-height:1.2">일요일</span>
                 <span style="font-family:Archivo,sans-serif;font-weight:800;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#6E655F">09.20 Sun</span>
@@ -224,7 +241,7 @@ input:focus{ outline:none; border-bottom-color:#23201E !important; }
         <div class="body" style="padding-inline:20px">
           <p style="font-family:Archivo,'Noto Sans KR',sans-serif;font-weight:700;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6E655F;margin:0 0 10px">03 / 연락처 입력</p>
           <h2 style="font-weight:900;font-size:29.64px;line-height:1.18;letter-spacing:-.02em;margin:0;text-wrap:balance">연락처를 남겨주세요.</h2>
-          <p style="margin:10px 0 0;color:#6E655F;font-size:14px;line-height:1.65">당일 이벤트 안내에 필요한 연락처입니다.</p>
+          <p style="margin:10px 0 0;color:#6E655F;font-size:14px;line-height:1.65">경품 당첨 안내에 쓰이는 연락처입니다.</p>
           <div style="margin:24px 0 0">
             <input id="f-phone" type="tel" inputmode="numeric" autocomplete="tel" maxlength="13" enterkeyhint="next" placeholder="010-0000-0000" style="width:100%;padding:14px 2px;font-family:Archivo,sans-serif;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.02em;color:#23201E;background:transparent;border:0;border-bottom:2px solid #DCD7D1;border-radius:0">
             <p class="help" id="h-phone" style="margin:10px 0 0;font-size:12.5px;color:#A2988F;line-height:1.6;min-height:1.4em">입력하신 연락처는 이벤트 안내 및 참여 확인을 위해서만 사용됩니다.</p>
@@ -267,7 +284,7 @@ input:focus{ outline:none; border-bottom-color:#23201E !important; }
               <button type="button" class="size" data-size="260" aria-pressed="false" style="flex:1 1 28%;min-width:88px;padding:12px 0;border:1.5px solid #DCD7D1;border-radius:3px;background:#FFFFFF;color:#23201E;font-family:Archivo,sans-serif;font-weight:700;font-size:15px;font-variant-numeric:tabular-nums">260</button>
               <button type="button" class="size" data-size="270" aria-pressed="false" style="flex:1 1 28%;min-width:88px;padding:12px 0;border:1.5px solid #DCD7D1;border-radius:3px;background:#FFFFFF;color:#23201E;font-family:Archivo,sans-serif;font-weight:700;font-size:15px;font-variant-numeric:tabular-nums">270</button>
               <button type="button" class="size" data-size="280" aria-pressed="false" style="flex:1 1 28%;min-width:88px;padding:12px 0;border:1.5px solid #DCD7D1;border-radius:3px;background:#FFFFFF;color:#23201E;font-family:Archivo,sans-serif;font-weight:700;font-size:15px;font-variant-numeric:tabular-nums">280</button>
-            </div><p style="margin:14px 0 0;padding:12px 14px;background:#FFFFFF;border:1.5px solid #23201E;border-radius:3px;font-size:13px;line-height:1.6;color:#6E655F"><strong style="display:block;color:#23201E;font-weight:900;font-size:13.5px;margin-bottom:3px">9월 19–20일, 팝업에 들러 직접 신어보세요 👟</strong>고르신 사이즈로 EVENT ZONE에 준비해두겠습니다.</p>
+            </div><p style="margin:14px 0 0;padding:12px 14px;background:#FFFFFF;border:1.5px solid #23201E;border-radius:3px;font-size:13px;line-height:1.6;color:#6E655F"><strong style="display:block;color:#23201E;font-weight:900;font-size:13.5px;margin-bottom:3px">지금 바로 신어보실 수 있습니다 👟</strong>스태프가 고르신 사이즈로 준비해드립니다.</p>
             
           </div>
           <button style="display:flex;align-items:center;gap:12px;width:100%;margin:12px 0 0;padding:14px 16px;text-align:left;color:inherit;background:#FFFFFF;border:1.5px solid #DCD7D1;border-radius:3px" type="button" data-check="confirm" aria-pressed="false">
@@ -299,18 +316,58 @@ input:focus{ outline:none; border-bottom-color:#23201E !important; }
         </div>
         <div class="body" style="padding-inline:20px">
           <p style="font-family:Archivo,'Noto Sans KR',sans-serif;font-weight:700;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6E655F;margin:0 0 10px">05 / 최종 동의</p>
-          <h2 style="font-weight:900;font-size:29.64px;line-height:1.18;letter-spacing:-.02em;margin:0;text-wrap:balance">접수를 완료해주세요.</h2>
-          <div style="margin:20px 0 0;border-top:1px solid #DCD7D1">
-            <dl style="display:grid;grid-template-columns:auto 1fr;gap:0;margin:0">
-              <dt style="padding:13px 18px 13px 0;border-bottom:1px solid #DCD7D1;font-size:12px;font-weight:700;color:#A2988F;white-space:nowrap">받는 정보</dt><dd style="margin:0;padding:13px 0;border-bottom:1px solid #DCD7D1;font-size:13.5px;font-weight:700;line-height:1.55">이름, 휴대폰 번호</dd>
-              <dt style="padding:13px 18px 13px 0;border-bottom:1px solid #DCD7D1;font-size:12px;font-weight:700;color:#A2988F;white-space:nowrap">보관 기한</dt><dd style="margin:0;padding:13px 0;border-bottom:1px solid #DCD7D1;font-size:13.5px;font-weight:700;line-height:1.55">2026년 10월 20일까지</dd>
-              <dt style="padding:13px 18px 13px 0;border-bottom:1px solid #DCD7D1;font-size:12px;font-weight:700;color:#A2988F;white-space:nowrap">촬영 안내</dt><dd style="margin:0;padding:13px 0;border-bottom:1px solid #DCD7D1;font-size:13.5px;font-weight:700;line-height:1.55">행사 중 사진·영상 촬영이 있을 수 있습니다</dd>
-            </dl>
+          <h2 style="font-weight:900;font-size:29.64px;line-height:1.18;letter-spacing:-.02em;margin:0;text-wrap:balance">개인정보 수집·이용<br>동의서</h2>
+          <div style="margin:20px 0 0;background:#FFFFFF;border:1.5px solid #23201E;border-radius:3px;padding:18px 16px">
+            <p style="margin:0;font-size:12.5px;line-height:1.72;color:#6E655F">현대백화점 판교점 하이록스 이벤트 운영을 위하여 아래와 같이 개인정보를 수집·이용합니다.<br>내용을 확인하신 후 동의하여 주시기 바랍니다.</p>
+
+            <div style="margin:15px 0 0;border-top:1px solid #DCD7D1;padding-top:13px">
+              <h3 style="margin:0;font-size:13px;font-weight:900;letter-spacing:-.01em;color:#23201E;line-height:1.5"><span style="font-family:Archivo,sans-serif;font-weight:800;color:#A8865A;margin-right:7px;font-variant-numeric:tabular-nums">01</span>개인정보 수집·이용 목적</h3>
+              <ul style="margin:6px 0 0;padding:0;list-style:none;font-size:12.5px;line-height:1.72;color:#6E655F">
+                <li>– 하이록스 이벤트 참가 접수</li>
+                <li>– 경품 대상자 선정 및 경품 수령 안내</li>
+              </ul>
+            </div>
+
+            <div style="margin:15px 0 0;border-top:1px solid #DCD7D1;padding-top:13px">
+              <h3 style="margin:0;font-size:13px;font-weight:900;letter-spacing:-.01em;color:#23201E;line-height:1.5"><span style="font-family:Archivo,sans-serif;font-weight:800;color:#A8865A;margin-right:7px;font-variant-numeric:tabular-nums">02</span>수집하는 개인정보 항목</h3>
+              <ul style="margin:6px 0 0;padding:0;list-style:none;font-size:12.5px;line-height:1.72;color:#6E655F">
+                <li>– 성함(닉네임) 및 휴대전화번호</li>
+              </ul>
+            </div>
+
+            <div style="margin:15px 0 0;border-top:1px solid #DCD7D1;padding-top:13px">
+              <h3 style="margin:0;font-size:13px;font-weight:900;letter-spacing:-.01em;color:#23201E;line-height:1.5"><span style="font-family:Archivo,sans-serif;font-weight:800;color:#A8865A;margin-right:7px;font-variant-numeric:tabular-nums">03</span>개인정보 보유 및 이용 기간</h3>
+              <ul style="margin:6px 0 0;padding:0;list-style:none;font-size:12.5px;line-height:1.72;color:#6E655F">
+                <li>– 이벤트 참가 신청일로부터 <strong style="color:#23201E;font-weight:700">2026년 9월 27일</strong>까지</li>
+                <li>– 경품 대상자 안내 등 이벤트 관련 업무 완료 후 <strong style="color:#23201E;font-weight:700">2026년 9월 27일</strong> 이후 지체 없이 파기합니다.</li>
+              </ul>
+            </div>
+
+            <div style="margin:15px 0 0;border-top:1px solid #DCD7D1;padding-top:13px">
+              <h3 style="margin:0;font-size:13px;font-weight:900;letter-spacing:-.01em;color:#23201E;line-height:1.5"><span style="font-family:Archivo,sans-serif;font-weight:800;color:#A8865A;margin-right:7px;font-variant-numeric:tabular-nums">04</span>개인정보 처리 위탁</h3>
+              <p style="margin:6px 0 0;font-size:12.5px;line-height:1.72;color:#6E655F">원활한 이벤트 운영을 위하여 다음과 같이 개인정보 처리 업무를 위탁합니다.</p>
+              <ul style="margin:6px 0 0;padding:0;list-style:none;font-size:12.5px;line-height:1.72;color:#6E655F">
+                <li>– 수탁자: ㈜큐앤뱅</li>
+                <li>– 위탁업무: 하이록스 이벤트 참가 접수 및 개인정보 수집 업무</li>
+              </ul>
+              <p style="margin:6px 0 0;font-size:12.5px;line-height:1.72;color:#6E655F">㈜큐앤뱅은 위탁받은 업무의 범위 내에서만 개인정보를 처리하며, 이벤트 운영 목적 외의 용도로 이용하거나 제3자에게 제공하지 않습니다.</p>
+            </div>
+
+            <div style="margin:15px 0 0;border-top:1px solid #DCD7D1;padding-top:13px">
+              <h3 style="margin:0;font-size:13px;font-weight:900;letter-spacing:-.01em;color:#23201E;line-height:1.5"><span style="font-family:Archivo,sans-serif;font-weight:800;color:#A8865A;margin-right:7px;font-variant-numeric:tabular-nums">05</span>동의 거부 권리 및 동의 거부에 따른 불이익</h3>
+              <p style="margin:6px 0 0;font-size:12.5px;line-height:1.72;color:#6E655F">귀하는 개인정보 수집·이용에 대한 동의를 거부할 권리가 있습니다.</p>
+              <p style="margin:6px 0 0;font-size:12.5px;line-height:1.72;color:#6E655F">다만, 휴대전화번호는 경품 대상자 안내를 위해 필요한 정보이므로 개인정보 수집·이용에 동의하지 않을 경우 경품 대상자 안내를 위한 연락이 제한될 수 있습니다.</p>
+            </div>
           </div>
           <button style="display:flex;align-items:center;gap:12px;width:100%;margin:18px 0 0;padding:16px;text-align:left;color:inherit;background:#FFFFFF;border:1.5px solid #23201E;border-radius:3px" type="button" data-check="privacy" aria-pressed="false">
             <span class="cbox" style="flex:none;width:22px;height:22px;border:2px solid #A2988F;border-radius:2px;background:transparent;display:flex;align-items:center;justify-content:center;color:#F5F3F0;font-size:13px;font-weight:900;line-height:1"><span class="ck">✓</span></span>
-            <span style="font-size:14px;font-weight:700;line-height:1.45">위 내용에 동의합니다. <span style="color:#A8865A">(필수)</span></span>
+            <span style="font-size:14px;font-weight:700;line-height:1.45">개인정보 수집·이용에 동의합니다. <span style="color:#A8865A">(필수)</span></span>
           </button>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:10px 0 0;padding:13px 16px;background:#F5F3F0;border-radius:3px">
+            <span style="font-size:12px;font-weight:700;color:#A2988F">성함</span>
+            <span style="font-size:15px;font-weight:900;letter-spacing:-.01em" id="t-sign">—</span>
+          </div>
+          <p style="margin:10px 0 0;font-size:12px;line-height:1.65;color:#A2988F">※ 행사 중 사진·영상 촬영이 있을 수 있습니다.</p>
           
         </div>
         <div class="actions" style="margin-top:auto;padding:16px 20px;display:flex;gap:10px;align-items:center;background:linear-gradient(to top,#EFEDEA 62%,transparent);flex:none">
@@ -330,8 +387,8 @@ input:focus{ outline:none; border-bottom-color:#23201E !important; }
         </div>
         <div class="body" style="padding:26px 20px 0">
           <p style="font-family:Archivo,'Noto Sans KR',sans-serif;font-weight:700;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6E655F;margin:0 0 10px">Registered</p>
-          <h2 style="font-weight:900;font-size:29.64px;line-height:1.18;letter-spacing:-.02em;margin:0;text-wrap:balance">예약이 완료되었습니다.</h2>
-          <p style="margin:10px 0 0;color:#6E655F;font-size:14px;line-height:1.65">이 화면을 캡쳐 후 현장 스태프에게 보여주세요.</p>
+          <h2 style="font-weight:900;font-size:29.64px;line-height:1.18;letter-spacing:-.02em;margin:0;text-wrap:balance">접수가 완료되었습니다.</h2>
+          <p style="margin:10px 0 0;color:#6E655F;font-size:14px;line-height:1.65">이 화면을 현장 스태프에게 보여주세요.</p>
           <div style="margin:22px 0 0;background:#FFFFFF;border:1.5px solid #23201E;border-radius:3px;overflow:hidden">
             <div style="padding:18px;display:flex;flex-direction:column;gap:14px">
               <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
@@ -339,7 +396,7 @@ input:focus{ outline:none; border-bottom-color:#23201E !important; }
                 <span style="font-family:Archivo,sans-serif;font-weight:700;font-size:15px;letter-spacing:.08em;font-variant-numeric:tabular-nums" id="t-no">A-0000</span>
               </div>
               <div style="display:grid;grid-template-columns:auto 1fr;gap:8px 16px;font-size:14px">
-                <span style="color:#A2988F;font-weight:500">이벤트</span><span style="font-weight:700" id="t-ev">—</span>
+                <span style="color:#A2988F;font-weight:500">참가 종목</span><span style="font-weight:700" id="t-ev">—</span>
                 <span style="color:#A2988F;font-weight:500">일시</span><span style="font-weight:700" id="t-when">—</span>
                 <span style="color:#A2988F;font-weight:500">장소</span><span style="font-weight:700">U-PLEX 4층 EVENT ZONE</span>
               </div>
@@ -349,7 +406,7 @@ input:focus{ outline:none; border-bottom-color:#23201E !important; }
               <p style="margin:0;font-size:12.5px;line-height:1.55;color:#6E655F"><strong style="color:#23201E;font-weight:900;display:block;font-size:13.5px">럭키드로우 응모도 끝났습니다.</strong>추첨 9월 22일(월) · 당첨자에게만 문자</p>
             </div>
           </div>
-          <p style="margin:22px 0 0;font-size:13px;line-height:1.7;color:#6E655F">당일 <strong id="t-arrive" style="color: rgb(35, 32, 30);">시작 10분 전</strong>까지 EVENT ZONE으로 와주세요.<br>늦으면 현장 참여 고객에게 순번이 넘어갈 수 있습니다.</p>
+          <p style="margin:22px 0 0;font-size:13px;line-height:1.7;color:#6E655F"><strong id="t-arrive" style="color: rgb(35, 32, 30);">시작 10분 전</strong>까지 EVENT ZONE 앞으로 모여주세요.<br>순서가 되면 접수번호로 불러드립니다.</p>
         </div>
         <div class="actions" style="margin-top:auto;padding:16px 20px;display:flex;flex-direction:column;gap:8px;background:linear-gradient(to top,#EFEDEA 62%,transparent);flex:none">
           <button style="width:100%;padding:17px 20px;font-weight:900;font-size:16px;letter-spacing:-.01em;border:0;border-radius:3px;background:#FEE500;color:#3C1E1E" type="button" id="share">친구에게 알려주기</button>
@@ -397,6 +454,30 @@ const $  = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const screens = $$(".screen");
 
+/* ── 오늘 회차만 보여준다 (현장 접수) ──────────────────
+   한국 시각 기준. 9/19 면 토요일 두 종목, 9/20 이면 일요일 두 종목만 남긴다.
+   현장에서 딴 날을 잘못 누르는 사고를 아예 없앤다.
+   ⚠️ 행사일이 아닌 날(리허설·미리보기)에는 전부 보여준다 —
+      고를 게 하나도 없는 빈 화면이 제일 위험하다. */
+const KSTNOW = new Date(Date.now() + new Date().getTimezoneOffset() * 60000 + 9 * 3600000);
+const MMDD   = String(KSTNOW.getMonth() + 1).padStart(2,"0") + "-" + String(KSTNOW.getDate()).padStart(2,"0");
+/* 확인용 문 — 주소 뒤에 ?day=sat / ?day=sun 을 붙이면 그 날인 척한다.
+   행사 전날 "내일 화면이 어떻게 보이나"를 폰으로 그대로 볼 수 있다. */
+const FORCEDAY = new URLSearchParams(location.search).get("day");
+const TODAY  = (FORCEDAY === "sat" || FORCEDAY === "sun")
+             ? FORCEDAY
+             : ({ "09-19":"sat", "09-20":"sun" }[MMDD] || null);
+(function 오늘것만(){
+  const label = $("#d-label"), range = $("#d-range");
+  if (!TODAY){
+    if (label) label.textContent = "9/19(토)·9/20(일)에";
+    return;
+  }
+  $$("[data-day]").forEach(g => { if (g.dataset.day !== TODAY) g.remove(); });
+  if (label) label.textContent = TODAY === "sat" ? "오늘 9월 19일(토)에" : "오늘 9월 20일(일)에";
+  if (range) range.textContent = TODAY === "sat" ? "2026.09.19 SAT" : "2026.09.20 SUN";
+})();
+
 if (PREVIEW) $("#demo").hidden = false;
 
 /* ── 화면 이동 ─────────────────────────────────────────── */
@@ -404,6 +485,8 @@ function show(n){
   at = n;
   screens.forEach(s => s.classList.toggle("live", +s.dataset.screen === n));
   window.scrollTo({ top:0, behavior:"instant" });
+  const sign = $("#t-sign");
+  if (sign && n === 5) sign.textContent = state.name.trim() || "—";
   const first = $(".screen.live input");
   if (first) setTimeout(() => first.focus({ preventScroll:true }), 380);
   gate();
@@ -503,9 +586,20 @@ $$("input").forEach(i => i.addEventListener("keydown", e => {
 }));
 
 /* ── 버튼 배선 ─────────────────────────────────────────── */
+/* 표준 이벤트(Lead 등)는 track, 나머지는 trackCustom — dm-track(쇼피파이)과 같은 규칙.
+   깃허브 페이지판에는 dm-track 이 없으니 여기서 직접 맞춘다.
+   🪤 이게 어긋나면 이름은 같은데 메타에서 다른 칸에 쌓여 모수가 둘로 쪼개진다. */
+const OURS_STD = ["Lead","Contact","Subscribe"];
 function track(name, data){
-  if (typeof dmTrack === "function") dmTrack(name, data);
-  else if (typeof fbq === "function") fbq("trackCustom", name, data);
+  if (typeof dmTrack === "function"){ dmTrack(name, data); return; }   // 쇼피파이: 꼬리표는 dm-track 이 붙인다
+  if (typeof fbq !== "function") return;
+  const q = new URLSearchParams(location.search);
+  const p = Object.assign({
+    page: "hyundai-popup-survey",
+    src : q.get("utm_source")   || q.get("nt_source") || "qr",
+    cmp : q.get("utm_campaign") || q.get("nt_detail") || "hyundai-pangyo"
+  }, data || {});
+  fbq(OURS_STD.indexOf(name) > -1 ? "track" : "trackCustom", name, p);
 }
 
 $$("[data-go]").forEach(b  => b.addEventListener("click", () => {
@@ -564,7 +658,8 @@ function submit(){
       phone:   state.phone,
       size:    state.size || "",
       confirm: state.confirm ? "Y" : "",
-      privacy: state.privacy ? "Y" : ""
+      privacy: state.privacy ? "Y" : "",
+      intake:  "현장"                 // 사전 접수분과 한 시트에 섞여도 구분된다 (I열)
     });
     // no-cors 는 결과를 읽을 수 없으므로 성공·실패 양쪽 다 다음으로 넘어간다
     fetch(SHEET_URL, { method:"POST", mode:"no-cors", body }).then(sendNext).catch(sendNext);
