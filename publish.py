@@ -287,7 +287,6 @@ a span{display:block;font-weight:400;font-size:12.5px;color:#98a0ad;margin-top:4
 </style></head><body><div class="w">
 <h1>다리마티 대시보드</h1><p>폰에서 보는 읽기 전용 스냅샷</p>
 <a href="ads/">📊 메타 광고 대시보드<span>광고비·노출·클릭·CPC · PIN 필요</span></a>
-<a href="growth/">📈 네이버 Growth 대시보드<span>매출·유입·검색어·퍼널 · PIN 필요</span></a>
 <a href="br001/">🧭 BR-001 브릿지 성과<span>광고→랜딩 도달률·배치별 낭비·지점 QR 스캔 · PIN 필요</span></a>
 <a href="talent/">👥 인물 관리<span>선수·크리에이터·파트너·코치 · 대시보드에서 직접 수정 · PIN 필요</span></a>
 <a href="f45/">🗺️ F45 지점 관리<span>공략 지도·협의현황·지점별 판매링크/QR·할인코드·신청접수 · PIN 필요</span></a>
@@ -311,7 +310,7 @@ def main():
     pw = pin()
     print("빌드 중…")
     a = build_ads(pw);      print("  ads    :", a)
-    g = build_growth(pw);   print("  growth :", g)
+    # growth 는 2026-09-30 사장님 지시로 폐지 (7/22 이후 갱신 없음) — build_growth 는 되살릴 때를 위해 남겨 둠
     b = build_br001(pw);    print("  br001  :", b)
     build_utm();            print("  utm    : ok")
     print("  qr     :", build_qr())
