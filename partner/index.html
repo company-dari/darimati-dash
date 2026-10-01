@@ -171,7 +171,8 @@ function renderPartner(p,orders,settlements){
   var prodName=p['\uc0c1\ud488\uba85']||'';
   var isGroupBuy=prodName.indexOf('\uacf5\ub3d9\uad6c\ub9e4')>=0;
   var commRate=parseInt(p['수수료율'])||10;
-  var commission=Math.round(revenue*commRate/100);
+  var commission=(p['수수료']!=null)?pm(p['수수료']):Math.round(revenue*commRate/100);  // 구간별 수수료는 서버에서 켤레 순번별로 계산해 준다
+  var tiers=p['구간']||null;
   var settled=0;
   settlements.forEach(function(s){settled+=pm(s['\uc815\uc0b0\uae08\uc561'])});
   var remaining=Math.max(0,commission-settled);
@@ -209,7 +210,7 @@ function renderPartner(p,orders,settlements){
   h+='<section class="kpi-section"><div class="container"><div class="kpi-grid">';
   h+='<div class="kpi-card"><div class="kpi-label">\ud310\ub9e4 \uac74\uc218</div><div class="kpi-value">'+(sales>0?sales+'\uac74':'0\uac74')+'</div><div class="kpi-sub neutral">\ub204\uc801 \uc804\uccb4</div></div>';
   h+='<div class="kpi-card"><div class="kpi-label">\ub9e4\ucd9c</div><div class="kpi-value">'+(revenue>0?fm(revenue):'0\uc6d0')+'</div><div class="kpi-sub neutral">\ub204\uc801</div></div>';
-  h+='<div class="kpi-card highlight"><div class="kpi-label">\uc218\uc775 ('+commRate+'%)</div><div class="kpi-value" style="color:var(--accent)">'+(commission>0?fm(commission):'0\uc6d0')+'</div><div class="kpi-sub" style="color:var(--muted-light)">\uc608\uc0c1 \uc815\uc0b0\uc561</div></div>';
+  h+='<div class="kpi-card highlight"><div class="kpi-label">\uc218\uc775 ('+(tiers?'구간별 · 지금 '+commRate+'%':commRate+'%')+')</div><div class="kpi-value" style="color:var(--accent)">'+(commission>0?fm(commission):'0\uc6d0')+'</div><div class="kpi-sub" style="color:var(--muted-light)">\uc608\uc0c1 \uc815\uc0b0\uc561</div></div>';
   if(!isGroupBuy){
   h+='<div class="kpi-card"><div class="kpi-label">\uc815\uc0b0 \uc0c1\ud0dc</div><div class="kpi-value">'+(remaining>=threshold?'<span style="color:var(--green)">\ub2ec\uc131</span>':'<span style="color:var(--yellow)">'+pct+'%</span>')+'</div><div class="kpi-sub neutral">'+(remaining>=threshold?'\uc775\uc6d4 15\uc77c \uc9c0\uae09':fm(threshold-remaining)+' \ub0a8\uc74c')+'</div></div>';
   }
@@ -278,6 +279,19 @@ function renderPartner(p,orders,settlements){
       h+='<tr><td>'+(s['\uc815\uc0b0\uc77c']||'-')+'</td><td>'+(s['\uc815\uc0b0\uae08\uc561']||'-')+'</td><td>'+(s['\uba54\ubaa8']||'-')+'</td></tr>';
     });
     h+='</tbody></table>';
+  }
+
+  // 구간별 수수료 안내 (rates.json 에 구간이 있는 파트너만)
+  if(tiers){
+    var sold=pm(p['켤레']);
+    h+='<div class="chart-box" style="margin-top:24px"><div class="chart-label">수수료 구간 · 지금까지 '+sold+'켤레</div>';
+    tiers.forEach(function(t,i){
+      var from=Math.max(1,t[0]),next=tiers[i+1],to=next?next[0]-1:null;
+      var on=sold+1>=from&&(to===null||sold+1<=to);
+      h+='<div class="settle-row"><span class="sk">'+from+(to?'~'+to+'켤레째':'켤레째부터')+'</span><span class="sv"'+(on?' style="color:var(--accent)"':'')+'>'+t[1]+'%'+(on?' ← 지금':'')+'</span></div>';
+    });
+    var nx=tiers.filter(function(t){return t[0]>sold+1})[0];
+    h+='<div style="font-size:12px;color:var(--muted);margin-top:10px">'+(nx?(nx[0]-1-sold)+'켤레 더 팔면 '+nx[0]+'켤레째부터 '+nx[1]+'% 적용':'최고 구간 달성')+' · 올라간 율은 그 켤레부터 적용</div></div>';
   }
 
   // Info grid
@@ -350,9 +364,10 @@ async function load(){
       '판매건수':String(d.합계.판매건수),
       '매출':String(d.합계.매출),
       '수수료율':String(d.수수료율||10),
-      '상품명':'BR-001 하이브리드 러닝화',
-      '오픈일자':'2026.05.21',
-      '금액 (대표가 기준)':'129000',
+      '상품명':d.상품명||'BR-001 하이브리드 러닝화',
+      '오픈일자':d.오픈일||'2026.05.21',
+      '금액 (대표가 기준)':String(d.대표가||129000),
+      '수수료':d.합계.수수료,'구간':d.구간||null,'켤레':String(d.켤레||0),
       '판매링크 URL':d.판매링크||'',
       '네이버':d.네이버,'쇼피파이':d.쇼피파이,
       '기준시각':d.기준시각||'',
@@ -361,7 +376,7 @@ async function load(){
 
     var orders=(d['주문']||[]).map(function(o){
       return {'주문일':o.주문일,'주문사이트':'다리마티 공식몰','상품명':o.상품||'-',
-              '수량':'1','금액':(o.상태==='환불'?'환불':Number(o.금액).toLocaleString('ko-KR')+'원'),
+              '수량':String(o.수량||1),'금액':(o.상태==='환불'?'환불':Number(o.금액).toLocaleString('ko-KR')+'원'),
               '주문번호':o.주문번호||'-'};
     });
 
