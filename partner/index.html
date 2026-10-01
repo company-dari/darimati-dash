@@ -384,6 +384,15 @@ async function load(){
     });
 
     app.innerHTML=renderPartner(p,orders,[]);
+
+    // 파트너별 안내문(계약 만료 등) — rates.json 「화면.안내」에 문구 한 줄만 넣으면 맨 위에 뜬다 (2026-10-01)
+    if(d.안내){
+      var n=document.createElement('div');
+      n.style.cssText='background:#eef0ff;color:#312e81;border-bottom:1px solid #c7d2fe;padding:16px 24px;font-size:14px;line-height:1.7;word-break:keep-all';
+      n.innerHTML='<div style="max-width:1040px;margin:0 auto"><b style="display:block;margin-bottom:4px">📌 안내</b></div>';
+      var t=document.createElement('span'); t.textContent=d.안내; n.firstChild.appendChild(t);
+      var nav=app.querySelector('.nav'); nav&&nav.nextSibling?app.insertBefore(n,nav.nextSibling):app.insertBefore(n,app.firstChild);
+    }
     document.title='DARIMATI - '+p['파트너명']+' Dashboard';
 
     // 숫자가 멀쩡해 보이는데 실은 옛날 것 — 가장 위험한 고장이라 화면이 먼저 알린다
