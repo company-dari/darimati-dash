@@ -208,6 +208,32 @@ else:
                 f'{s.get("count", 0)}건 {s.get("revenue", 0):,}원')
 
 
+# ── ⑤-2 파트너 정산 화면 (darimati-dash/partner) ────────────────────
+#    2026-10-01 점검: 9/19~9/28 열흘 연속 수집 실패했는데 알림은 「맥 바탕화면 경고 파일」뿐이었다.
+#    맥이 꺼져 있거나 아무도 바탕화면을 안 보면 파트너가 먼저 안다. 여기서 매일 본다.
+#    맥 launchd 가 매일 09:30 에 갱신 → 이 감시(09:30)가 보면 정상일 때 약 24시간 전 값.
+say('')
+say('## ⑤-2 파트너 정산 화면')
+import glob
+stamps = []
+for f in glob.glob(os.path.join(os.path.dirname(__file__), '..', '..', 'partner', 'data', '*.json')):
+    try:
+        stamps.append(json.load(open(f, encoding='utf-8')).get('기준시각', ''))
+    except Exception:
+        pass
+latest = max([x for x in stamps if x] or [''])
+if not latest:
+    problems.append('파트너 정산 화면에 기준 시각이 없음')
+    say('- 🔴 **기준 시각 없음**')
+else:
+    hours = (datetime.now(KST) - datetime.strptime(latest, '%Y-%m-%d %H:%M').replace(tzinfo=KST)).total_seconds() / 3600
+    if hours > 30:
+        problems.append(f'파트너 정산 화면이 {hours:.0f}시간째 멈춤 (기준 {latest}) — 맥 launchd '
+                        f'us.darimati.partner-settle · ~/darimati-settlement/settle.log 확인 (쇼피파이 CLI 로그인 만료가 흔함)')
+        say(f'- 🔴 `{latest}` — **{hours:.0f}시간 묵음** · 파트너 {len(stamps)}명 화면')
+    else:
+        say(f'- ✅ `{latest}` ({hours:.1f}시간 전) · 파트너 {len(stamps)}명 화면')
+
 # ── ⑥ 네이버 상품 재고 ───────────────────────────────────────────────
 #    광고·QR이 보내는 목적지가 품절이면 그 순간부터 광고비가 그대로 샌다.
 #    2026-08-18: 광고가 몰리는 원본 상품이 슈팅배송 재고 13개인 걸 우연히 발견했다.

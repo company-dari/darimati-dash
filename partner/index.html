@@ -353,7 +353,7 @@ async function load(){
       ms[key]=0;order.push(key);
     }
     (d['주문']||[]).forEach(function(o){
-      if(o.상태==='환불')return;
+      if(['환불','취소','미결제','테스트'].indexOf(o.상태)>-1)return;  // 수수료 안 붙는 주문
       var key=(o.주문일||'').slice(0,7);
       if(key in ms)ms[key]+=Number(o.금액)||0;
     });
@@ -376,7 +376,7 @@ async function load(){
 
     var orders=(d['주문']||[]).map(function(o){
       return {'주문일':o.주문일,'주문사이트':'다리마티 공식몰','상품명':o.상품||'-',
-              '수량':String(o.수량||1),'금액':(o.상태==='환불'?'환불':Number(o.금액).toLocaleString('ko-KR')+'원'),
+              '수량':String(o.수량||1),'금액':(['환불','취소','미결제','테스트'].indexOf(o.상태)>-1?o.상태:Number(o.금액).toLocaleString('ko-KR')+'원'+(o.상태==='부분환불'?' (부분환불 후)':'')),
               '주문번호':o.주문번호||'-'};
     });
 
