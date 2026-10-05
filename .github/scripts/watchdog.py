@@ -227,7 +227,8 @@ if not latest:
     say('- 🔴 **기준 시각 없음**')
 else:
     hours = (datetime.now(KST) - datetime.strptime(latest, '%Y-%m-%d %H:%M').replace(tzinfo=KST)).total_seconds() / 3600
-    if hours > 30:
+    # 깃허브 예약 실행은 몇 시간씩 늦게 돈다(10/4 은 15시) → 30시간이면 정상인데도 경계에 걸린다. 하루 실패 = 약 48시간이므로 40
+    if hours > 40:
         problems.append(f'파트너 정산 화면이 {hours:.0f}시간째 멈춤 (기준 {latest}) — 맥 launchd '
                         f'us.darimati.partner-settle · ~/darimati-settlement/settle.log 확인 (쇼피파이 CLI 로그인 만료가 흔함)')
         say(f'- 🔴 `{latest}` — **{hours:.0f}시간 묵음** · 파트너 {len(stamps)}명 화면')
