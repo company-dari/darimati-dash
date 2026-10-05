@@ -54,6 +54,21 @@ jobs:
           set -o pipefail
           python3 .github/scripts/watchdog.py | tee /tmp/report.md
 
+      - name: 파트너 정산이 멈췄으면 슬랙으로 알리기
+        # 맥이 꺼져 있으면 맥은 실패를 알릴 수조차 없다 → 클라우드가 대신 알린다 (2026-10-05)
+        # 다른 점검 항목(429 등)은 매일 울려 소음이 되므로 「파트너 정산」 줄만 보낸다
+        if: always()
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        run: |
+          [ -z "$SLACK_WEBHOOK" ] && { echo "SLACK_WEBHOOK 없음 — 건너뜀"; exit 0; }
+          LINE=$(grep -A2 "⑤-2 파트너 정산 화면" /tmp/report.md | grep "🔴" || true)
+          [ -z "$LINE" ] && { echo "파트너 정산 정상 — 알림 없음"; exit 0; }
+          TEXT="🔴 *파트너 정산 화면이 멈춤* (클라우드 감시)
+          ${LINE}
+          → 맥이 꺼져 있거나 쇼피파이 로그인이 풀렸을 수 있습니다. 맥을 켜고 터미널 클로드에게 「정산 다시 돌려줘」"
+          python3 -c 'import json,sys,urllib.request;urllib.request.urlopen(urllib.request.Request(sys.argv[1],data=json.dumps({"text":sys.argv[2]}).encode(),headers={"Content-Type":"application/json"}))' "$SLACK_WEBHOOK" "$TEXT"
+
       - name: 문제가 있으면 이슈로 알리기
         if: failure()
         uses: actions/github-script@v7
