@@ -153,6 +153,8 @@
      쇼피파이는 **온라인 판매분만** 안다. 현백 현장 신청처럼 쇼피파이를 안 거치고
      나가는 물량은 아래 「수기 차감」에 적으면 여기서 빠진다.
      그래서 이 화면의 「남음」이 진짜 재고다. */
+  // 생산(입고) 수량 — 발주서 BR-001_BK, 9/14 입고 175족. 추가 생산되면 여기 숫자만 고친다
+  var CB_MADE={230:10,240:20,250:20,260:40,270:40,280:30,290:10,300:5};
   function renderCb(d){
     document.getElementById('ts').textContent='업데이트 '+d.ts;
     var h='<h2>👟 '+(d.product||'BR-001 Core Black')+' <span class="cnt">'+d.tot+'</span></h2>';
@@ -160,6 +162,7 @@
     h+='<div class="scroll"><table class="gtable"><thead><tr><th></th>';
     d.rows.forEach(function(r){h+='<th>'+r.size+'</th>';});
     h+='</tr></thead><tbody>';
+    h+='<tr><th>생산수량</th>';d.rows.forEach(function(r){h+='<td><div class="cell">'+(CB_MADE[r.size]||0)+'</div></td>';});h+='</tr>';
     h+='<tr><th>쇼피파이</th>';
     d.rows.forEach(function(r){h+='<td><div class="cell">'+r.shop+'</div></td>';});
     h+='</tr><tr><th>수기 차감</th>';
