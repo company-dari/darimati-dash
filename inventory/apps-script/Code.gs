@@ -488,3 +488,83 @@ function getHyundai() {
   return { rows: rows, groups: groups, sizes: sizes, bySize: bySize,
            byColor: byColor, tot: tot, cnt: rows.length, ts: stamp_() };
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   VT-001 블랙 — 생산 − 수기 차감 (2026-10-12 신설)
+
+   무엇인가
+     발주서의 **BR-002_BK = VT-001 블랙** (210족). 쇼피파이에서는 아직 안 판다
+     (킥스타터 알림만 받는 중). 그래서 BR-001 블랙과 달리 원본은 **생산수량**이고,
+     나간 물량(증정·선주문 챙김 등)은 전부 「VT수기차감」 탭에 적는다.
+     → 남음 = 생산 − 수기 차감.
+
+   🪤 쇼피파이에서 팔기 시작하면 이 계산은 틀린다(주문이 여기 안 잡힌다).
+      그때는 BR-001 블랙처럼 「쇼피파이 숫자 − 반영 안 된 수기 차감」으로 바꾼다.
+   ═══════════════════════════════════════════════════════════════════════ */
+var VT_LOG_TAB = 'VT수기차감';
+var VT_LOG_HEAD = ['날짜', '사이즈', '수량', '메모', '적은사람'];
+// 발주서 BR-002_BK(= VT-001 블랙) 사이즈별 생산수량. 추가 생산되면 여기 숫자만 고친다
+var VT_MADE = { 230: 15, 240: 25, 250: 30, 260: 40, 270: 50, 280: 30, 290: 15, 300: 5 };
+
+function vtLogSheet_() {
+  var ss = SpreadsheetApp.openById(INV_ID);
+  var sh = ss.getSheetByName(VT_LOG_TAB);
+  if (!sh) {
+    sh = ss.insertSheet(VT_LOG_TAB);
+    sh.getRange(1, 1, 1, VT_LOG_HEAD.length).setValues([VT_LOG_HEAD]).setFontWeight('bold');
+    sh.setFrozenRows(1);
+    sh.setColumnWidth(4, 320);
+  }
+  return sh;
+}
+
+function getVtBlack() {
+  var v = vtLogSheet_().getDataRange().getValues();
+  var log = [], cut = {};
+  for (var i = 1; i < v.length; i++) {
+    var sz = Number(v[i][1]) || 0, q = Number(v[i][2]) || 0;
+    if (!sz || !q) continue;
+    cut[sz] = (cut[sz] || 0) + q;
+    log.push({ row: i + 1, date: fmtDate_(v[i][0]), size: sz, qty: q,
+               memo: String(v[i][3] || ''), by: String(v[i][4] || '') });
+  }
+  log.reverse();                        // 최근 것이 위로
+  var rows = [], made = 0, tot = 0;
+  Object.keys(VT_MADE).map(Number).sort(function (a, b) { return a - b; }).forEach(function (s) {
+    var c = cut[s] || 0, left = VT_MADE[s] - c;
+    made += VT_MADE[s]; tot += left;
+    rows.push({ size: s, made: VT_MADE[s], cut: c, left: left });
+  });
+  return { product: 'VT-001 Core Black', rows: rows, made: made, cutTot: made - tot, tot: tot, log: log, ts: stamp_() };
+}
+
+function addVtManual(size, qty, memo) {
+  var sz = Number(size) || 0, q = Number(qty) || 0;
+  if (!VT_MADE[sz]) throw new Error('사이즈를 골라주세요');
+  if (q <= 0) throw new Error('수량은 1 이상이어야 해요');
+  var who = '';
+  try { who = Session.getActiveUser().getEmail() || ''; } catch (e) {}
+  return withLock_(function () {
+    var sh = vtLogSheet_();
+    var r = firstEmptyRow_(sh);
+    sh.getRange(r, 1, 1, 5).setValues([[today_(), sz, q, String(memo || ''), who]]);
+    sh.getRange(r, 1).setNumberFormat('yyyy-mm-dd');
+    SpreadsheetApp.flush();
+    return getVtBlack();
+  });
+}
+
+// 잘못 넣은 줄 지우기. 줄 번호만 믿으면 남이 먼저 지웠을 때 엉뚱한 줄이 날아간다.
+function delVtManual(rowIdx, size, qty) {
+  return withLock_(function () {
+    var sh = vtLogSheet_();
+    var v = sh.getRange(rowIdx, 2, 1, 2).getValues()[0];
+    if (Number(v[0]) !== Number(size) || Number(v[1]) !== Number(qty)) {
+      throw new Error('그 사이 목록이 바뀌었어요. 새로고침 후 다시 눌러주세요.');
+    }
+    sh.deleteRow(rowIdx);
+    SpreadsheetApp.flush();
+    return getVtBlack();
+  });
+}
