@@ -87,7 +87,8 @@ else:
 #    다른 에이전트가 페이지를 다시 만들면 픽셀 블록이 통째로 날아간다.
 say('')
 say('## ② 픽셀 생존')
-bridge = get('https://www.darimati.us/pages/br001-preview')
+# 10/15 br001-preview 는 비공개+301(→best-seller). 같은 템플릿을 쓰는 지점 랜딩으로 검사
+bridge = get('https://www.darimati.us/pages/br001-f45-yeonsinnae')
 if bridge is None:
     problems.append('브릿지 랜딩 접속 실패')
     say('- 🔴 브릿지 랜딩: **접속 실패**')
