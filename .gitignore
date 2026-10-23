@@ -1,3 +1,4 @@
 pin.txt
 qr/api.txt
 .DS_Store
+__pycache__/
