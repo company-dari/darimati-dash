@@ -276,6 +276,21 @@ def build_traffic(password):
           gate_page("유입·판매 지도", "🧭", with_share(html, True), stamp, password))
     return stamp
 
+def build_vt001ks(password):
+    """VT-001 킥스타터 손익 — 젤롭+킥스타터. 매출이 들어 있어 소스는 repo 밖(~/vt001-ks-dash). 매일 10·16시 갱신."""
+    src = os.path.join(HOME, "vt001-ks-dash")
+    data_path = os.path.join(src, "data.js")
+    if not os.path.exists(data_path):
+        print("  ! vt001ks: data.js 없음 — 건너뜀 (python3 ~/vt001-ks-dash/build.py 먼저)")
+        return None
+    html = read(os.path.join(src, "dash.html")).replace(
+        '<script src="data.js"></script>', "<script>\n%s\n</script>" % read(data_path))
+    m = re.search(r'"built_at":\s*"([^"]+)"', read(data_path))
+    stamp = m.group(1).replace("T", " ")[:16] if m else "-"
+    write(os.path.join(HERE, "vt001-ks", "index.html"),
+          gate_page("VT-001 킥스타터 손익", "👟", with_share(html, True), stamp, password))
+    return stamp
+
 def build_utm():
     """UTM 생성기 — 데이터가 없는 순수 도구라 잠그지 않는다."""
     src = os.path.join(HOME, "fb-ads-dashboard", "utm-builder.html")
@@ -303,6 +318,7 @@ a span{display:block;font-weight:400;font-size:12.5px;color:#98a0ad;margin-top:4
 <h1>다리마티 대시보드</h1><p>폰에서 보는 읽기 전용 스냅샷</p>
 <a href="ads/">📊 메타 광고 대시보드<span>광고비·노출·클릭·CPC · PIN 필요</span></a>
 <a href="traffic/">🗺️ 유입·판매 지도<span>쇼피파이+네이버 어디서 팔리나·어디에 집중할까 · PIN 필요</span></a>
+<a href="vt001-ks/">👟 VT-001 킥스타터 손익<span>젤롭 광고·자사구매 제외 실후원·본전 ROAS · 매일 10시·16시 · PIN 필요</span></a>
 <a href="br001/">🧭 BR-001 브릿지 성과<span>광고→랜딩 도달률·배치별 낭비·지점 QR 스캔 · PIN 필요</span></a>
 <a href="talent/">👥 인물 관리<span>선수·크리에이터·파트너·코치 · 대시보드에서 직접 수정 · PIN 필요</span></a>
 <a href="f45/">🗺️ F45 지점 관리<span>공략 지도·협의현황·지점별 판매링크/QR·할인코드·신청접수 · PIN 필요</span></a>
@@ -329,6 +345,7 @@ def main():
     # growth 는 2026-09-30 사장님 지시로 폐지 (7/22 이후 갱신 없음) — build_growth 는 되살릴 때를 위해 남겨 둠
     b = build_br001(pw);    print("  br001  :", b)
     print("  traffic:", build_traffic(pw))
+    print("  vt001ks:", build_vt001ks(pw))
     build_utm();            print("  utm    : ok")
     print("  qr     :", build_qr())
     write(os.path.join(HERE, "index.html"), INDEX)
