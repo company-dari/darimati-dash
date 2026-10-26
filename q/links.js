@@ -39,6 +39,7 @@ window.QR = {
     "f45-yeongtong": "https://www.darimati.us/pages/br001-f45-yeongtong",
     "f45-seongsu": "https://www.darimati.us/pages/br001-f45-seongsu",
     "f45-sinjungdong": "https://www.darimati.us/pages/br001-f45-sinjungdong",
-    "f45-ilsan": "https://www.darimati.us/pages/br001-f45-ilsan"
+    "f45-ilsan": "https://www.darimati.us/pages/br001-f45-ilsan",
+    "box-coupon": "https://www.darimati.us/collections/all?utm_source=box_insert&utm_medium=qr&utm_campaign=box10_coupon&utm_content=parcel"
   }
 };
