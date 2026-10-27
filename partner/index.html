@@ -312,7 +312,7 @@ function renderPartner(p,orders,settlements){
     h+='<div class="info-card"><div class="ic-label">\uacf5\uc2dd\ubab0 (\ud604\uc7ac)</div><div class="ic-value">'+p['\uc1fc\ud53c\ud30c\uc774'].\ud310\ub9e4\uac74\uc218+'\uac74 \u00b7 '+fm(p['\uc1fc\ud53c\ud30c\uc774'].\ub9e4\ucd9c)+'</div></div>';
   }
   if(!isGroupBuy){
-  h+='<div class="info-card"><div class="ic-label">\ud3c9\uade0 \uc0c1\ud488 \uae08\uc561</div><div class="ic-value">'+(price>0?fm(price):'-')+'</div></div>';
+  h+='<div class="info-card"><div class="ic-label">\ud3c9\uade0 \uc0c1\ud488 \uae08\uc561</div><div class="ic-value">'+(p['가격표기']||(price>0?fm(price):'-'))+'</div></div>';  // 가격표기 = rates 화면.가격표기 (색마다 값이 다를 때 「139,000~149,000원」 · 2026-10-27 지나핏)
   }
   h+='<div class="info-card"><div class="ic-label">\uc0c1\ud0dc</div><div class="ic-value">'+((!status||status==='-')?'<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;background:var(--green-soft);color:var(--green);font-size:12px;font-weight:600">\ud65c\uc131</span>':status)+'</div></div>';
   if(isGroupBuy){
@@ -379,6 +379,7 @@ async function load(){
       '상품명':d.상품명||'BR-001 하이브리드 러닝화',
       '오픈일자':d.오픈일||'2026.05.21',
       // 「평균 상품 금액」 칸 — 판매가 있으면 실제 평균(매출÷켤레), 없을 때만 대표가 (전엔 모두 129,000 고정이라 119,000 파트너가 틀려 보였다)
+      '가격표기':d.가격표기||'',
       '금액 (대표가 기준)':String(d.대표가||(function(){var n=(Number(d.켤레)||d.쇼피파이.판매건수)+((d.네이버||{}).판매건수||0);return n?Math.round(d.합계.매출/n):129000})()),
       '수수료':d.합계.수수료,'구간':d.구간||null,'켤레':String(d.켤레||0),
       '판매링크 URL':d.판매링크||'',
