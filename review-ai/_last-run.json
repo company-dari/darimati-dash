@@ -1,6 +1,6 @@
 {
   "date": "2026-10-29",
-  "result": "받기 실패",
-  "reviews": {},
+  "result": "반영 요청",
+  "reviews": {"br-001-sand-beige": 188, "br-001-oyster-grey": 188},
   "usage_warn": ""
 }
