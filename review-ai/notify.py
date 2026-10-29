@@ -18,6 +18,33 @@ def slack(text):
     print("슬랙 전송:", text.splitlines()[0])
 
 
+def content():
+    """PR 에 담긴 새 요약 전문 (첫 상품 기준 · 나머지 상품이 같으면 한 줄로)"""
+    files = sorted(glob.glob("review-ai/dm-rv-ai-*.json"))
+    if not files:
+        return ""
+    out, first = [], None
+    for f in files:
+        d = json.load(open(f))
+        h = os.path.basename(f)[len("dm-rv-ai-"):-5]
+        core = (d.get("headline"), d.get("pros"), d.get("note"))
+        if first and core == first:
+            out.append(f"_{h}: 위와 같은 내용 (사진 순서만 그 색 기준)_")
+            continue
+        first = first or core
+        fit = " · ".join(f"{x['label']} {x['text']}" for x in d.get("fit", []))
+        en = (d.get("i18n") or {}).get("en") or {}
+        out.append(
+            f"*{h}* — 후기 {d.get('based_on')}개 · {d.get('generated_at')} 기준\n"
+            f"> *{d.get('headline','').replace(chr(10), ' / ')}*\n"
+            + "".join(f"> 👍 {p}\n" for p in d.get("pros", []))
+            + f"> ⚠️ 참고할 점: {d.get('note','')}\n"
+            + (f"> 📏 착용감: {fit}\n" if fit else "")
+            + (f"> 🇺🇸 {en.get('headline','').replace(chr(10), ' / ')}\n" if en else "")
+        )
+    return "\n".join(out)
+
+
 if EV == "pull_request":
     if os.environ.get("PR_ACTION") not in ("opened", "reopened"):
         sys.exit(0)
@@ -25,7 +52,7 @@ if EV == "pull_request":
     if title.startswith("[검사 실패]"):
         slack(f"❌ 리뷰 AI 주간 요약 — 검사 실패 (상세페이지는 지난 요약 유지)\n{body[:1500]}\n{url}")
     else:
-        slack(f"🔎 리뷰 AI 주간 요약 — 승인 요청\n{body[:1800]}\n👉 승인 = 링크 열고 「Merge pull request」 한 번: {url}")
+        slack(f"🔎 리뷰 AI 주간 요약 — 승인 요청\n\n*올라갈 내용*\n{content()[:2500]}\n*바뀐 점*\n{body[:1200]}\n👉 승인 = 링크 열고 「Merge pull request」 한 번 · 고칠 문구는 클로드에게 말해 주세요: {url}")
 elif EV == "push":
     slack("✅ 리뷰 AI 요약 반영됨 — 몇 분 뒤 상세페이지(위쪽 MATI AI 후기 요약)에 보입니다")
 else:  # schedule · 수동
