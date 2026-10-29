@@ -1,15 +1,15 @@
 {
  "version": 1,
- "generated_at": "2026-10-27",
- "based_on": 164,
- "made_by": "Claude — 베이지 10/22 분석(같은 BR-001 후기 묶음 164개) 재사용 · 제목만 그레이 시안 표현 · 포토 순서 그레이 사진 먼저",
+ "generated_at": "2026-10-29",
+ "based_on": 188,
+ "made_by": "AI 주간 자동 (Claude) · 사장님 승인 전",
  "headline": "발볼이 넓어도 편하고,\n러닝과 근력운동 모두 안정적이에요",
  "pros": [
   "발볼이 넓거나 발등이 높아도 눌리지 않는다는 후기가 많아요",
   "러닝머신·런지·하이록스에서 미끄러지지 않고 발목을 잘 잡아줘요",
   "운동 끝나고 출근·산책에도 그대로 신을 만큼 깔끔해요"
  ],
- "note": "말랑한 쿠션보다 탄탄하게 받쳐주는 타입이라 처음엔 단단하게 느껴질 수 있어요. 사이즈가 10mm 단위라, 평소 반 치수(235·255 등)를 신는 분은 길이가 살짝 남는다는 후기가 있어요.",
+ "note": "말랑한 쿠션보다 탄탄하게 받쳐주는 타입이라 처음엔 단단하게 느껴질 수 있어요. 사이즈가 10mm 단위라, 평소 반 치수(235·255 등)를 신는 분은 길이가 살짝 남는다는 후기가 있어요. 발등이 높거나 조이면 끈을 풀어 신으면 괜찮다는 후기가 있고, 밝은 색이라 오염이 눈에 띈다는 후기도 있어요.",
  "fit": [
   {
    "label": "사이즈",
@@ -120,7 +120,28 @@
   "ba4bc592-e7fa-4cfc-ad35-99a07e11a34c",
   "2a7e9d71-d9be-4f46-9ad0-1fbdd7f6be5d",
   "5eb55e79-e9cb-40b7-a1a3-e42d5996553a",
-  "bf2d86be-334e-41d9-bab1-8deb3b6290c6"
+  "bf2d86be-334e-41d9-bab1-8deb3b6290c6",
+  "11e66b08-3905-47b9-ba58-8b33aa3e437c",
+  "168935ce-59c3-4b3a-97fc-c4193a42b604"
  ],
- "note_10_27": "10/27 날짜 후기 15개 중 구매 전 문의성 글 다수 → 요약 근거에서 제외 · 숨김 여부 사장님 확인 대기"
+ "i18n": {
+  "en": {
+   "headline": "Comfortable even for wide feet,\nsteady for both running and strength training",
+   "pros": [
+    "Many reviewers with wide feet or high insteps say it doesn't feel tight",
+    "Reviewers say it grips on treadmills, lunges and HYROX and supports the ankle",
+    "Clean enough to keep wearing to work or on walks after a workout"
+   ],
+   "note": "It supports with a firm feel rather than a soft cushion, so it may feel hard at first. Sizes come in 10mm steps, and some who usually wear half sizes (235, 255, etc.) say the length runs slightly long. Some say loosening the laces helps with a high instep, and some note that the light color shows dirt."
+  },
+  "ja": {
+   "headline": "幅広の足でも楽で、\nランニングも筋トレも安定",
+   "pros": [
+    "幅広・甲高でも圧迫されないというレビューが多いです",
+    "ランニングマシンやランジ、HYROXで滑らず足首をしっかり支えるという声があります",
+    "運動後そのまま通勤や散歩に履けるほどすっきりしています"
+   ],
+   "note": "柔らかいクッションより、しっかり支えるタイプなので、最初は硬く感じることがあります。サイズは10mm単位で、普段ハーフサイズ(235・255など)を履く方は長さが少し余るという声があります。甲が高い場合は紐を緩めると楽という声や、明るい色なので汚れが目立つという声もあります。"
+  }
+ }
 }
