@@ -1,0 +1,31 @@
+# 리뷰 AI 주간 요약 알림 (2026-10-29) — 요약은 Claude 주간 예약 실행이 review-ai/ 로 PR 을 연다
+# 승인 = PR Merge → GitHub Pages 반영 → 상세페이지 dm-rv 가 이 파일을 먼저 읽는다(못 읽으면 테마의 지난 요약)
+name: review-ai
+on:
+  pull_request:
+    types: [opened, reopened]
+    paths: ['review-ai/**']
+  push:
+    branches: [main]
+    paths: ['review-ai/dm-rv-ai-*.json']
+  schedule:
+    - cron: '0 1 * * *'   # 매일 10:00 KST — 8일 정지·3일 미승인 점검
+  workflow_dispatch:
+permissions:
+  contents: read
+  pull-requests: read
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 슬랙 알림
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          PR_ACTION: ${{ github.event.action }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: python3 review-ai/notify.py
