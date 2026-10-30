@@ -54,19 +54,27 @@ jobs:
           set -o pipefail
           python3 .github/scripts/watchdog.py | tee /tmp/report.md
 
-      - name: 파트너 정산이 멈췄으면 슬랙으로 알리기
-        # 맥이 꺼져 있으면 맥은 실패를 알릴 수조차 없다 → 클라우드가 대신 알린다 (2026-10-05)
-        # 다른 점검 항목(429 등)은 매일 울려 소음이 되므로 「파트너 정산」 줄만 보낸다
+      - name: 문제가 있으면 슬랙으로 알리기
+        # 10/30 사장님 「문제 있으면 슬랙에 알림」 — 모든 점검 문제를 하루 한 번 한 메시지로 (원래는 파트너 정산만)
+        # 맥이 꺼져 있어도 클라우드가 알린다. 문제 없으면 보내지 않는다(소음 방지)
         if: always()
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           [ -z "$SLACK_WEBHOOK" ] && { echo "SLACK_WEBHOOK 없음 — 건너뜀"; exit 0; }
-          LINE=$(grep -A2 "⑤-2 파트너 정산 화면" /tmp/report.md | grep "🔴" || true)
-          [ -z "$LINE" ] && { echo "파트너 정산 정상 — 알림 없음"; exit 0; }
-          TEXT="🔴 *파트너 정산 화면이 멈춤* (클라우드 감시)
-          ${LINE}
-          → 맥이 꺼져 있거나 쇼피파이 로그인이 풀렸을 수 있습니다. 맥을 켜고 터미널 클로드에게 「정산 다시 돌려줘」"
+          [ -f /tmp/report.md ] || { TEXT="🔴 *시스템 감시가 실행되지 못했습니다* (클라우드)
+          $RUN_URL"; python3 -c 'import json,sys,urllib.request;urllib.request.urlopen(urllib.request.Request(sys.argv[1],data=json.dumps({"text":sys.argv[2]}).encode(),headers={"Content-Type":"application/json"}))' "$SLACK_WEBHOOK" "$TEXT"; exit 0; }
+          BODY=$(sed -n '/^## 🔴 문제/,$p' /tmp/report.md | grep -E '^[0-9]+\. ' || true)
+          [ -z "$BODY" ] && { echo "문제 없음 — 알림 없음"; exit 0; }
+          HINT=""
+          echo "$BODY" | grep -q "파트너 정산" && HINT="
+          → 파트너 정산: 맥이 꺼져 있거나 쇼피파이 로그인이 풀렸을 수 있습니다. 맥을 켜고 터미널 클로드에게 「정산 다시 돌려줘」"
+          echo "$BODY" | grep -qE "한국 가격이 바뀌었|해외 가격이 가격표와" && HINT="$HINT
+          → 가격: 터미널 클로드에게 「해외 가격 감시 경보 봐줘」 (되돌리기 = docs/currency/activate_price_lists.py off)"
+          TEXT="🔴 *다리마티 시스템 감시 — 문제 있음* ($(date -u -d '+9 hour' '+%m/%d %H:%M') KST)
+          ${BODY}${HINT}
+          자세히: $RUN_URL"
           python3 -c 'import json,sys,urllib.request;urllib.request.urlopen(urllib.request.Request(sys.argv[1],data=json.dumps({"text":sys.argv[2]}).encode(),headers={"Content-Type":"application/json"}))' "$SLACK_WEBHOOK" "$TEXT"
 
       - name: 문제가 있으면 이슈로 알리기
