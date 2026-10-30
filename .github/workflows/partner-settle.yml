@@ -92,6 +92,16 @@ jobs:
           파트너 화면에 반영됐습니다."
           [ -n "$SLACK_WEBHOOK" ] && python3 -c 'import json,sys,urllib.request;urllib.request.urlopen(urllib.request.Request(sys.argv[1],data=json.dumps({"text":sys.argv[2]}).encode(),headers={"Content-Type":"application/json"}))' "$SLACK_WEBHOOK" "$TEXT" || true
 
+      - name: 진행 중인 행사 현황 → 슬랙 (10/30 사장님 「진행 중인 행사들은 슬랙 알림 같이」 · tools/settle/event-status.py)
+        if: success()
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          HOME: ${{ github.workspace }}
+        run: |
+          TEXT=$(python3 darimati-theme/tools/settle/event-status.py) || TEXT="⚠️ 행사 현황 만들기 실패 — 깃허브 액션 로그 확인"
+          echo "$TEXT"
+          [ -n "$TEXT" ] && [ -n "$SLACK_WEBHOOK" ] && python3 -c 'import json,sys,urllib.request;urllib.request.urlopen(urllib.request.Request(sys.argv[1],data=json.dumps({"text":sys.argv[2]}).encode(),headers={"Content-Type":"application/json"}))' "$SLACK_WEBHOOK" "$TEXT" || true
+
       - name: 실패하면 슬랙 + 이슈
         if: failure()
         env:
