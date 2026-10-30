@@ -1,5 +1,5 @@
 {
-  "approval": true,
+  "approval": false,
   "note": "true = 매주 요약을 PR(승인 요청)로 · false = 검사 통과 시 바로 반영. 2~3주 승인 후 false 로 (사장님 결정)",
   "handles": ["br-001-sand-beige", "br-001-oyster-grey"]
 }
