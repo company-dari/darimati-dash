@@ -11,6 +11,10 @@ on:
         description: 페이지에서 찾을 글자(grep -E)
         required: false
         default: 'fbq\('
+      cart_attr:
+        description: 브라우저로 열어 장바구니 속성(유입 등) 출력
+        type: boolean
+        default: false
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -26,3 +30,17 @@ jobs:
           echo "--- 찾은 것 ---"
           grep -oE "$PAT" page.html | head -20 || true
           [ "$code" = 200 ]
+      - name: cart attributes (실제 브라우저)
+        if: ${{ inputs.cart_attr }}
+        env:
+          URL: ${{ inputs.url }}
+        run: |
+          npm i -s playwright@1 >/dev/null 2>&1 && npx -y playwright install chromium >/dev/null 2>&1
+          node -e '
+          const { chromium } = require("playwright");
+          (async () => {
+            const b = await chromium.launch(); const pg = await b.newPage();
+            await pg.goto(process.env.URL, { waitUntil: "load" }); await pg.waitForTimeout(4000);
+            const c = await pg.evaluate(() => fetch("/cart.js").then(r => r.json()));
+            console.log("장바구니 속성:", JSON.stringify(c.attributes)); await b.close();
+          })();'
