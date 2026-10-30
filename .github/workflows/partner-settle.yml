@@ -46,6 +46,8 @@ jobs:
           CID: ${{ secrets.SHOPIFY_CLIENT_ID }}
           CSECRET: ${{ secrets.SHOPIFY_CLIENT_SECRET }}
         run: |
+          CSECRET=$(printf '%s' "$CSECRET" | tr -d '[:space:]'); CID=$(printf '%s' "$CID" | tr -d '[:space:]')
+          echo "암호 길이: ${#CSECRET} (shpss_ 로 시작: $([ "${CSECRET#shpss_}" != "$CSECRET" ] && echo 예 || echo 아니오))"
           RESP=$(curl -s -w '\nHTTP %{http_code}' -X POST "https://pgwbea-fc.myshopify.com/admin/oauth/access_token" \
             -H 'Content-Type: application/json' \
             -d "{\"client_id\":\"$CID\",\"client_secret\":\"$CSECRET\",\"grant_type\":\"client_credentials\"}")
