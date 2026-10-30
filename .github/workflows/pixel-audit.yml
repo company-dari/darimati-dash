@@ -9,6 +9,10 @@ on:
         description: '문제 있으면 슬랙으로도 보내기'
         type: boolean
         default: false
+      only:
+        description: '빠른 시험 — 주소에 이 정규식이 든 페이지만 (비우면 전부)'
+        type: string
+        default: ''
   schedule:
     - cron: '0 1 * * 1,4'   # 월·목 10:00 KST (광고 켜기 전 주 2회)
 
@@ -31,6 +35,8 @@ jobs:
           python -m playwright install --with-deps chromium
       - name: 실측
         id: run
+        env:
+          ONLY: ${{ inputs.only }}
         run: |
           set -o pipefail
           python3 .github/scripts/pixel_audit.py | tee /tmp/log.txt
