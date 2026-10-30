@@ -6,7 +6,7 @@
 # 규칙(정산 코드·rates.json·tokens.json)의 원본은 company-dari/darimati-theme tools/settle/ — 여기 복사하지 않고 매번 받아 쓴다.
 #   읽기 전용 배포 키(THEME_DEPLOY_KEY)로 받는다.
 # 쇼피파이 = Dev Dashboard 앱 「재고 대시보드 읽기」 client_credentials(아이디+암호 → 그때그때 짧은 토큰). 긴 토큰 없음.
-# 실패하면 → 슬랙 #지운-클로드-알림창(SLACK_WEBHOOK) + 이슈. 실패해도 파트너 화면은 지난 숫자 그대로(빈 화면 안 됨).
+# 성공하면 → 슬랙 #지운-클로드-알림창에 요약 · 실패하면 → 같은 채널 + 이슈. 실패해도 파트너 화면은 지난 숫자 그대로(빈 화면 안 됨).
 # 멈춤(성공인데 숫자 갱신 0) 감시는 watchdog.yml ⑤-2(40시간)가 따로 한다.
 
 name: 파트너 정산 매일 갱신
@@ -78,6 +78,19 @@ jobs:
           git add partner/data
           git commit -q -m "파트너 정산 갱신 $NOW (클라우드)"
           for i in 1 2 3; do git pull -q --rebase origin main && git push -q origin main && break; sleep 10; done
+
+      - name: 성공하면 슬랙에 요약 (10/30 사장님 「갱신 알림도 지운-클로드-알림으로」)
+        if: success()
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        run: |
+          # 판매 있는 파트너 줄 + 합계만 (settle.txt 표에서 건수 0 인 줄은 뺀다)
+          ROWS=$(awk '/^-+$/{n++; next} n==1 && $2!="0"{print} /^합계/{print}' settle.txt)
+          TEXT="🟢 *파트너 정산 갱신* ($(date '+%m/%d %H:%M'))
+          \`\`\`파트너  건수  매출  율  수수료  환불
+          ${ROWS}\`\`\`
+          파트너 화면에 반영됐습니다."
+          [ -n "$SLACK_WEBHOOK" ] && python3 -c 'import json,sys,urllib.request;urllib.request.urlopen(urllib.request.Request(sys.argv[1],data=json.dumps({"text":sys.argv[2]}).encode(),headers={"Content-Type":"application/json"}))' "$SLACK_WEBHOOK" "$TEXT" || true
 
       - name: 실패하면 슬랙 + 이슈
         if: failure()
