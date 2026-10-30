@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>해외 가격표 장부</title>
+<style>
+/* 한 장짜리 장부: 위 = 기준 시각·환율, 가운데 = 상품 × 나라 묶음 표, 아래 = 묶음별 나라 목록·보는 법 */
+:root{--bg:#f5f5f2;--card:#fff;--ink:#1c1d1b;--sub:#666a63;--line:#dedfd8;--ok:#1f7a45;--bad:#b3261e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#151615;--card:#1e201e;--ink:#ecede8;--sub:#a2a69d;--line:#353833;--ok:#6fcf97;--bad:#ff8a80;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif}
+main{max-width:980px;margin:0 auto;padding:24px 16px 56px;display:grid;gap:18px}
+h1{margin:0;font-size:22px}
+.sub{color:var(--sub);margin:4px 0 0;font-size:13px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
+.wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:680px}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--sub);font-weight:600}
+td small{display:block;color:var(--sub);font-size:12px}
+td.n{font-variant-numeric:tabular-nums}
+.ok{color:var(--ok);font-weight:600}.bad{color:var(--bad);font-weight:600}.mute{color:var(--sub)}
+ul{margin:0;padding-left:18px;display:grid;gap:6px}
+h2{font-size:15px;margin:0 0 8px}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>해외 가격표 장부</h1>
+    <p class="sub">데이터 기준 시각 2026-10-30 18:29 KST · 쇼피파이 라이브에서 직접 읽음 · 환율 1 USD = ₩1,340 · 1 EUR = ₩1,493 · 1 JPY = ₩8.48 (기준일 2026-10-29 (open.er-api.com))</p>
+  </header>
+
+  <section class="card">
+    <h2>상품 × 나라 묶음</h2>
+    <p class="sub">위 줄 = 손님 화면에 보이는 가격 · 「결제」 = 실제로 카드에 청구되는 원화. 결제는 어느 나라든 원화입니다.</p>
+    <div class="wrap"><table>
+      <thead><tr><th>상품</th><th>한국</th><th>달러권</th><th>유로권</th><th>일본</th></tr></thead>
+      <tbody><tr><td><b>그레이·베이지</b><small>br-001-oyster-grey, br-001-sand-beige</small></td><td class="n">₩149,000</td><td class="n"><b>$149</b><small>결제 ₩199,700</small><small><span class="ok">켜짐</span></small></td><td class="n"><b>€139</b><small>결제 ₩207,500</small><small><span class="ok">켜짐</span></small></td><td class="n"><b>¥18,900</b><small>결제 ₩160,300</small><small><span class="ok">켜짐</span></small></td></tr><tr><td><b>블랙</b><small>br-001-core-black-new-color, br-001-core-black-gb</small></td><td class="n">₩159,000</td><td class="n"><b>$159</b><small>결제 ₩213,100</small><small><span class="ok">켜짐</span></small></td><td class="n"><b>€149</b><small>결제 ₩222,500</small><small><span class="ok">켜짐</span></small></td><td class="n"><b>¥19,900</b><small>결제 ₩168,800</small><small><span class="ok">켜짐</span></small></td></tr><tr><td><b>VT-001</b><small>vt-001-hybrid-elite-traning-shoes</small></td><td class="n">₩189,000</td><td class="n"><b>$189</b><small>결제 ₩253,300</small><small><span class="mute">가격표에 없음 · 원화로 보임</span></small></td><td class="n"><b>€179</b><small>결제 ₩267,200</small><small><span class="mute">가격표에 없음 · 원화로 보임</span></small></td><td class="n mute">미정<small>원화로 보임</small></td></tr></tbody>
+    </table></div>
+  </section>
+
+  <section class="card">
+    <h2>나라 묶음(어느 나라가 어느 통화로 보이나)</h2>
+    <ul><li><b>달러권 (USD)</b> · 가격표 <span class=ok>켜짐</span> · 16개국: AE AU CA CH CZ DK GB HK IL MY NO NZ PL SE SG US</li><li><b>유로권 (EUR)</b> · 가격표 <span class=ok>켜짐</span> · 10개국: AT BE DE ES FI FR IE IT NL PT</li><li><b>일본 (JPY)</b> · 가격표 <span class=ok>켜짐</span> · 1개국: JP</li></ul>
+    <p class="sub">위 목록에 없는 상품(모자·슈백 등 액세서리)은 해외에서도 원화로 보입니다.</p>
+  </section>
+
+  <section class="card">
+    <h2>보는 법 · 고치는 법</h2>
+    <ul>
+      <li>「켜짐」 = 지금 그 나라 손님에게 적용 중 · 「불일치」 = 화면 가격표와 결제 금액이 달라서 원화만 보이게 막혀 있음(고쳐야 함)</li>
+      <li>해외 손님 화면 미리 보기: 사이트 오른쪽 위 지구본 → 나라를 미국·독일·일본으로 → 저장 (다 보고 나서 한국으로 되돌리기)</li>
+      <li>금액·환율을 바꾸려면: 클로드에게 「해외 가격 바꿔줘」 — 원본 <code>darimati-theme/docs/currency/config.json</code>, 이 장부는 <code>build_price_ledger.py</code> 로 다시 만든다</li>
+    </ul>
+  </section>
+</main>
+</body>
+</html>
