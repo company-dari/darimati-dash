@@ -1,0 +1,54 @@
+name: 픽셀 전수 실측
+# 10/30 사장님 「모든 랜딩 픽셀 절대 틀리면 안 됨 · 모든 국가 광고」
+# 진짜 크롬으로 상점 전 페이지(한·영) + 핵심 페이지 9개 언어 + 옛 영문 랜딩을 열어
+# 페이스북으로 나가는 PageView 가 정확히 1번인지 센다. 문제 있으면 슬랙 + 이슈.
+on:
+  workflow_dispatch:
+    inputs:
+      slack:
+        description: '문제 있으면 슬랙으로도 보내기'
+        type: boolean
+        default: false
+  schedule:
+    - cron: '0 1 * * 1,4'   # 월·목 10:00 KST (광고 켜기 전 주 2회)
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: 크롬 준비
+        run: |
+          pip install playwright==1.48.0
+          python -m playwright install --with-deps chromium
+      - name: 실측
+        id: run
+        run: |
+          set -o pipefail
+          python3 .github/scripts/pixel_audit.py | tee /tmp/log.txt
+      - name: 결과 요약
+        if: always()
+        run: |
+          [ -f /tmp/pixel.md ] && cat /tmp/pixel.md >> "$GITHUB_STEP_SUMMARY" || echo "결과 파일 없음" >> "$GITHUB_STEP_SUMMARY"
+      - name: 문제 있으면 슬랙
+        if: failure() && (github.event_name == 'schedule' || inputs.slack)
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          [ -z "$SLACK_WEBHOOK" ] && exit 0
+          BAD=$(head -15 /tmp/pixel_bad.txt 2>/dev/null || echo "실측 스크립트가 끝까지 못 돌았습니다")
+          N=$(grep -c . /tmp/pixel_bad.txt 2>/dev/null || echo "?")
+          TEXT="🔴 *픽셀 전수 실측 — 문제 ${N}건* (광고 측정 끊김/중복 위험)
+          ${BAD}
+          자세히: $RUN_URL
+          → 터미널 클로드에게 「픽셀 실측 경보 봐줘」"
+          python3 -c 'import json,sys,urllib.request;urllib.request.urlopen(urllib.request.Request(sys.argv[1],data=json.dumps({"text":sys.argv[2]}).encode(),headers={"Content-Type":"application/json"}))' "$SLACK_WEBHOOK" "$TEXT"

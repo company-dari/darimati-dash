@@ -23,7 +23,8 @@ TODAY = datetime.now(KST).strftime('%Y.%m.%d')
 CTX = ssl.create_default_context()
 
 DASH = 'https://company-dari.github.io/darimati-dash'
-LANDINGS = ['index.html', 's1-landing.html', 's1-landing-kr.html', 's2-landing.html',
+# 10/30 index.html 은 랜딩이 아니라 출고 현황 화면(픽셀 없음이 정상) → 뺌 · 전 페이지 실측은 pixel-audit.yml
+LANDINGS = ['s1-landing.html', 's1-landing-kr.html', 's2-landing.html',
             's2-landing-white.html', 'br001-shop.html', 'product-br001.html']
 
 problems = []   # 사람이 읽을 문제 목록
