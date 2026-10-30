@@ -1,0 +1,59 @@
+{
+ "generated_at": "2026-10-30 21:32 KST",
+ "KR": {
+  "br-001-oyster-grey": 149000,
+  "br-001-sand-beige": 149000,
+  "br-001-core-black-new-color": 159000,
+  "br-001-core-black-gb": 159000,
+  "vt-001-hybrid-elite-traning-shoes": 189000,
+  "dari-magazine-issue-1": 18000,
+  "다리매거진-issue-1-dari-seoul-travel-journal-hannam-special-edition": 18900,
+  "cap": 32900,
+  "shoe-bag": 36900,
+  "towel": 13900,
+  "다리마티-easy-swap-lace-lock-신발끈": 9900
+ },
+ "markets": {
+  "US": "USD",
+  "DE": "EUR",
+  "JP": "JPY"
+ },
+ "expect": {
+  "US": {
+   "br-001-oyster-grey": 199700,
+   "br-001-sand-beige": 199700,
+   "br-001-core-black-new-color": 213100,
+   "br-001-core-black-gb": 213100,
+   "dari-magazine-issue-1": 29500,
+   "다리매거진-issue-1-dari-seoul-travel-journal-hannam-special-edition": 30800,
+   "cap": 52300,
+   "shoe-bag": 59000,
+   "towel": 22800,
+   "다리마티-easy-swap-lace-lock-신발끈": 16100
+  },
+  "DE": {
+   "br-001-oyster-grey": 207500,
+   "br-001-sand-beige": 207500,
+   "br-001-core-black-new-color": 222500,
+   "br-001-core-black-gb": 222500,
+   "dari-magazine-issue-1": 29900,
+   "다리매거진-issue-1-dari-seoul-travel-journal-hannam-special-edition": 31400,
+   "cap": 55200,
+   "shoe-bag": 61200,
+   "towel": 23900,
+   "다리마티-easy-swap-lace-lock-신발끈": 16400
+  },
+  "JP": {
+   "br-001-oyster-grey": 160300,
+   "br-001-sand-beige": 160300,
+   "br-001-core-black-new-color": 168800,
+   "br-001-core-black-gb": 168800,
+   "dari-magazine-issue-1": 22900,
+   "다리매거진-issue-1-dari-seoul-travel-journal-hannam-special-edition": 24600,
+   "cap": 42400,
+   "shoe-bag": 47500,
+   "towel": 17800,
+   "다리마티-easy-swap-lace-lock-신발끈": 12700
+  }
+ }
+}

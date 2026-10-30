@@ -321,6 +321,82 @@ else:
     except Exception as e:
         say(f'- ⚪ 상태 파일을 읽지 못함 ({e})')
 
+# ── ⑧ 나라별 가격 (10/30 해외 가격표 켬) ──────────────────────────────
+#    「한국 손님에게 달러가 보이면 절대 안 된다」(사장님 10/30) + 해외 가격표가 꺼지거나 바뀌면 바로 안다.
+#    기대값 = /prices/expected.json (darimati-theme/docs/currency/build_price_ledger.py 가 만든다)
+#    미국 서버에서 도는 감시라 나라는 Storefront API @inContext(country) 로 지정한다.
+SF = 'https://darimati.us/api/2025-07/graphql.json'
+
+
+def sf(q):
+    try:
+        req = urllib.request.Request(SF, json.dumps({'query': q}).encode(),
+                                     {'Content-Type': 'application/json', 'User-Agent': 'darimati-watchdog'})
+        with urllib.request.urlopen(req, timeout=30, context=CTX) as r:
+            return json.load(r).get('data')
+    except Exception:
+        return None
+
+
+say('')
+say('## ⑧ 나라별 가격 (한국=원화 그대로 · 해외=가격표)')
+ex = get(f'{DASH}/prices/expected.json')
+try:
+    ex = json.loads(ex) if ex else None
+except Exception:
+    ex = None
+if not ex:
+    problems.append('가격 기대값 파일(prices/expected.json)을 못 읽었습니다')
+    say('- 🔴 기대값 파일 없음')
+else:
+    def prices(cc):
+        d = sf('query @inContext(country:%s){ products(first:100){nodes{handle variants(first:1){nodes{price{amount}}}}} }' % cc)
+        if not d:
+            return None
+        return {p['handle']: round(float(p['variants']['nodes'][0]['price']['amount'])) for p in d['products']['nodes'] if p['variants']['nodes']}
+    watch = set(ex['expect'].get('US', {}))
+    kr = prices('KR')
+    if kr is None:
+        problems.append('한국 가격을 읽지 못했습니다(Storefront API)')
+        say('- 🔴 KR 읽기 실패')
+    else:
+        bad = [f'{h} ₩{kr.get(h)} (기대 ₩{ex["KR"][h]})' for h in watch if h in kr and kr.get(h) != ex['KR'].get(h)]
+        if bad:
+            problems.append('🚨 **한국 가격이 바뀌었습니다** — ' + ', '.join(bad))
+            say('- 🔴 KR: ' + ', '.join(bad))
+        else:
+            say(f'- ✅ KR: {len(watch)}개 상품 원화 그대로')
+    for cc, want in ex['expect'].items():
+        got = prices(cc)
+        time.sleep(1)
+        if got is None:
+            problems.append(f'{cc} 가격을 읽지 못했습니다')
+            say(f'- 🔴 {cc} 읽기 실패'); continue
+        bad = [f'{h} ₩{got.get(h)} (기대 ₩{v})' for h, v in want.items() if h in got and got[h] != v]
+        if bad:
+            problems.append(f'{cc} 해외 가격이 가격표와 다릅니다(화면엔 원화만 보임) — ' + ', '.join(bad[:4]))
+            say(f'- 🔴 {cc}: ' + ', '.join(bad[:4]))
+        else:
+            say(f'- ✅ {cc}: {len(want)}개 상품 가격표대로')
+
+# ── ⑨ 외국어 화면에 한글이 새는지 (10/30 9개 언어 공개) ─────────────────
+#    상품 이름·설명만 본다(Storefront API). 테마 문구는 맥의 번역 장치로 점검.
+say('')
+say('## ⑨ 외국어 상품 정보에 한글이 남았나')
+import re as _re
+_H = _re.compile('[가-힣]')
+for lg in ['EN', 'JA', 'DE', 'FR', 'ES', 'IT', 'NL', 'PT_PT', 'FI']:
+    d = sf('query @inContext(language:%s){ products(first:60, query:"available_for_sale:true"){nodes{handle title description}} }' % lg)
+    time.sleep(1)
+    if not d:
+        say(f'- ⚪ {lg}: 읽기 실패'); continue
+    leak = [p['handle'] for p in d['products']['nodes'] if _H.search((p['title'] or '') + (p['description'] or ''))]
+    if leak:
+        problems.append(f'{lg} 화면 상품 정보에 한글이 남았습니다: ' + ', '.join(leak[:5]) + (' …' if len(leak) > 5 else ''))
+        say(f'- 🔴 {lg}: {len(leak)}개 — ' + ', '.join(leak[:5]))
+    else:
+        say(f'- ✅ {lg}: 한글 0')
+
 # ── 경보 시험 ────────────────────────────────────────────────────────
 #    "울리지 않는 경보기"가 아닌지 확인하려고 일부러 실패시키는 스위치.
 #    Actions 탭에서 alarm_test 를 켜고 실행하면 이슈가 만들어져야 한다.
