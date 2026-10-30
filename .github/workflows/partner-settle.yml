@@ -46,14 +46,14 @@ jobs:
           CID: ${{ secrets.SHOPIFY_CLIENT_ID }}
           CSECRET: ${{ secrets.SHOPIFY_CLIENT_SECRET }}
         run: |
-          RESP=$(curl -s -X POST "https://pgwbea-fc.myshopify.com/admin/oauth/access_token" \
+          RESP=$(curl -s -w '\nHTTP %{http_code}' -X POST "https://pgwbea-fc.myshopify.com/admin/oauth/access_token" \
             -H 'Content-Type: application/json' \
             -d "{\"client_id\":\"$CID\",\"client_secret\":\"$CSECRET\",\"grant_type\":\"client_credentials\"}")
-          TOKEN=$(echo "$RESP" | python3 -c 'import sys,json;print(json.load(sys.stdin).get("access_token",""))' 2>/dev/null)
-          [ -z "$TOKEN" ] && { echo "❌ 토큰 못 받음: $(echo "$RESP" | head -c 200)"; exit 1; }
+          TOKEN=$(echo "$RESP" | sed '$d' | python3 -c 'import sys,json;print(json.load(sys.stdin).get("access_token",""))' 2>/dev/null || true)
+          [ -z "$TOKEN" ] && { echo "❌ 토큰 못 받음 ($(echo "$RESP" | tail -1)): $(echo "$RESP" | sed '$d' | tr -d '\n' | sed 's/<[^>]*>//g' | head -c 300)"; exit 1; }
           echo "::add-mask::$TOKEN"
           echo "SHOPIFY_ADMIN_TOKEN=$TOKEN" >> "$GITHUB_ENV"
-          echo "권한: $(echo "$RESP" | python3 -c 'import sys,json;print(json.load(sys.stdin).get("scope",""))')"
+          echo "권한: $(echo "$RESP" | sed '$d' | python3 -c 'import sys,json;print(json.load(sys.stdin).get("scope",""))')"
 
       - name: 정산 계산 → 파트너 화면 파일 갱신
         env:
