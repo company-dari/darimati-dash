@@ -35,7 +35,8 @@ def sf(q):
 def targets():
     d = sf('''{ pages(first:100){nodes{handle}} products(first:100){nodes{handle}}
                collections(first:50){nodes{handle}} blogs(first:10){nodes{handle articles(first:50){nodes{handle}}}} }''')
-    paths = ['/pages/' + p['handle'] for p in d['pages']['nodes']]
+    # cb-stock-* = 재고 숫자 창구(다른 페이지가 읽는 JSON, 손님용 아님 · RULES-검색노출) → 픽셀 없음이 정상
+    paths = ['/pages/' + p['handle'] for p in d['pages']['nodes'] if not p['handle'].startswith('cb-stock-')]
     paths += ['/products/' + p['handle'] for p in d['products']['nodes']]
     paths += ['/collections/' + c['handle'] for c in d['collections']['nodes']]
     for b in d['blogs']['nodes']:
@@ -96,7 +97,7 @@ var xo=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(m,u)
             status, err, inpage, state = 0, '', [], None
             for attempt in (1, 2):                   # 느린 페이지 한 번 더
                 try:
-                    resp = page.goto(u, wait_until='load', timeout=45000)
+                    resp = page.goto(u, wait_until='domcontentloaded', timeout=45000)   # 10/30: 사진 407개 모음이 load 대기로 시간 초과 → 본문 준비 후 7초
                     status = resp.status if resp else 0
                     page.wait_for_timeout(7000)      # 쇼피파이 픽셀은 늦게 뜬다(dm-track 는 최대 3초 기다림)
                     inpage = page.evaluate("window.__fbHits||[]")
