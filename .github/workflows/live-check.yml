@@ -1,0 +1,28 @@
+# 라이브 페이지 한 장 실측 — 맥 IP 가 쇼피파이에 429 로 막혔을 때 깃허브 서버에서 대신 받아 본다 (2026-10-30 와소코 가격 확인)
+# 실행: gh workflow run live-check.yml -f url=<주소> -f pattern='<grep 정규식>'
+name: live-check
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 확인할 주소
+        required: true
+      pattern:
+        description: 페이지에서 찾을 글자(grep -E)
+        required: false
+        default: 'fbq\('
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: fetch
+        env:
+          URL: ${{ inputs.url }}
+          PAT: ${{ inputs.pattern }}
+        run: |
+          code=$(curl -sL -A "Mozilla/5.0" -o page.html -w '%{http_code}' "$URL")
+          echo "HTTP $code"
+          echo "fbq 개수: $(grep -o 'fbq(' page.html | wc -l)"
+          echo "--- 찾은 것 ---"
+          grep -oE "$PAT" page.html | head -20 || true
+          [ "$code" = 200 ]
