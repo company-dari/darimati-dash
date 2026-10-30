@@ -130,7 +130,8 @@ var xo=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(m,u)
             rows.append(f"| {'✅' if ok else '🔴'} | {short} | {status} | {pv} | {', '.join(evs)[:60]} {(state or [''])[0]} | {' · '.join(why)} |")
             if not ok:
                 bad.append(f'{short} — {" · ".join(why)}')
-            print(f'[{i}/{len(urls)}] {"OK " if ok else "BAD"} {short} pv={pv} {why}', flush=True)
+            src = 'net' if pv_net else ('in' if pv_in else ('state' if pv else '-'))
+            print(f'[{i}/{len(urls)}] {"OK " if ok else "BAD"} {short} pv={pv}({src}) ev={evs} state={state} {why}', flush=True)
             time.sleep(1.5)                          # 429 방지
         br.close()
     head = [f'# 픽셀 전수 실측 — {time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime())}',
