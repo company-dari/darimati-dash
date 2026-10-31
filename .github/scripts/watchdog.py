@@ -448,8 +448,9 @@ else:
         say('- 🟡 무료배송: 할인 켜짐 · 문구 없음')
     else:
         say(f'- ✅ 무료배송: 할인 {"켜짐" if free_on else "꺼짐"} · 문구 {"있음" if shown else "없음"} (짝 맞음)')
-    if '$149' in us and 'Charged in KRW' in us:
-        say('- ✅ 외화 표시: 미국 화면 $149 + 원화 결제 안내')
+    #    주소에 ?country=US 를 붙여 나라를 고정한다(감시 서버가 KR 로 잡히는 날이 있음 · 74 창 10/31). 금액은 바뀔 수 있어 「$숫자」 모양만 본다
+    if _re.search(r'\$\d{2,4}', us) and 'Charged in KRW' in us:
+        say('- ✅ 외화 표시: 미국 화면 $ + 원화 결제 안내')
     else:
         problems.append('미국 손님 화면에 달러 표시($149·Charged in KRW)가 사라졌습니다 — 가격표 금액이 바뀌었으면 docs/currency/build_fx_snippet.py 로 dm-fx 다시 생성')
         say('- 🔴 외화 표시 없음')
