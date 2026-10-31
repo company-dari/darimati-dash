@@ -64,11 +64,15 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          RUN_OUTCOME: ${{ steps.run.outcome }}
         run: |
           [ -z "$SLACK_WEBHOOK" ] && { echo "SLACK_WEBHOOK 없음 — 건너뜀"; exit 0; }
           [ -f /tmp/report.md ] || { TEXT="🔴 *시스템 감시가 실행되지 못했습니다* (클라우드)
           $RUN_URL"; python3 -c 'import json,sys,urllib.request;urllib.request.urlopen(urllib.request.Request(sys.argv[1],data=json.dumps({"text":sys.argv[2]}).encode(),headers={"Content-Type":"application/json"}))' "$SLACK_WEBHOOK" "$TEXT"; exit 0; }
           BODY=$(sed -n '/^## 🔴 문제/,$p' /tmp/report.md | grep -E '^[0-9]+\. ' || true)
+          # 11/1 코덱스 지적: 검사가 중간에 죽으면 문제 목록이 비어 「문제 없음」으로 끝나던 구멍
+          [ "$RUN_OUTCOME" = failure ] && BODY="${BODY:+$BODY
+          }0. 감시 검사 자체가 중간에 멈춤 — 일부 항목은 확인 못 함 (마지막: $(grep '^## ' /tmp/report.md | tail -1))"
           [ -z "$BODY" ] && { echo "문제 없음 — 알림 없음"; exit 0; }
           HINT=""
           echo "$BODY" | grep -q "파트너 정산" && HINT="
