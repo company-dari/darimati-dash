@@ -398,6 +398,73 @@ for lg in ['EN', 'JA', 'DE', 'FR', 'ES', 'IT', 'NL', 'PT_PT', 'FI']:
     else:
         say(f'- ✅ {lg}: 한글 0')
 
+# ── ⑩ 해외 손님 화면 (10/31) — 미국 무료배송 문구 ↔ 할인 · 외화 표시 · 미리보기 띠 ─────────
+#    · 미국 무료배송 문구(테마 snippets/dm-ship-free)는 할인 「US Free Shipping」과 짝. 할인이 꺼졌는데 문구가 남으면 거짓 안내
+#    · 외화 표시(dm-fx)는 가격표 금액이 바뀌면 조용히 원화로 돌아간다(안전 장치) → 미국 화면에 $ 가 사라지면 알림
+#    · 미리보기 띠(dm-preview-banner)는 손님 화면에 절대 나오면 안 된다
+#    이 감시는 미국 서버라 상품 페이지가 미국 손님 화면으로 열린다
+say('')
+say('## ⑩ 해외 손님 화면 (미국 무료배송 · 외화 표시 · 미리보기 띠)')
+def admin_token():
+    cid = (os.environ.get('SHOPIFY_CLIENT_ID') or '').strip(); sec = (os.environ.get('SHOPIFY_CLIENT_SECRET') or '').strip()
+    if not cid or not sec:
+        return None
+    try:
+        req = urllib.request.Request('https://pgwbea-fc.myshopify.com/admin/oauth/access_token',
+                                     json.dumps({'client_id': cid, 'client_secret': sec, 'grant_type': 'client_credentials'}).encode(),
+                                     {'Content-Type': 'application/json'})
+        with urllib.request.urlopen(req, timeout=30, context=CTX) as r:
+            return json.load(r).get('access_token')
+    except Exception:
+        return None
+free_on = None
+tok = admin_token()
+if tok:
+    try:
+        q = '{automaticDiscountNodes(first:50){nodes{automaticDiscount{... on DiscountAutomaticFreeShipping{title status destinationSelection{... on DiscountCountries{countries}}}}}}}'
+        req = urllib.request.Request('https://pgwbea-fc.myshopify.com/admin/api/2025-07/graphql.json', json.dumps({'query': q}).encode(),
+                                     {'Content-Type': 'application/json', 'X-Shopify-Access-Token': tok})
+        with urllib.request.urlopen(req, timeout=30, context=CTX) as r:
+            nodes = json.load(r)['data']['automaticDiscountNodes']['nodes']
+        free_on = any((n.get('automaticDiscount') or {}).get('status') == 'ACTIVE'
+                      and 'US' in (((n.get('automaticDiscount') or {}).get('destinationSelection') or {}).get('countries') or [])
+                      for n in nodes)
+    except Exception:
+        free_on = None
+us = get('https://www.darimati.us/en/products/br-001-oyster-grey?country=US') or ''
+time.sleep(2)
+if not us:
+    problems.append('미국 손님 상품 페이지를 못 읽었습니다(⑩)')
+    say('- 🔴 미국 상품 페이지 읽기 실패')
+else:
+    shown = 'Free shipping to the US' in us
+    if free_on is None:
+        say(f'- ⚪ 미국 무료배송 할인 상태를 못 읽음(토큰) · 화면 문구 {"있음" if shown else "없음"}')
+    elif shown and not free_on:
+        problems.append('🚨 **미국 무료배송 할인이 꺼졌는데 화면엔 「Free shipping to the US」가 남아 있습니다** — 테마 snippets/dm-ship-free.liquid 의 free_cc 를 비우세요')
+        say('- 🔴 무료배송: 할인 꺼짐 · 문구 남음(거짓 안내)')
+    elif free_on and not shown:
+        problems.append('미국 무료배송 할인은 켜져 있는데 상품 화면에 안내 문구가 없습니다(dm-ship-free 빠짐?)')
+        say('- 🟡 무료배송: 할인 켜짐 · 문구 없음')
+    else:
+        say(f'- ✅ 무료배송: 할인 {"켜짐" if free_on else "꺼짐"} · 문구 {"있음" if shown else "없음"} (짝 맞음)')
+    if '$149' in us and 'Charged in KRW' in us:
+        say('- ✅ 외화 표시: 미국 화면 $149 + 원화 결제 안내')
+    else:
+        problems.append('미국 손님 화면에 달러 표시($149·Charged in KRW)가 사라졌습니다 — 가격표 금액이 바뀌었으면 docs/currency/build_fx_snippet.py 로 dm-fx 다시 생성')
+        say('- 🔴 외화 표시 없음')
+leak = []
+for u in [f'https://www.darimati.us/', 'https://www.darimati.us/en/products/br-001-oyster-grey']:
+    h = get(u) or ''
+    time.sleep(2)
+    if 'id="dm-pv"' in h or "'dm-pv'" in h or '미리보기 화면 · 실제 사이트 아님' in h:
+        leak.append(u)
+if leak:
+    problems.append('🚨 **손님 화면(라이브)에 미리보기 띠 코드가 나갑니다** — ' + ', '.join(leak))
+    say('- 🔴 미리보기 띠가 라이브에 나옴')
+else:
+    say('- ✅ 미리보기 띠: 손님 화면 코드 0')
+
 # ── 경보 시험 ────────────────────────────────────────────────────────
 #    "울리지 않는 경보기"가 아닌지 확인하려고 일부러 실패시키는 스위치.
 #    Actions 탭에서 alarm_test 를 켜고 실행하면 이슈가 만들어져야 한다.
