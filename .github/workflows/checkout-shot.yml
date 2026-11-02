@@ -1,0 +1,37 @@
+# 결제창 캡처 — 맥에서 쇼피파이 화면을 많이 열면 429(접속 차단)라 깃허브 서버에서 찍는다 (2026-11-02)
+# 주소(장바구니 링크 + 배송지)로 결제창을 열고 폰·PC 캡처를 artifact 로 올린다. 주문은 넣지 않는다.
+name: checkout-shot
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 결제창으로 가는 장바구니 링크(/cart/<변형ID>:1?checkout[...]=)
+        required: true
+jobs:
+  shot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: shoot
+        env:
+          URL: ${{ inputs.url }}
+        run: |
+          npm i -s playwright@1 >/dev/null 2>&1 && npx -y playwright install --with-deps chromium >/dev/null 2>&1
+          node -e '
+          const { chromium } = require("playwright");
+          (async () => {
+            const b = await chromium.launch();
+            for (const [n, vp] of [["pc", {width:1440, height:1100}], ["phone", {width:390, height:844}]]) {
+              const pg = await b.newPage({ viewport: vp, locale: "en-US" });
+              await pg.goto(process.env.URL, { waitUntil: "load" }); await pg.waitForTimeout(9000);
+              if (n === "phone") { const s = pg.getByText(/order summary/i).first(); if (await s.count()) await s.click().catch(()=>{}); await pg.waitForTimeout(1500); }
+              await pg.screenshot({ path: n + ".png", fullPage: true });
+              const t = await pg.evaluate(() => document.body.innerText);
+              const i = t.search(/Subtotal/); console.log(n, "|", t.slice(i, i + 160).replace(/\n/g, " / "));
+              await pg.close();
+            }
+            await b.close();
+          })();'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: checkout-shot
+          path: "*.png"
