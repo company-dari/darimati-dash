@@ -28,14 +28,18 @@ jobs:
             console.log("fbq:", await pg.evaluate(() => typeof window.fbq));
             const items = process.env.ITEMS.split(",").map(s => { const [id,q] = s.split(":"); return { id: +id, quantity: +q }; });
             const r = await pg.evaluate(async (items) => {
-              const a = await fetch("/cart/add.js", { method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" }, body: JSON.stringify({ items }) });
-              const at = await a.text();
-              const c = await fetch("/cart.js").then(r => r.json()); c._add = a.status + " " + at.slice(0,300); return c;
+              const log = [];
+              for (const it of items) {
+                const a = await fetch("/cart/add.js", { method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" }, body: JSON.stringify({ items: [it] }) });
+                log.push(it.id + "→" + a.status + (a.ok ? "" : " " + (await a.text()).slice(0,120)));
+              }
+              const c = await fetch("/cart.js").then(r => r.json()); c._add = log.join(" | "); c._cur = c.currency; return c;
             }, items);
             console.log("담기:", r._add);
             console.log("코드:", JSON.stringify(r.discount_codes));
             for (const it of r.items) console.log("줄:", it.product_title, "x"+it.quantity, "원가", it.original_line_price/100, "할인후", it.final_line_price/100, JSON.stringify((it.line_level_discount_allocations||[]).map(a=>[a.discount_application.title,a.amount/100])));
             console.log("합계: 원가", r.original_total_price/100, "할인", r.total_discount/100, "결제", r.total_price/100);
+            console.log("통화:", r._cur);
             console.log("속성:", JSON.stringify(r.attributes));
             await b.close();
           })();'
