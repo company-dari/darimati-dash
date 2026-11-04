@@ -19,9 +19,9 @@ jobs:
             const b = await chromium.launch();
             for (const url of process.env.URLS.split(/\s+/).filter(Boolean)) {
               const ctx = await b.newContext({ locale: "ko-KR", viewport: { width: 390, height: 844 }, isMobile: true });
-              const ev = [];
+              const ev = []; const all = [];
               const grab = u => { if (!/facebook\.com\/tr|facebook\.com\/privacy_sandbox/.test(u)) return; try { const q = new URL(u).searchParams; ev.push({ ev: q.get("ev"), id: q.get("id"), dl: (q.get("dl")||"").replace("https://www.darimati.us","").split("?")[0], cd: [...q.keys()].filter(k=>k.startsWith("cd[")).map(k=>k.slice(3,-1)+"="+q.get(k)).join(",").slice(0,160) }); } catch(e){} };
-              ctx.on("request", r => grab(r.url()));
+              ctx.on("request", r => { grab(r.url()); const u=r.url(); if (/facebook|fbevents|web-pixel/.test(u)) all.push(u.slice(0,110)); });
               ctx.on("serviceworker", w => {});
               const pg = await ctx.newPage();
               pg.on("worker", w => {});
@@ -31,12 +31,19 @@ jobs:
               for (let i = 0; i < 12; i++) { await pg.mouse.wheel(0, 900); await pg.waitForTimeout(400); }
               await pg.waitForTimeout(+process.env.WAIT * 1000);
               const perf = await pg.evaluate(() => performance.getEntriesByType("resource").map(r=>r.name).filter(n=>/facebook\.com\/tr/.test(n)).map(u=>new URL(u).searchParams.get("ev"))).catch(()=>[]);
-              const info = await pg.evaluate(() => ({ fbq: typeof fbq, dm: !!window.__dmTrackLoaded, attr: localStorage.getItem("dm_attr") })).catch(()=>({}));
+              const info = await pg.evaluate(() => ({ fbq: typeof fbq, dm: !!window.__dmTrackLoaded, attr: localStorage.getItem("dm_attr"),
+                loaded: window.fbq && fbq.loaded, ver: window.fbq && fbq.version, q: window.fbq && fbq.queue && fbq.queue.length,
+                fbjs: performance.getEntriesByType("resource").map(r=>r.name).filter(n=>/connect\.facebook|facebook\.com/.test(n)).map(n=>n.slice(0,90)),
+                wpm: performance.getEntriesByType("resource").map(r=>r.name).filter(n=>/web-pixel|wpm/.test(n)).length,
+                frames: [...document.querySelectorAll("iframe")].map(f=>(f.id||f.name||"")+"|"+(f.src||"").slice(0,70)).slice(0,6),
+                cp: (window.Shopify&&Shopify.customerPrivacy) ? JSON.stringify({a: Shopify.customerPrivacy.analyticsProcessingAllowed&&Shopify.customerPrivacy.analyticsProcessingAllowed(), m: Shopify.customerPrivacy.marketingAllowed&&Shopify.customerPrivacy.marketingAllowed(), s: Shopify.customerPrivacy.saleOfDataAllowed&&Shopify.customerPrivacy.saleOfDataAllowed(), r: Shopify.customerPrivacy.getRegion&&Shopify.customerPrivacy.getRegion()}) : "none",
+                src: (fbq.toString()).slice(0,120) })).catch(e=>({err:e.message}));
+              console.log("    진단:", JSON.stringify(info));
               console.log("■", url.replace("https://www.darimati.us",""), "HTTP", code, "fbq:", info.fbq, "dm-track:", info.dm);
               const cnt = {}; ev.forEach(e => { const k = e.ev + " [id " + e.id + "] dl=" + e.dl; cnt[k] = (cnt[k]||0)+1; });
               for (const k in cnt) console.log("   ", cnt[k] + "×", k);
               const cds = [...new Set(ev.filter(e=>e.cd).map(e=>e.ev+": "+e.cd))]; cds.slice(0,6).forEach(c => console.log("      cd", c));
-              console.log("    메인창에서 보인 것:", JSON.stringify(perf));
+              console.log("    메인창에서 보인 것:", JSON.stringify(perf)); console.log("    관련 요청:", JSON.stringify([...new Set(all)].slice(0,10)));
               await ctx.close(); await new Promise(r => setTimeout(r, 3000));
             }
             await b.close();
