@@ -1,0 +1,38 @@
+name: checkout-check
+# 손님 흐름: 시작 주소(QR) → 카드 클릭 → 상품 → 담기 → 결제창 금액·코드 읽기 + 캡처 (주문은 넣지 않음)
+on:
+  workflow_dispatch:
+    inputs:
+      url: { description: 시작 주소, required: true }
+      card: { description: "누를 카드 글자 (예 코어 블랙)", required: true }
+      variant: { description: 담을 변형ID, required: true }
+      qty: { description: 수량, required: false, default: "1" }
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: flow
+        env: { URL: "${{ inputs.url }}", CARD: "${{ inputs.card }}", VID: "${{ inputs.variant }}", QTY: "${{ inputs.qty }}" }
+        run: |
+          npm i -s playwright@1 >/dev/null 2>&1 && npx -y playwright install --with-deps chromium >/dev/null 2>&1
+          node -e '
+          const { chromium } = require("playwright");
+          (async () => {
+            const b = await chromium.launch(); const ctx = await b.newContext({ locale: "ko-KR", viewport: { width: 390, height: 844 }, isMobile: true });
+            const pg = await ctx.newPage();
+            await pg.goto(process.env.URL, { waitUntil: "load" }); await pg.waitForTimeout(5000);
+            console.log("1 착지:", pg.url());
+            await pg.locator(".gbp__c", { hasText: process.env.CARD }).first().click(); await pg.waitForLoadState("load"); await pg.waitForTimeout(4000);
+            console.log("2 상품:", pg.url());
+            const r = await pg.evaluate(async ([id, q]) => { const a = await fetch("/cart/add.js", { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify({ items: [{ id: +id, quantity: +q }] }) }); const c = await fetch("/cart.js").then(r => r.json()); return { s: a.status, codes: c.discount_codes, total: c.total_price, attrs: c.attributes, items: c.items.map(i => i.title + " x" + i.quantity) }; }, [process.env.VID, process.env.QTY]);
+            console.log("3 장바구니:", JSON.stringify(r));
+            await pg.goto("https://www.darimati.us/checkout", { waitUntil: "load" }); await pg.waitForTimeout(9000);
+            console.log("4 결제창:", pg.url().split("?")[0]);
+            const t = (await pg.locator("body").innerText()).replace(/\s+/g, " ");
+            const hits = t.match(/(F45HAPJEONG20[^₩]{0,20}[-−]?₩?[\d,]+|합계[^₩]{0,15}₩[\d,]+|총[^₩]{0,15}₩[\d,]+|소계[^₩]{0,10}₩[\d,]+|할인[^₩]{0,20}[-−]?₩[\d,]+|KRW ?₩?[\d,]+)/g) || [];
+            console.log("5 결제창 금액:", JSON.stringify([...new Set(hits)].slice(0, 12)));
+            await pg.screenshot({ path: "checkout.png", fullPage: true });
+            await b.close();
+          })();'
+      - uses: actions/upload-artifact@v4
+        with: { name: checkout, path: checkout.png }
