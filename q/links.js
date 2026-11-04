@@ -12,7 +12,7 @@ window.QR = {
     "f45-boramae": "https://www.darimati.us/pages/br001-f45-boramae",
     "f45-sinyongsan": "https://www.darimati.us/pages/br001-f45-sinyongsan",
     "anytime": "https://www.darimati.us/pages/br001-anytime",
-    "f45-hapjeong": "https://www.darimati.us/pages/br001-f45-hapjeong",
+    "f45-hapjeong": "https://www.darimati.us/discount/F45HAPJEONG20?redirect=%2Fcollections%2Fshoes%3Futm_source%3Df45%26utm_medium%3Dpartner%26utm_campaign%3Dhapjeong20%26utm_content%3Dqr",
     "f45-dangsan": "https://www.darimati.us/pages/br001-f45-dangsan",
     "f45-songdo": "https://www.darimati.us/pages/br001-f45-songdo",
     "f45-suyu": "https://www.darimati.us/pages/br001-f45-suyu",
