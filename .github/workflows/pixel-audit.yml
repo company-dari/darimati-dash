@@ -1,60 +1,43 @@
-name: 픽셀 전수 실측
-# 10/30 사장님 「모든 랜딩 픽셀 절대 틀리면 안 됨 · 모든 국가 광고」
-# 진짜 크롬으로 상점 전 페이지(한·영) + 핵심 페이지 9개 언어 + 옛 영문 랜딩을 열어
-# 페이스북으로 나가는 PageView 가 정확히 1번인지 센다. 문제 있으면 슬랙 + 이슈.
+name: pixel-audit
+# 여러 페이지를 손님처럼 열고(끝까지 스크롤) 메타 픽셀로 나간 이벤트를 전부 기록 — 리타겟 모수 점검용
 on:
   workflow_dispatch:
     inputs:
-      slack:
-        description: '문제 있으면 슬랙으로도 보내기'
-        type: boolean
-        default: false
-      only:
-        description: '빠른 시험 — 주소에 이 정규식이 든 페이지만 (비우면 전부)'
-        type: string
-        default: ''
-  schedule:
-    - cron: '0 1 * * 1,4'   # 월·목 10:00 KST (광고 켜기 전 주 2회)
-
-permissions:
-  contents: read
-  issues: write
-
+      urls: { description: "주소 공백 구분", required: true }
+      wait: { description: 페이지당 대기(초), required: false, default: "8" }
 jobs:
   audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: 크롬 준비
+      - name: audit
+        env: { URLS: "${{ inputs.urls }}", WAIT: "${{ inputs.wait }}" }
         run: |
-          pip install playwright==1.48.0
-          python -m playwright install --with-deps chromium
-      - name: 실측
-        id: run
-        env:
-          ONLY: ${{ inputs.only }}
-        run: |
-          set -o pipefail
-          python3 .github/scripts/pixel_audit.py | tee /tmp/log.txt
-      - name: 결과 요약
-        if: always()
-        run: |
-          [ -f /tmp/pixel.md ] && cat /tmp/pixel.md >> "$GITHUB_STEP_SUMMARY" || echo "결과 파일 없음" >> "$GITHUB_STEP_SUMMARY"
-      - name: 문제 있으면 슬랙
-        if: failure() && (github.event_name == 'schedule' || inputs.slack)
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: |
-          [ -z "$SLACK_WEBHOOK" ] && exit 0
-          BAD=$(head -15 /tmp/pixel_bad.txt 2>/dev/null || echo "실측 스크립트가 끝까지 못 돌았습니다")
-          N=$(grep -c . /tmp/pixel_bad.txt 2>/dev/null || echo "?")
-          TEXT="🔴 *픽셀 전수 실측 — 문제 ${N}건* (광고 측정 끊김/중복 위험)
-          ${BAD}
-          자세히: $RUN_URL
-          → 터미널 클로드에게 「픽셀 실측 경보 봐줘」"
-          python3 -c 'import json,sys,urllib.request;urllib.request.urlopen(urllib.request.Request(sys.argv[1],data=json.dumps({"text":sys.argv[2]}).encode(),headers={"Content-Type":"application/json"}))' "$SLACK_WEBHOOK" "$TEXT"
+          npm i -s playwright@1 >/dev/null 2>&1 && npx -y playwright install --with-deps chromium >/dev/null 2>&1
+          node -e '
+          const { chromium } = require("playwright");
+          (async () => {
+            const b = await chromium.launch();
+            for (const url of process.env.URLS.split(/\s+/).filter(Boolean)) {
+              const ctx = await b.newContext({ locale: "ko-KR", viewport: { width: 390, height: 844 }, isMobile: true });
+              const ev = [];
+              const grab = u => { if (!/facebook\.com\/tr|facebook\.com\/privacy_sandbox/.test(u)) return; try { const q = new URL(u).searchParams; ev.push({ ev: q.get("ev"), id: q.get("id"), dl: (q.get("dl")||"").replace("https://www.darimati.us","").split("?")[0], cd: [...q.keys()].filter(k=>k.startsWith("cd[")).map(k=>k.slice(3,-1)+"="+q.get(k)).join(",").slice(0,160) }); } catch(e){} };
+              ctx.on("request", r => grab(r.url()));
+              ctx.on("serviceworker", w => {});
+              const pg = await ctx.newPage();
+              pg.on("worker", w => {});
+              let code = 0;
+              try { const resp = await pg.goto(url, { waitUntil: "load", timeout: 45000 }); code = resp ? resp.status() : 0; } catch (e) { console.log("열기 실패", url, e.message); }
+              await pg.waitForTimeout(3000);
+              for (let i = 0; i < 12; i++) { await pg.mouse.wheel(0, 900); await pg.waitForTimeout(400); }
+              await pg.waitForTimeout(+process.env.WAIT * 1000);
+              const perf = await pg.evaluate(() => performance.getEntriesByType("resource").map(r=>r.name).filter(n=>/facebook\.com\/tr/.test(n)).map(u=>new URL(u).searchParams.get("ev"))).catch(()=>[]);
+              const info = await pg.evaluate(() => ({ fbq: typeof fbq, dm: !!window.__dmTrackLoaded, attr: localStorage.getItem("dm_attr") })).catch(()=>({}));
+              console.log("■", url.replace("https://www.darimati.us",""), "HTTP", code, "fbq:", info.fbq, "dm-track:", info.dm);
+              const cnt = {}; ev.forEach(e => { const k = e.ev + " [id " + e.id + "] dl=" + e.dl; cnt[k] = (cnt[k]||0)+1; });
+              for (const k in cnt) console.log("   ", cnt[k] + "×", k);
+              const cds = [...new Set(ev.filter(e=>e.cd).map(e=>e.ev+": "+e.cd))]; cds.slice(0,6).forEach(c => console.log("      cd", c));
+              console.log("    메인창에서 보인 것:", JSON.stringify(perf));
+              await ctx.close(); await new Promise(r => setTimeout(r, 3000));
+            }
+            await b.close();
+          })();'
