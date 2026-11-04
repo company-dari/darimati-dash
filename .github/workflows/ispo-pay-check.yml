@@ -1,0 +1,38 @@
+name: ispo-pay-check
+# ISPO 부스 결제 페이지: 금액 입력 → 다음 → Pay now → 결제창 금액 (주문은 넣지 않음) + 픽셀 요청 기록
+on:
+  workflow_dispatch:
+    inputs:
+      amount: { description: 입력 금액, required: false, default: "150" }
+      cur: { description: "통화 버튼 USD/EUR/KRW", required: false, default: "USD" }
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: flow
+        env: { AMT: "${{ inputs.amount }}", CUR: "${{ inputs.cur }}" }
+        run: |
+          npm i -s playwright@1 >/dev/null 2>&1 && npx -y playwright install --with-deps chromium >/dev/null 2>&1
+          node -e '
+          const { chromium } = require("playwright");
+          (async () => {
+            const b = await chromium.launch(); const ctx = await b.newContext({ locale: "en-US", viewport: { width: 390, height: 844 }, isMobile: true });
+            const pg = await ctx.newPage(); const px = [];
+            pg.on("request", r => { const u = r.url(); if (/facebook\.com\/tr/.test(u)) { const m = u.match(/[?&]ev=([^&]+)/); px.push(m ? decodeURIComponent(m[1]) : "?"); } });
+            await pg.goto("https://www.darimati.us/en/pages/ispo-pay?cb=" + Date.now(), { waitUntil: "load" }); await pg.waitForTimeout(5000);
+            console.log("1 페이지:", pg.url(), "fbq:", await pg.evaluate(() => typeof fbq));
+            await pg.click("#cur button[data-c=\"" + process.env.CUR + "\"]"); await pg.fill("#amt", process.env.AMT); await pg.waitForTimeout(500);
+            console.log("2 환산:", await pg.textContent("#conv"), "다음버튼 켜짐:", !(await pg.isDisabled("#next")));
+            await pg.click("#next"); await pg.waitForTimeout(500);
+            console.log("3 확인화면:", await pg.textContent("#tKrw"), await pg.textContent("#tEur"), await pg.textContent("#tDlv"));
+            await Promise.all([pg.waitForURL(/checkouts?\//, { timeout: 30000 }).catch(e => console.log("이동 실패", e.message)), pg.click("#pay")]);
+            await pg.waitForTimeout(9000);
+            console.log("4 결제창:", pg.url().split("?")[0], "오류칸:", await pg.evaluate(() => (document.getElementById("err")||{}).textContent || ""));
+            const t = (await pg.locator("body").innerText()).replace(/\s+/g, " ");
+            console.log("5 결제창 금액:", JSON.stringify([...new Set(t.match(/(Total[^₩€$]{0,20}[₩€$][\d,.]+|Subtotal[^₩€$]{0,10}[₩€$][\d,.]+|KRW ?₩?[\d,]+|합계[^₩]{0,10}₩[\d,]+)/g) || [])].slice(0, 8)));
+            console.log("6 주소 미리채움:", /Europaplein|Amsterdam/.test(await pg.content()));
+            console.log("7 픽셀 이벤트:", JSON.stringify(px));
+            await pg.screenshot({ path: "ispo.png", fullPage: true }); await b.close();
+          })();'
+      - uses: actions/upload-artifact@v4
+        with: { name: ispo, path: ispo.png }
