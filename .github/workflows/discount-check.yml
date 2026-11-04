@@ -22,7 +22,10 @@ jobs:
           node -e '
           const { chromium } = require("playwright");
           (async () => {
-            const b = await chromium.launch(); const pg = await b.newPage();
+            const b = await chromium.launch(); const ctx = await b.newContext({ locale: "ko-KR" });
+            // 깃허브 서버는 미국 → 한국 손님으로 보이게 (미국 시장엔 한국 상품이 안 팔린다)
+            await ctx.addCookies([{ name: "localization", value: "KR", domain: ".darimati.us", path: "/" }, { name: "cart_currency", value: "KRW", domain: ".darimati.us", path: "/" }]);
+            const pg = await ctx.newPage();
             await pg.goto(process.env.URL, { waitUntil: "load" }); await pg.waitForTimeout(6000);
             console.log("착지:", pg.url());
             console.log("fbq:", await pg.evaluate(() => typeof window.fbq));
@@ -33,7 +36,7 @@ jobs:
                 const a = await fetch("/cart/add.js", { method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" }, body: JSON.stringify({ items: [it] }) });
                 log.push(it.id + "→" + a.status + (a.ok ? "" : " " + (await a.text()).slice(0,120)));
               }
-              const c = await fetch("/cart.js").then(r => r.json()); c._add = log.join(" | "); c._cur = c.currency; return c;
+              await new Promise(r => setTimeout(r, 1500)); const t = await fetch("/cart.js", { headers: { Accept: "application/json" } }).then(r => r.text()); let c; try { c = JSON.parse(t); } catch (e) { return { _add: log.join(" | ") + " / cart.js 응답: " + t.slice(0,150), items: [], discount_codes: [] }; } c._add = log.join(" | "); c._cur = c.currency; return c;
             }, items);
             console.log("담기:", r._add);
             console.log("코드:", JSON.stringify(r.discount_codes));
