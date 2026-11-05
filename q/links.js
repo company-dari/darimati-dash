@@ -27,7 +27,6 @@ window.QR = {
     "crossfit-jungsim": "https://www.darimati.us/pages/br001-crossfit-jungsim",
     "f45-yeoksam": "https://www.darimati.us/pages/br001-f45-yeoksam",
     "f45-gangnam": "https://www.darimati.us/pages/br001-f45-gangnam",
-    "f45-gwanghwamun": "https://www.darimati.us/pages/br001-f45-gwanghwamun",
     "f45-gongdeok": "https://www.darimati.us/pages/br001-f45-gongdeok",
     "f45-gyodae": "https://www.darimati.us/pages/br001-f45-gyodae",
     "f45-hannam": "https://www.darimati.us/pages/br001-f45-hannam",
@@ -40,6 +39,7 @@ window.QR = {
     "f45-seongsu": "https://www.darimati.us/pages/br001-f45-seongsu",
     "f45-sinjungdong": "https://www.darimati.us/pages/br001-f45-sinjungdong",
     "f45-ilsan": "https://www.darimati.us/pages/br001-f45-ilsan",
-    "box-coupon": "https://www.darimati.us/collections/all?utm_source=box_insert&utm_medium=qr&utm_campaign=box10_coupon&utm_content=parcel"
+    "box-coupon": "https://www.darimati.us/collections/all?utm_source=box_insert&utm_medium=qr&utm_campaign=box10_coupon&utm_content=parcel",
+    "f45-gwanghwamun-20": "https://www.darimati.us/pages/br001-f45-gwanghwamun-20?utm_source=f45&utm_medium=partner&utm_campaign=gwanghwamun20&utm_content=qr"
   }
 };
