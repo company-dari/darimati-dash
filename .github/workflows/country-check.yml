@@ -3,6 +3,11 @@
 name: country-check
 on:
   workflow_dispatch:
+    inputs:
+      preview_theme_id:
+        description: 미리보기 테마 번호(비우면 라이브)
+        required: false
+        default: ''
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -12,6 +17,8 @@ jobs:
       - name: 브라우저 준비
         run: npm i -s playwright@1 >/dev/null 2>&1 && npx -y playwright install --with-deps chromium >/dev/null 2>&1
       - name: 나라별 실측
+        env:
+          PV: ${{ inputs.preview_theme_id }}
         run: node .github/scripts/country_check.mjs
       - uses: actions/upload-artifact@v4
         if: always()
