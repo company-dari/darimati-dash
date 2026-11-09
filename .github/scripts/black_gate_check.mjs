@@ -24,9 +24,9 @@ for (const cc of CC) {
   if (process.env.FLOW === '1' && r.popup) {   // 팝업 닫기 → 사이즈 260 → 바로 구매 누른 화면
     await p.click('.dmpc-x').catch(() => {}); await p.waitForTimeout(800);
     await p.screenshot({ path: `shot-${cc}-2-closed.png` });
-    await p.getByText('260', { exact: true }).first().click().catch(e => console.log('size', e.message.slice(0, 80)));
+    await p.locator('label:has-text("260")').first().click({ timeout: 5000 }).catch(e => console.log('size', e.message.slice(0, 80)));
     await p.waitForTimeout(600);
-    const buy = p.locator('button, a').filter({ hasText: /바로 구매|Buy it now/ }).first();
+    const buy = p.locator('button, a').filter({ hasText: /사전주문 종료|바로 구매|Buy it now/ }).first();
     await buy.click({ timeout: 5000 }).catch(e => console.log('buy', e.message.slice(0, 80)));
     await p.waitForTimeout(1500);
     console.log(`${cc} 클릭 후: 주소=${p.url().replace('https://www.darimati.us','')} | 대기안내=${await p.locator('#dmpc-wait').isVisible().catch(()=>false)} | 팝업다시=${await p.locator('#dmpc').isVisible().catch(()=>false)}`);
