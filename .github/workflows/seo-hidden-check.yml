@@ -1,0 +1,28 @@
+# 검색 숨김(noindex) 전수 확인 — 맥에서 40개+ 연달아 받으면 429 라서 깃허브 서버에서 3초 간격으로 (2026-11-09)
+# 실행: gh workflow run seo-hidden-check.yml -f paths='/pages/a /pages/b /products/bridge-001 /cart'
+# 규칙: ~/darimati-handoff/RULES-검색노출.md · 맥 쪽 ~/darimati-theme/tools/seo-watch.sh
+name: seo-hidden-check
+on:
+  workflow_dispatch:
+    inputs:
+      paths:
+        description: 확인할 경로(공백 구분)
+        required: true
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: noindex
+        env:
+          PATHS: ${{ inputs.paths }}
+        run: |
+          ok=0; bad=0
+          for p in $PATHS; do
+            code=$(curl -sL -A "Mozilla/5.0" -o page.html -w '%{http_code}' --max-time 30 "https://darimati.us$p")
+            n=$(grep -c 'name="robots" content="noindex' page.html || true)
+            if [ "$code" = 200 ] && [ "$n" -ge 1 ]; then ok=$((ok+1)); else bad=$((bad+1)); echo "BAD $p http=$code noindex=$n"; fi
+            [ "$code" = 429 ] && { echo "429 — 중단"; exit 1; }
+            sleep 3
+          done
+          echo "RESULT ok=$ok bad=$bad"
+          [ "$bad" = 0 ]
