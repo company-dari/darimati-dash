@@ -1,0 +1,17 @@
+# 블랙 공식 상세 나라별 실측 (2026-11-09) — 수동 실행
+name: black-gate-check
+on:
+  workflow_dispatch:
+    inputs:
+      countries: { description: '나라(쉼표)', required: false, default: 'KR,US,JP,DE' }
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm i -s playwright@1 >/dev/null 2>&1 && npx -y playwright install --with-deps chromium >/dev/null 2>&1
+      - env: { CC: '${{ inputs.countries }}' }
+        run: node .github/scripts/black_gate_check.mjs
+      - uses: actions/upload-artifact@v4
+        with: { name: black-gate-shots, path: 'shot-*.png' }
