@@ -5,6 +5,7 @@ on:
     inputs:
       countries: { description: '나라(쉼표)', required: false, default: 'KR,US,JP,DE' }
       flow: { description: '팝업 닫기→사이즈→바로구매 화면도(1)', required: false, default: '1' }
+      mobile: { description: '휴대폰 화면(1)', required: false, default: '0' }
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -12,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: npm i -s playwright@1 >/dev/null 2>&1 && npx -y playwright install --with-deps chromium >/dev/null 2>&1
-      - env: { CC: '${{ inputs.countries }}', FLOW: '${{ inputs.flow }}' }
+      - env: { CC: '${{ inputs.countries }}', FLOW: '${{ inputs.flow }}', MOBILE: '${{ inputs.mobile }}' }
         run: node .github/scripts/black_gate_check.mjs
       - uses: actions/upload-artifact@v4
         with: { name: black-gate-shots, path: 'shot-*.png' }

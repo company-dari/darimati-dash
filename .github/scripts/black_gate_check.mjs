@@ -5,7 +5,7 @@ const B = 'https://www.darimati.us', P = '/products/br-001-core-black-gb';
 const CC = (process.env.CC || 'KR,US,JP,DE').split(',');
 const b = await chromium.launch();
 for (const cc of CC) {
-  const ctx = await b.newContext({ viewport: { width: 1280, height: 900 } });   // 매번 깨끗한 창(열쇠 없음)
+  const ctx = await b.newContext(process.env.MOBILE === '1' ? { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 } : { viewport: { width: 1280, height: 900 } });   // 매번 깨끗한 창(열쇠 없음)
   const p = await ctx.newPage();
   await p.goto(`${B}${P}?country=${cc}`, { waitUntil: 'load', timeout: 60000 });
   await p.waitForTimeout(3500);
@@ -26,6 +26,8 @@ for (const cc of CC) {
     await p.screenshot({ path: `shot-${cc}-2-closed.png` });
     await p.locator('label:has-text("260")').first().click({ timeout: 5000 }).catch(e => console.log('size', e.message.slice(0, 80)));
     await p.waitForTimeout(600);
+    await p.locator('.product-form-buttons .dmpc-off-btn').first().scrollIntoViewIfNeeded().catch(() => {});
+    await p.screenshot({ path: `shot-${cc}-2b-btn.png` });
     await p.locator('.product-form-buttons .dmpc-off-btn').first().click({ timeout: 5000, force: true }).catch(e => console.log('buy', e.message.replace(/\n/g,' ¦ ').slice(0, 900)));
     await p.waitForTimeout(1500);
     console.log(`${cc} 클릭 후: 주소=${p.url().replace('https://www.darimati.us','')} | 대기안내=${await p.locator('#dmpc-wait').isVisible().catch(()=>false)} | 팝업다시=${await p.locator('#dmpc').isVisible().catch(()=>false)}`);
