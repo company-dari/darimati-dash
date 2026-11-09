@@ -1,0 +1,22 @@
+# 나라별 손님 화면 실측 (2026-11-09) — 13개 나라 × 첫 화면·상세·블로그 글
+# 실행: gh workflow run country-check.yml  → 요약 표 + 캡처(artifact country-shots)
+name: country-check
+on:
+  workflow_dispatch:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: 브라우저 준비
+        run: npm i -s playwright@1 >/dev/null 2>&1 && npx -y playwright install --with-deps chromium >/dev/null 2>&1
+      - name: 나라별 실측
+        run: node .github/scripts/country_check.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: country-shots
+          path: |
+            shots/
+            report.md
