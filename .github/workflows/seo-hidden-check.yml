@@ -1,18 +1,26 @@
 # 검색 숨김(noindex) 전수 확인 — 맥에서 40개+ 연달아 받으면 429 라서 깃허브 서버에서 3초 간격으로 (2026-11-09)
-# 실행: gh workflow run seo-hidden-check.yml -f paths='/pages/a /pages/b /products/bridge-001 /cart'
-# 규칙: ~/darimati-handoff/RULES-검색노출.md · 맥 쪽 ~/darimati-theme/tools/seo-watch.sh
+# 실행: gh workflow run seo-hidden-check.yml -f paths='/pages/a /products/bridge-001 /cart'
+# 슬랙 알림만: gh workflow run seo-hidden-check.yml -f slack_text='…'   (슬랙 주소는 깃허브 비밀값에만 있다)
+# 부르는 쪽: ~/darimati-theme/tools/seo-watch.sh (맥, 매주 월 10:07) · 심박 감시: watchdog.py ⑫
+# 규칙: ~/darimati-handoff/RULES-검색노출.md
 name: seo-hidden-check
 on:
   workflow_dispatch:
     inputs:
       paths:
         description: 확인할 경로(공백 구분)
-        required: true
+        required: false
+        default: ''
+      slack_text:
+        description: 슬랙으로 보낼 문구(문제 있을 때만)
+        required: false
+        default: ''
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
       - name: noindex
+        if: ${{ inputs.paths != '' }}
         env:
           PATHS: ${{ inputs.paths }}
         run: |
@@ -26,3 +34,12 @@ jobs:
           done
           echo "RESULT ok=$ok bad=$bad"
           [ "$bad" = 0 ]
+      - name: slack
+        if: ${{ inputs.slack_text != '' }}
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          TEXT: ${{ inputs.slack_text }}
+        run: |
+          [ -z "$SLACK_WEBHOOK" ] && { echo "SLACK_WEBHOOK 없음"; exit 1; }
+          python3 -c 'import json,os,urllib.request;urllib.request.urlopen(urllib.request.Request(os.environ["SLACK_WEBHOOK"],data=json.dumps({"text":os.environ["TEXT"]}).encode(),headers={"Content-Type":"application/json"}))'
+          echo "SLACK SENT"

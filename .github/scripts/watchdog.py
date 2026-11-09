@@ -494,6 +494,30 @@ else:
     else:
         say(f'- ✅ {len(blog)}개 상품 모두 제품 보기와 같은 사진')
 
+# ── ⑫ 검색 노출 주간 점검 심박 (11/9) — 맥 seo-watch.sh 가 매주 월 깃허브 seo-hidden-check 를 부른다 ─────
+#    맥이 꺼져 몇 주 안 돌면 아무도 모른다 → 마지막 성공 실행이 8일보다 오래면 문제
+say('')
+say('## ⑫ 검색 노출 주간 점검 심박')
+try:
+    import json as _j
+    _r = get('https://api.github.com/repos/company-dari/darimati-dash/actions/workflows/seo-hidden-check.yml/runs?per_page=10&status=success')
+    _runs = (_j.loads(_r).get('workflow_runs') or []) if _r else None
+    if _runs is None:
+        say('- ⚠️ 실행 기록을 못 읽음')
+    elif not _runs:
+        problems.append('검색 노출 주간 점검 성공 기록 없음 — 맥 seo-watch(월 10:07) 확인')
+        say('- 🔴 성공 기록 없음')
+    else:
+        _last = datetime.strptime(_runs[0]['created_at'], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
+        _d = (datetime.now(timezone.utc) - _last).days
+        if _d > 8:
+            problems.append(f'검색 노출 주간 점검이 {_d}일째 안 돎 — 맥이 꺼졌거나 seo-watch 고장 (~/darimati-theme/tools/seo-watch.log)')
+            say(f'- 🔴 마지막 성공 {_d}일 전')
+        else:
+            say(f'- ✅ 마지막 성공 {_d}일 전')
+except Exception as e:
+    say(f'- ⚠️ 심박 확인 오류: {e}')
+
 # ── 경보 시험 ────────────────────────────────────────────────────────
 #    "울리지 않는 경보기"가 아닌지 확인하려고 일부러 실패시키는 스위치.
 #    Actions 탭에서 alarm_test 를 켜고 실행하면 이슈가 만들어져야 한다.
