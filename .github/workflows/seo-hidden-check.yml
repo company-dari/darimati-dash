@@ -18,7 +18,7 @@ jobs:
         run: |
           ok=0; bad=0
           for p in $PATHS; do
-            code=$(curl -sL -A "Mozilla/5.0" -o page.html -w '%{http_code}' --max-time 30 "https://darimati.us$p")
+            code=$(curl -sL -A "Mozilla/5.0" -o page.html -w '%{http_code}' --max-time 30 "https://www.darimati.us$p")
             n=$(grep -c 'name="robots" content="noindex' page.html || true)
             if [ "$code" = 200 ] && [ "$n" -ge 1 ]; then ok=$((ok+1)); else bad=$((bad+1)); echo "BAD $p http=$code noindex=$n"; fi
             [ "$code" = 429 ] && { echo "429 — 중단"; exit 1; }
