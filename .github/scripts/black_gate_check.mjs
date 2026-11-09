@@ -26,7 +26,7 @@ for (const cc of CC) {
     await p.screenshot({ path: `shot-${cc}-2-closed.png` });
     await p.locator('label:has-text("260")').first().click({ timeout: 5000 }).catch(e => console.log('size', e.message.slice(0, 80)));
     await p.waitForTimeout(600);
-    await p.locator('.product-form-buttons .dmpc-off-btn').first().click({ timeout: 5000 }).catch(e => console.log('buy', e.message.replace(/\n/g,' ¦ ').slice(0, 900)));
+    await p.locator('.product-form-buttons .dmpc-off-btn').first().click({ timeout: 5000, force: true }).catch(e => console.log('buy', e.message.replace(/\n/g,' ¦ ').slice(0, 900)));
     await p.waitForTimeout(1500);
     console.log(`${cc} 클릭 후: 주소=${p.url().replace('https://www.darimati.us','')} | 대기안내=${await p.locator('#dmpc-wait').isVisible().catch(()=>false)} | 팝업다시=${await p.locator('#dmpc').isVisible().catch(()=>false)}`);
     await p.screenshot({ path: `shot-${cc}-3-buy.png` });
