@@ -466,6 +466,34 @@ if leak:
 else:
     say('- ✅ 미리보기 띠: 손님 화면 코드 0')
 
+# ── ⑪ 카드 사진 = 제품 보기 기준 (11/9 사장님 「어디서 노출되든 제품 보기 쪽이 기준」) ─────────
+#    제품 보기(/collections/shoes) 카드 사진과 블로그 글 아래 제품 카드 사진이 같은지.
+#    블로그 카드·폰 메뉴는 테마 snippets/dm-card-cuts.liquid 목록을 쓴다 → 제품 보기에서 사진을 바꾸고
+#    그 목록을 안 바꾸면 여기서 걸린다. 고치는 법: dm-card-cuts 한 줄을 제품 보기 「누끼 사진」 파일 이름으로.
+say('')
+say('### ⑪ 카드 사진 일치 (제품 보기 기준)')
+def _cards(html, cls):
+    out = {}
+    for part in (html or '').split('data-dm-card="')[1:]:
+        h = part.split('"', 1)[0]
+        m = re.search(r'<img[^>]*class="[^"]*' + cls + r'[^"]*"[^>]*src="([^"]+)"', part[:2500]) or re.search(r'<img[^>]*src="([^"]+)"[^>]*class="[^"]*' + cls, part[:2500])
+        if m and h not in out:
+            out[h] = re.sub(r'(_\d+x\d*)?\.(webp|jpe?g|png).*$', '', m.group(1).split('/')[-1].split('?')[0])
+    return out
+shop = _cards(get('https://www.darimati.us/collections/shoes'), 'dm-sc__cut')
+time.sleep(2)
+blog = _cards(get('https://www.darimati.us/blogs/archive/ispo-2026-amsterdam-darimati-booth-bnb22'), 'dm-shop__cut')
+if not shop or not blog:
+    problems.append(f'카드 사진 비교 불가 — 제품 보기 카드 {len(shop)}개 · 블로그 카드 {len(blog)}개를 읽음 (화면 구조가 바뀌었는지 확인)')
+    say('- 🔴 비교 불가')
+else:
+    bad = [f'{h}: 블로그 {v} ≠ 제품 보기 {shop.get(h)}' for h, v in blog.items() if h in shop and shop[h] != v]
+    if bad:
+        problems.append('블로그 제품 카드 사진이 제품 보기와 다릅니다 — 테마 snippets/dm-card-cuts.liquid 를 제품 보기 「누끼 사진」에 맞추세요: ' + ' / '.join(bad))
+        say('- 🔴 ' + ' / '.join(bad))
+    else:
+        say(f'- ✅ {len(blog)}개 상품 모두 제품 보기와 같은 사진')
+
 # ── 경보 시험 ────────────────────────────────────────────────────────
 #    "울리지 않는 경보기"가 아닌지 확인하려고 일부러 실패시키는 스위치.
 #    Actions 탭에서 alarm_test 를 켜고 실행하면 이슈가 만들어져야 한다.
