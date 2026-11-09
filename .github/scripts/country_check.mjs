@@ -41,6 +41,18 @@ for (const [cc0, lang, path] of C) {
       return { locale: Shopify.locale, cur: Shopify.currency?.active, price, http: 200 };
     });
     await wait(2000);
+    // ②-2 제품 보기(그 나라 언어 주소) — 기준 화면
+    await p.goto(`${B}${path}/collections/shoes?country=${cc}${PV}`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await wait(2000);
+    r.shop = await p.evaluate(() => {
+      const o = {};
+      document.querySelectorAll('[data-dm-card]').forEach(a => { const h = a.dataset.dmCard; if (o[h]) return;
+        const img = a.querySelector('img.dm-sc__cut') || a.querySelector('img');
+        o[h] = { img: (img?.getAttribute('src') || '').split('/').pop().split('?')[0].replace(/(_\d+x\d*)?\.(webp|jpe?g|png)$/, ''),
+                 price: (a.querySelector('.dm-sc__now')?.innerText || '').trim() }; });
+      return o;
+    });
+    await wait(2000);
     // ③ 블로그 글(그 나라 언어 주소) — 버튼·제품 카드·한국어 섞임·픽셀
     const resp = await p.goto(`${B}${path}${ART}?country=${cc}${PV}`, { waitUntil: 'networkidle', timeout: 60000 });
     r.art = await p.evaluate(() => {
@@ -53,6 +65,7 @@ for (const [cc0, lang, path] of C) {
         cardTitle: q('.dm-shop__hd h2').map(e => e.innerText)[0] || '',
         cards: q('.dm-shop__card').length, cardPrice: q('.dm-shop__price').map(e => e.innerText.split('\n')[0])[1] || '',
         cardTags: q('.dm-shop__tag').map(e => e.innerText).join(','), fbq: typeof fbq,
+        cardsBy: Object.fromEntries(q('.dm-shop__card a').map(a => [a.dataset.dmCard, { img: (a.querySelector('img')?.getAttribute('src') || '').split('/').pop().split('?')[0].replace(/(_\d+x\d*)?\.(webp|jpe?g|png)$/, ''), price: (a.querySelector('.dm-shop__price')?.childNodes[0]?.textContent || '').trim() }])),
         ox: document.documentElement.scrollWidth > innerWidth,
       };
     });
@@ -77,6 +90,28 @@ for (const r of rows) {
   md += `| ${r.cc} | ${r.first?.suggest || '(없음)'} | ${r.pdp?.locale} · ${r.pdp?.cur} · ${r.pdp?.price} | ${a.locale} ${a.http} | ${a.hangul}자 | ${a.cta?.length}개 ${a.raw ? '❌[CTA]노출' : ''} | ${a.cards}개 「${a.cardTitle}」 ${a.cardTags} | ${a.cardPrice} | ${ok(a.fbq === 'function')} | ${a.ox ? '❌' : '✅'} |\n`;
 }
 md += '\n버튼 문구: \n' + rows.filter(r => r.art).map(r => `- ${r.cc}: ${r.art.cta.join(' / ')}`).join('\n') + '\n';
+// ── 판정: 제품 보기 = 기준. 다르면 실패(이슈) ──
+const KNOWN_NO_TR = (process.env.KNOWN_NO_TR || 'fi,pt-PT').split(',');   // 번역 없는 걸 사장님 결정 대기 중인 언어 = 경고만
+const num = t => (String(t).match(/[$€£¥₩]\s?[\d,.]+|[\d,.]+\s?€/) || [''])[0].replace(/\s/g, '');
+const fails = [], warns = [];
+for (const r of rows) {
+  if (r.err) { fails.push(`${r.cc}: 화면을 열지 못함 (${r.err})`); continue; }
+  const a = r.art || {}, shop = r.shop || {};
+  if (a.http !== 200) { (r.cc === 'PT' ? warns : fails).push(`${r.cc}: 블로그 글 ${a.http}`); continue; }
+  if (a.raw) fails.push(`${r.cc}: 글에 [CTA] 글자가 그대로 보임`);
+  if (a.fbq !== 'function') fails.push(`${r.cc}: 픽셀 없음`);
+  if (a.ox) fails.push(`${r.cc}: 화면이 옆으로 넘침`);
+  if (a.locale !== 'ko' && a.hangul > 0) (KNOWN_NO_TR.includes(a.locale) ? warns : fails).push(`${r.cc}(${a.locale}): 글 본문에 한국어 ${a.hangul}자 — 번역 없음`);
+  for (const [h, c] of Object.entries(a.cardsBy || {})) {
+    const s0 = shop[h]; if (!s0) continue;
+    if (s0.img && c.img !== s0.img) fails.push(`${r.cc}: ${h} 사진 — 블로그 ${c.img} ≠ 제품 보기 ${s0.img}`);
+    if (s0.price && num(c.price) !== num(s0.price)) fails.push(`${r.cc}: ${h} 가격 — 블로그 ${num(c.price)} ≠ 제품 보기 ${num(s0.price)}`);
+  }
+  const g = shop['br-001-oyster-grey'];
+  if (g?.price && r.pdp?.price && num(g.price) !== num(r.pdp.price)) fails.push(`${r.cc}: 그레이 가격 — 상세 ${num(r.pdp.price)} ≠ 제품 보기 ${num(g.price)}`);
+}
+md += `\n## 판정 (제품 보기 = 기준)\n` + (fails.length ? fails.map(x => '- 🔴 ' + x).join('\n') : '- ✅ 나라별 사진·가격·버튼·픽셀 모두 일치') + '\n' + (warns.length ? '\n알려진 문제(사장님 결정 대기):\n' + warns.map(x => '- 🟡 ' + x).join('\n') + '\n' : '');
 fs.writeFileSync('report.md', md);
+if (fails.length) process.exitCode = 1;
 if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, md);
 console.log(md);
