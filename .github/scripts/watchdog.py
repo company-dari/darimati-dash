@@ -518,6 +518,47 @@ try:
 except Exception as e:
     say(f'- ⚠️ 심박 확인 오류: {e}')
 
+# ── ⑬ 새 상품 점검 (11/10 사장님 「상품 새로 등록하면 구글·메타 노출 작업까지 자동으로」) ───────────
+#    공개 상품마다: 판매 채널(온라인 스토어·Facebook & Instagram·Google & YouTube) · 검색 제목/설명 · 구글 상품 분류 · 사진 설명
+#    고치는 법: 맥에서 클로드에게 「새 상품 점검해」 → ~/darimati-theme/tools/new-product-audit.py · 체크리스트 B-5c
+say('')
+say('## ⑬ 새 상품 점검 (채널·검색·분류·사진 설명)')
+try:
+    _tok = admin_token()
+    if not _tok:
+        raise RuntimeError('쇼피파이 관리자 출입증 발급 실패')
+    _q = """{ products(first:100, query:"status:active"){ nodes{ handle title tags onlineStoreUrl
+        hidden: metafield(namespace:"seo", key:"hidden"){ value } seo{ title description } category{ id }
+        media(first:20){ nodes{ alt } } resourcePublicationsV2(first:10){ nodes{ isPublished publication{ name } } } } } }"""
+    _req = urllib.request.Request('https://pgwbea-fc.myshopify.com/admin/api/2025-07/graphql.json', json.dumps({'query': _q}).encode(),
+                                  {'Content-Type': 'application/json', 'X-Shopify-Access-Token': _tok})
+    with urllib.request.urlopen(_req, timeout=40, context=CTX) as _r:
+        _d = json.load(_r)
+    if _d.get('errors'):
+        raise RuntimeError(str(_d['errors'])[:200])
+    _bad = []
+    for _p in _d['data']['products']['nodes']:
+        if not _p['onlineStoreUrl'] or 'partner-only' in _p['tags'] or (_p.get('hidden') or {}).get('value') == '1':
+            continue
+        _m = []
+        _pubs = {n['publication']['name'] for n in _p['resourcePublicationsV2']['nodes'] if n['isPublished']}
+        _m += [f'채널 {n}' for n in ('온라인 스토어', 'Facebook & Instagram', 'Google & YouTube') if n not in _pubs]
+        if not (_p['seo']['title'] or '').strip(): _m.append('검색 제목')
+        if not (_p['seo']['description'] or '').strip(): _m.append('검색 설명')
+        if not _p['category']: _m.append('구글 상품 분류')
+        _na = sum(1 for x in _p['media']['nodes'] if not (x['alt'] or '').strip() or (' ' not in x['alt'] and _re.search(r'[-_]', x['alt'])))
+        if _na: _m.append(f'사진 설명 {_na}장')
+        if _m:
+            _bad.append(f"{_p['title']} — {' · '.join(_m)}")
+    if _bad:
+        problems.append(f'새 상품 점검: 빠진 것 있는 상품 {len(_bad)}개 → 맥에서 「새 상품 점검해」 (' + ' / '.join(_bad[:4]) + ')')
+        for _b in _bad: say(f'- 🔴 {_b}')
+    else:
+        say('- ✅ 공개 상품 전부 채널·검색·분류·사진 설명 있음')
+except Exception as e:
+    problems.append(f'새 상품 점검을 못 돌림(⑬): {e}')
+    say(f'- 🔴 점검 오류: {e}')
+
 # ── 경보 시험 ────────────────────────────────────────────────────────
 #    "울리지 않는 경보기"가 아닌지 확인하려고 일부러 실패시키는 스위치.
 #    Actions 탭에서 alarm_test 를 켜고 실행하면 이슈가 만들어져야 한다.
