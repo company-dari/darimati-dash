@@ -11,7 +11,7 @@ const PDP = '/products/br-001-oyster-grey';
 const C = [ // 나라, 브라우저 언어, 우리 언어 주소
   ['KR', 'ko-KR', ''], ['US', 'en-US', '/en'], ['GB', 'en-GB', '/en'], ['JP', 'ja-JP', '/ja'],
   ['DE', 'de-DE', '/de'], ['FR', 'fr-FR', '/fr'], ['ES', 'es-ES', '/es'], ['IT', 'it-IT', '/it'],
-  ['NL', 'nl-NL', '/nl'], ['FI', 'fi-FI', '/fi'], ['PT', 'pt-PT', '/pt-pt'], ['PT2', 'pt-PT', '/pt'], ['SG', 'en-SG', '/en'], ['AU', 'en-AU', '/en'],
+  ['NL', 'nl-NL', '/nl'], ['FI', 'fi-FI', '/fi'], ['PT', 'pt-PT', '/pt'], ['SG', 'en-SG', '/en'], ['AU', 'en-AU', '/en'],
 ];
 fs.mkdirSync('shots', { recursive: true });
 const wait = ms => new Promise(r => setTimeout(r, ms));
@@ -91,7 +91,7 @@ for (const r of rows) {
 }
 md += '\n버튼 문구: \n' + rows.filter(r => r.art).map(r => `- ${r.cc}: ${r.art.cta.join(' / ')}`).join('\n') + '\n';
 // ── 판정: 제품 보기 = 기준. 다르면 실패(이슈) ──
-const KNOWN_NO_TR = (process.env.KNOWN_NO_TR || 'fi,pt-PT').split(',');   // 번역 없는 걸 사장님 결정 대기 중인 언어 = 경고만
+const KNOWN_NO_TR = (process.env.KNOWN_NO_TR || '').split(',');   // 번역 없는 걸 사장님 결정 대기 중인 언어 = 경고만
 const num = t => (String(t).match(/[$€£¥₩]\s?[\d,.]+|[\d,.]+\s?€/) || [''])[0].replace(/\s/g, '');
 const fails = [], warns = [];
 for (const r of rows) {
