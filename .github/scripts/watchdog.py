@@ -317,8 +317,17 @@ else:
                 say(f'- 🔴 {label}: **{age}일 전** (2주 주기 초과)')
             else:
                 say(f'- ✅ {label}: {age}일 전')
-        note('주문조회', oa)
-        note('사용자정의채널', aa)
+        # 11/10 사장님 「엑셀 넣으라는 알림 없애」: 주문은 통합 주문 창고(서버 자동)에서 읽는다.
+        #   사용자정의채널은 종료(br001-preview 10/15 폐지 · 네이버 API 없음) → 감시 안 함
+        if j.get('orders_source') == 'warehouse':
+            if oa is None or oa > 2:
+                problems.append(f'BR-001 대시보드 구매 숫자가 {oa}일 멈춤 — 주문 창고(서버) 갱신 확인 필요 (클로드 몫, 사장님 할 일 없음)')
+                say(f'- 🔴 구매(주문 창고): {oa}일 전')
+            else:
+                say(f'- ✅ 구매(주문 창고 자동): {oa}일 전')
+        else:
+            problems.append('BR-001 대시보드가 아직 옛 엑셀 방식으로 갱신됨 — 갱신하는 맥이 새 코드(주문 창고)를 못 받음 (클로드 몫, 사장님 할 일 없음)')
+            say(f'- 🔴 구매: 엑셀 방식({oa}일 전) — 새 코드 미반영')
     except Exception as e:
         say(f'- ⚪ 상태 파일을 읽지 못함 ({e})')
 
