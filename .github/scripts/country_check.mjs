@@ -49,7 +49,7 @@ for (const [cc0, lang, path] of C) {
       document.querySelectorAll('[data-dm-card]').forEach(a => { const h = a.dataset.dmCard; if (o[h]) return;
         const img = a.querySelector('img.dm-sc__cut') || a.querySelector('img');
         o[h] = { img: (img?.getAttribute('src') || '').split('/').pop().split('?')[0].replace(/(_\d+x\d*)?\.(webp|jpe?g|png)$/, ''),
-                 price: (a.querySelector('.dm-sc__now')?.innerText || '').trim() }; });
+                 price: (a.querySelector('.dm-sc__now')?.innerText || '').trim(), st: (a.querySelector('.dm-sc__status')?.innerText || '').trim(), badge: (a.querySelector('.dm-sc__badge')?.innerText || '').trim() }; });
       return o;
     });
     await wait(2000);
@@ -63,9 +63,9 @@ for (const [cc0, lang, path] of C) {
         hangul: (body.match(/[가-힣]/g) || []).length, raw: body.includes('[CTA]'),
         cta: q('.dm-cta-btn').map(a => a.innerText.trim() + ' →' + (a.getAttribute('href') || '').split('/products/')[0]),
         cardTitle: q('.dm-shop__hd h2').map(e => e.innerText)[0] || '',
-        cards: q('.dm-shop__card').length, cardPrice: q('.dm-shop__price').map(e => e.innerText.split('\n')[0])[1] || '',
-        cardTags: q('.dm-shop__tag').map(e => e.innerText).join(','), fbq: typeof fbq,
-        cardsBy: Object.fromEntries(q('.dm-shop__card a').map(a => [a.dataset.dmCard, { img: (a.querySelector('img')?.getAttribute('src') || '').split('/').pop().split('?')[0].replace(/(_\d+x\d*)?\.(webp|jpe?g|png)$/, ''), price: (a.querySelector('.dm-shop__price')?.childNodes[0]?.textContent || '').trim() }])),
+        cards: q('.dm-shop__card').length, cardPrice: q('.dm-shop__card .dm-sc__now').map(e => e.innerText)[0] || '',
+        cardTags: q('.dm-shop__card .dm-sc__badge, .dm-shop__card .dm-sc__status').map(e => e.innerText).join(','), fbq: typeof fbq,
+        cardsBy: Object.fromEntries(q('.dm-shop__card a').map(a => [a.dataset.dmCard, { img: (a.querySelector('img')?.getAttribute('src') || '').split('/').pop().split('?')[0].replace(/(_\d+x\d*)?\.(webp|jpe?g|png)$/, ''), price: (a.querySelector('.dm-sc__now')?.innerText || '').trim(), st: (a.querySelector('.dm-sc__status')?.innerText || '').trim(), badge: (a.querySelector('.dm-sc__badge')?.innerText || '').trim() }])),
         ox: document.documentElement.scrollWidth > innerWidth,
       };
     });
@@ -105,6 +105,9 @@ for (const r of rows) {
   for (const [h, c] of Object.entries(a.cardsBy || {})) {
     const s0 = shop[h]; if (!s0) continue;
     if (s0.img && c.img !== s0.img) fails.push(`${r.cc}: ${h} 사진 — 블로그 ${c.img} ≠ 제품 보기 ${s0.img}`);
+    if ((c.st || '') !== (s0.st || '')) fails.push(`${r.cc}: ${h} 카드 문구 — 블로그 「${c.st || '가격'}」 ≠ 제품 보기 「${s0.st || '가격'}」`);
+    if ((c.badge || '') !== (s0.badge || '')) fails.push(`${r.cc}: ${h} 배지 — 블로그 「${c.badge}」 ≠ 제품 보기 「${s0.badge}」`);
+    if (/품절|sold out|ausverkauft|épuisé|agotado|esaurito|uitverkocht|売り切れ|loppuunmyyty|esgotado/i.test(c.st + c.badge)) fails.push(`${r.cc}: ${h} 「품절」류 문구 노출(쓰지 않기로 함)`);
     if (s0.price && num(c.price) !== num(s0.price)) fails.push(`${r.cc}: ${h} 가격 — 블로그 ${num(c.price)} ≠ 제품 보기 ${num(s0.price)}`);
   }
   const g = shop['br-001-oyster-grey'];

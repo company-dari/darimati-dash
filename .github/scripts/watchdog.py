@@ -491,7 +491,7 @@ def _cards(html, cls):
     return out
 shop = _cards(get('https://www.darimati.us/collections/shoes'), 'dm-sc__cut')
 time.sleep(2)
-blog = _cards(get('https://www.darimati.us/blogs/archive/ispo-2026-amsterdam-darimati-booth-bnb22'), 'dm-shop__cut')
+blog = _cards(get('https://www.darimati.us/blogs/archive/ispo-2026-amsterdam-darimati-booth-bnb22'), 'dm-sc__cut')
 if not shop or not blog:
     problems.append(f'카드 사진 비교 불가 — 제품 보기 카드 {len(shop)}개 · 블로그 카드 {len(blog)}개를 읽음 (화면 구조가 바뀌었는지 확인)')
     say('- 🔴 비교 불가')
