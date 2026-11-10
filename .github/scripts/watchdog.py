@@ -552,7 +552,7 @@ try:
         problems.append(f'새 상품 점검: 빠진 것 있는 상품 {len(_bad)}개 → 맥에서 「새 상품 점검해」 (' + ' / '.join(_bad[:4]) + ')')
         for _b in _bad: say(f'- 🔴 {_b}')
     else:
-        say('- ✅ 공개 상품 전부 채널·검색·분류·사진 설명 있음')
+        say('- ✅ 공개 상품 전부 검색 제목·설명·분류·사진 설명 있음')
 except Exception as e:
     problems.append(f'새 상품 점검을 못 돌림(⑬): {e}')
     say(f'- 🔴 점검 오류: {e}')
