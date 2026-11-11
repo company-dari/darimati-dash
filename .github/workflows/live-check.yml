@@ -54,7 +54,7 @@ jobs:
           URL: ${{ inputs.url }}
         run: |
           npm i -s playwright@1 >/dev/null 2>&1
-          npx -y playwright install --with-deps chromium 2>&1 | tail -3
+          npx -y playwright install chromium 2>&1 | tail -3
           mkdir -p shots
           node -e '
           const { chromium, devices } = require("playwright");
