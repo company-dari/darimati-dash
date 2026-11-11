@@ -566,29 +566,6 @@ except Exception as e:
     problems.append(f'새 상품 점검을 못 돌림(⑬): {e}')
     say(f'- 🔴 점검 오류: {e}')
 
-# ── ⑭ 옛 번역 자동 갱신 심박 (11/12 지운님) — 맥 refresh_outdated.sh(launchd 매일 04:20)가 i18n-status.json 을 올린다 ──
-#    한국어를 고치면 쇼피파이는 외국어 화면에 옛 번역을 계속 보여 준다 → 매일 재번역. 안 돌거나 남은 칸이 있으면 문제
-say('')
-say('## ⑭ 옛 번역 자동 갱신')
-try:
-    _p = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'i18n-status.json')
-    _s = json.load(open(_p))
-    _age = (datetime.now(timezone.utc) - datetime.fromisoformat(_s['updated'])).total_seconds() / 3600
-    _left = {k: v.get('after') for k, v in _s['langs'].items() if k != 'en' and (v.get('after') or 0) != 0}
-    if _age > 50:
-        problems.append(f'옛 번역 자동 갱신이 {int(_age)}시간째 안 돎 — 맥이 꺼졌거나 코덱스 로그인 풀림 (~/darimati-theme/docs/i18n/work/outdated/run.log)')
-        say(f'- 🔴 마지막 실행 {int(_age)}시간 전')
-    elif _left:
-        problems.append('옛 번역이 남았습니다(검사 불통과 또는 오류) — ' + ', '.join(f'{k} {v}칸' for k, v in _left.items()))
-        say('- 🔴 남은 칸 ' + str(_left))
-    else:
-        say(f'- ✅ 마지막 실행 {int(_age)}시간 전 · 남은 옛 번역 0 (영어 {(_s["langs"].get("en") or {}).get("after", "?")}칸은 일부러 바꾼 칸이라 보고만)')
-except FileNotFoundError:
-    problems.append('옛 번역 자동 갱신 기록(i18n-status.json)이 없습니다 — 맥 launchd com.darimati.i18n-refresh 확인')
-    say('- 🔴 기록 없음')
-except Exception as e:
-    say(f'- ⚠️ 확인 오류: {e}')
-
 # ── 경보 시험 ────────────────────────────────────────────────────────
 #    "울리지 않는 경보기"가 아닌지 확인하려고 일부러 실패시키는 스위치.
 #    Actions 탭에서 alarm_test 를 켜고 실행하면 이슈가 만들어져야 한다.
