@@ -40,6 +40,7 @@ window.QR = {
     "f45-sinjungdong": "https://www.darimati.us/pages/br001-f45-sinjungdong",
     "f45-ilsan": "https://www.darimati.us/pages/br001-f45-ilsan",
     "box-coupon": "https://www.darimati.us/collections/all?utm_source=box_insert&utm_medium=qr&utm_campaign=box10_coupon&utm_content=parcel",
-    "f45-gwanghwamun-20": "https://www.darimati.us/pages/br001-f45-gwanghwamun-20?utm_source=f45&utm_medium=partner&utm_campaign=gwanghwamun20&utm_content=qr"
+    "f45-gwanghwamun-20": "https://www.darimati.us/pages/br001-f45-gwanghwamun-20?utm_source=f45&utm_medium=partner&utm_campaign=gwanghwamun20&utm_content=qr",
+    "goodhabit": "https://www.darimati.us/pages/br001-goodhabit?utm_source=goodhabit&utm_medium=partner&utm_campaign=goodhabit&utm_content=qr"
   }
 };
