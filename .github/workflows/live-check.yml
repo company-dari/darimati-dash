@@ -11,6 +11,10 @@ on:
         description: 페이지에서 찾을 글자(grep -E)
         required: false
         default: 'fbq\('
+      shots:
+        description: 폰 390 화면 캡처(스크롤 위치별) → 실행 결과 「shots」 파일로 받기 (11/11)
+        type: boolean
+        default: false
       cart_attr:
         description: 브라우저로 열어 장바구니 속성(유입 등) 출력
         type: boolean
@@ -44,3 +48,32 @@ jobs:
             const c = await pg.evaluate(() => fetch("/cart.js").then(r => r.json()));
             console.log("장바구니 속성:", JSON.stringify(c.attributes)); await b.close();
           })();'
+      - name: phone screenshots (390)
+        if: ${{ inputs.shots }}
+        env:
+          URL: ${{ inputs.url }}
+        run: |
+          npm i -s playwright@1 >/dev/null 2>&1 && npx -y playwright install --with-deps chromium >/dev/null 2>&1
+          mkdir -p shots
+          node -e '
+          const { chromium, devices } = require("playwright");
+          (async () => {
+            const b = await chromium.launch();
+            const ctx = await b.newContext({ ...devices["iPhone 13"], locale: "ko-KR" });
+            const pg = await ctx.newPage();
+            await pg.goto(process.env.URL, { waitUntil: "load" }); await pg.waitForTimeout(3000);
+            const H = await pg.evaluate(() => document.documentElement.scrollHeight);
+            const vh = 844; let i = 0;
+            for (let y = 0; y < H && i < 24; y += vh * 0.9, i++) {
+              await pg.evaluate(v => window.scrollTo(0, v), y); await pg.waitForTimeout(900);
+              await pg.screenshot({ path: `shots/${String(i).padStart(2,"0")}.jpg`, type: "jpeg", quality: 60 });
+            }
+            const ow = await pg.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+            console.log("height", H, "shots", i, "가로 넘침(px)", ow);
+            await b.close();
+          })();'
+      - uses: actions/upload-artifact@v4
+        if: ${{ inputs.shots }}
+        with:
+          name: shots
+          path: shots/
