@@ -34,6 +34,22 @@ for (const L of LANGS) {
     if (await logo.count()) { await logo.hover(); await p.waitForTimeout(900); await p.screenshot({ path: 'shots/header-hover.jpg', type: 'jpeg', quality: 80, clip: { x: 0, y: 0, width: 720, height: 110 } }); await p.mouse.move(700, 600); }
     await p.setViewportSize({ width: 390, height: 844 }); await p.waitForTimeout(1200);
     await p.screenshot({ path: 'shots/first-390x844.jpg', type: 'jpeg', quality: 70 });
+    // 폰 헤더: 미리보기 알약 숨기고 360·390 캡처 + 로고와 다른 칸 겹침(px) 측정
+    info.header_overlap = {};
+    for (const w of [360, 390]) {
+      await p.setViewportSize({ width: w, height: 844 }); await p.waitForTimeout(900);
+      info.header_overlap[w] = await p.evaluate(() => {
+        document.querySelectorAll('body *').forEach(e => { if (getComputedStyle(e).position === 'fixed' && /미리보기 화면/.test(e.textContent || '') && e.textContent.length < 80) e.style.display = 'none'; });
+        const logo = document.querySelector('.header-logo__image-container--original'); if (!logo) return 'no logo';
+        const L = logo.getBoundingClientRect(); const hdr = logo.closest('header, #header-component') || document.body;
+        let worst = 0, who = '';
+        hdr.querySelectorAll('a, button, [role=button]').forEach(el => { if (logo.contains(el) || el.contains(logo)) return; const r = el.getBoundingClientRect(); if (!r.width || !r.height) return;
+          const ox = Math.min(L.right, r.right) - Math.max(L.left, r.left), oy = Math.min(L.bottom, r.bottom) - Math.max(L.top, r.top);
+          if (ox > 0 && oy > 0 && ox > worst) { worst = Math.round(ox); who = (el.getAttribute('aria-label') || el.className || el.tagName).toString().slice(0, 40); } });
+        return { logo: [Math.round(L.left), Math.round(L.right)], overlap_px: worst, with: who };
+      });
+      await p.screenshot({ path: `shots/header-${w}.jpg`, type: 'jpeg', quality: 85, clip: { x: 0, y: 0, width: w, height: 70 } });
+    }
     await p.setViewportSize({ width: 1440, height: 900 }); await p.waitForTimeout(800);
   }
   await scrollAll(p);
