@@ -604,31 +604,32 @@ try:
            and (p.get('hidden') or {}).get('value') != '1']
     if _nh: _f.append(f"② 구글 숨김 없음 {len(_nh)}개: " + ', '.join(_nh[:6]))
     # ③ 공개 목록 — 미국 서버라 몇 번만, 2초 간격
-    _seen = set(); _src = {}
+    _seen = set(); _src = {}; _n_pj = 0; _n_sm = 0
     for _pg in range(1, 6):
         _j = get(f'https://www.darimati.us/products.json?limit=250&page={_pg}')
         time.sleep(2)
         if not _j: raise RuntimeError('products.json 못 받음')
-        _items = json.loads(_j).get('products', [])
+        _items = json.loads(_j).get('products', []); _n_pj += len(_items)
         for _it in _items:
             if _it['handle'] in _ph: _seen.add(_it['handle']); _src[_it['handle']] = 'products.json'
         if len(_items) < 250: break
     _sm = get('https://www.darimati.us/sitemap.xml') or ''
     time.sleep(2)
     for _u in _re.findall(r'<loc>([^<]*sitemap_products[^<]*)</loc>', _sm)[:6]:
-        _x = get(_u.replace('&amp;', '&')) or ''
+        _x = get(_u.replace('&amp;', '&')) or ''; _n_sm += _x.count('/products/')
         time.sleep(2)
         for _h in _ph:
             if f'/products/{_h}<' in _x: _seen.add(_h); _src[_h] = 'sitemap'
     _ca = get('https://www.darimati.us/collections/all?page=1') or ''
     for _h in _ph:
         if f'/products/{_h}"' in _ca or f'/products/{_h}?' in _ca: _seen.add(_h); _src[_h] = 'collections/all'
+    if _n_pj == 0 or _n_sm == 0: _f.append(f'③ 공개 목록을 못 읽음(products.json {_n_pj} · 사이트맵 {_n_sm}) — 점검 무효')
     if _seen: _f.append(f"③ 공개 목록에 노출 {len(_seen)}개: " + ', '.join(f'{h}({_src[h]})' for h in sorted(_seen)[:6]))
     if _f:
         problems.append('비공개 상품 새는 곳 → 맥에서 「비공개 상품 점검해」: ' + ' / '.join(_f))
         for _x in _f: say(f'- 🔴 {_x}')
     else:
-        say(f'- ✅ 비공개 상품 {len(_priv)}개: ACTIVE 0 · 구글 숨김 빠짐 0 · products.json·사이트맵·전체 목록 노출 0')
+        say(f'- ✅ 비공개 상품 {len(_priv)}개: ACTIVE 0 · 구글 숨김 빠짐 0 · products.json({_n_pj}개)·사이트맵({_n_sm}개)·전체 목록 노출 0')
 except Exception as e:
     problems.append(f'비공개 상품 점검을 못 돌림(⑭): {e}')
     say(f'- 🔴 점검 오류: {e}')
