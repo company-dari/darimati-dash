@@ -575,7 +575,7 @@ except Exception as e:
 #    비공개 상품 판정 = 태그 partner-only 또는 seo.hidden=1
 #    고치는 법: 맥에서 클로드에게 「비공개 상품 점검해」 · 규칙 ~/darimati-handoff/RULES-검색노출.md
 say('')
-say('## ⑭ 비공개 상품 4겹 (상태 · 구글 숨김 · 공개 목록 · 링크)')
+say('## ⑭ 비공개 상품·페이지 4겹 (상태 · 구글 숨김 · 공개 목록 · 링크)')
 try:
     _tok = admin_token()
     if not _tok:
@@ -596,6 +596,13 @@ try:
         if not _pp['pageInfo']['hasNextPage']: break
         _cur = _pp['pageInfo']['endCursor']
     _priv = [p for p in _all if 'partner-only' in p['tags'] or (p.get('hidden') or {}).get('value') == '1']
+    _pq = '{ pages(first:250){ nodes{ handle isPublished hidden: metafield(namespace:"seo", key:"hidden"){ value } } } }'
+    _req = urllib.request.Request('https://pgwbea-fc.myshopify.com/admin/api/2025-07/graphql.json', json.dumps({'query': _pq}).encode(),
+                                  {'Content-Type': 'application/json', 'X-Shopify-Access-Token': _tok})
+    with urllib.request.urlopen(_req, timeout=40, context=CTX) as _r:
+        _pd = json.load(_r)
+    _ppriv = {p['handle'] for p in (_pd.get('data') or {}).get('pages', {}).get('nodes', [])
+              if p['isPublished'] and (p.get('hidden') or {}).get('value') == '1'}
     _ph = {p['handle'] for p in _priv}
     _f = []
     _act = [p['handle'] for p in _priv if p['status'] == 'ACTIVE']
@@ -615,11 +622,13 @@ try:
         if len(_items) < 250: break
     _sm = get('https://www.darimati.us/sitemap.xml') or ''
     time.sleep(2)
-    for _u in _re.findall(r'<loc>([^<]*sitemap_products[^<]*)</loc>', _sm)[:6]:
+    for _u in _re.findall(r'<loc>([^<]*sitemap_(?:products|pages)[^<]*)</loc>', _sm)[:8]:
         _x = get(_u.replace('&amp;', '&')) or ''; _n_sm += _x.count('/products/')
         time.sleep(2)
         for _h in _ph:
             if f'/products/{_h}<' in _x: _seen.add(_h); _src[_h] = 'sitemap'
+        for _h in _ppriv:
+            if f'/pages/{_h}<' in _x: _seen.add('page:' + _h); _src['page:' + _h] = 'sitemap'
     _ca = get('https://www.darimati.us/collections/all?page=1') or ''
     for _h in _ph:
         if f'/products/{_h}"' in _ca or f'/products/{_h}?' in _ca: _seen.add(_h); _src[_h] = 'collections/all'
@@ -629,7 +638,7 @@ try:
         problems.append('비공개 상품 새는 곳 → 맥에서 「비공개 상품 점검해」: ' + ' / '.join(_f))
         for _x in _f: say(f'- 🔴 {_x}')
     else:
-        say(f'- ✅ 비공개 상품 {len(_priv)}개: ACTIVE 0 · 구글 숨김 빠짐 0 · products.json({_n_pj}개)·사이트맵({_n_sm}개)·전체 목록 노출 0')
+        say(f'- ✅ 비공개 상품 {len(_priv)}개 · 숨김 페이지 {len(_ppriv)}개: ACTIVE 0 · 구글 숨김 빠짐 0 · products.json({_n_pj}개)·사이트맵({_n_sm}개)·전체 목록 노출 0')
 except Exception as e:
     problems.append(f'비공개 상품 점검을 못 돌림(⑭): {e}')
     say(f'- 🔴 점검 오류: {e}')
