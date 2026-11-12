@@ -26,7 +26,16 @@ for (const L of LANGS) {
   const p = await ctx.newPage(); await p.setViewportSize({ width: 1440, height: 900 });
   const ev = []; p.on('request', r => { const u = r.url(); if (u.includes('facebook.com/tr')) { const m = u.match(/[?&]ev=([^&]+)/); if (m) ev.push(decodeURIComponent(m[1])); } });
   const errs = []; p.on('pageerror', e => errs.push(String(e).slice(0, 120)));
+  await p.addInitScript(() => { window.__ev = []; let real; Object.defineProperty(window, 'fbq', { configurable: true, get() { return real; }, set(f) { const w = function () { try { window.__ev.push(arguments[0] + ':' + arguments[1]); } catch (e) {} return f.apply(this, arguments); }; Object.assign(w, f); w.getState = f.getState; real = w; } }); });
   const res = await p.goto(BASE + q(L + '/'), { waitUntil: 'load' }); await p.waitForTimeout(2500);
+  if (L === '') {
+    await p.screenshot({ path: 'shots/first-1440x900.jpg', type: 'jpeg', quality: 70 });
+    const logo = p.locator('.header-logo__image-container--original').first();
+    if (await logo.count()) { await logo.hover(); await p.waitForTimeout(900); await p.screenshot({ path: 'shots/header-hover.jpg', type: 'jpeg', quality: 80, clip: { x: 0, y: 0, width: 720, height: 110 } }); await p.mouse.move(700, 600); }
+    await p.setViewportSize({ width: 390, height: 844 }); await p.waitForTimeout(1200);
+    await p.screenshot({ path: 'shots/first-390x844.jpg', type: 'jpeg', quality: 70 });
+    await p.setViewportSize({ width: 1440, height: 900 }); await p.waitForTimeout(800);
+  }
   await scrollAll(p);
   const info = await p.evaluate(() => {
     const root = document.querySelector('.dm-h7');
@@ -60,13 +69,15 @@ for (const L of LANGS) {
     // 측정: 위로 → 50% 스크롤(DeepView) → 상품 칸 클릭
     await p.evaluate(() => scrollTo(0, 0)); await p.waitForTimeout(800);
     await p.evaluate(() => scrollTo(0, document.documentElement.scrollHeight * 0.6)); await p.waitForTimeout(2500);
+    info.fbq_after_scroll = await p.evaluate(() => window.__ev.slice());
     const card = p.locator('#lineup a[data-dm-at="home7-lineup"]').nth(2);
     await card.scrollIntoViewIfNeeded();
-    await Promise.all([p.waitForNavigation({ timeout: 15000 }).catch(() => null), card.click()]);
-    await p.waitForTimeout(3000);
-    info.after_click_url = p.url().replace(BASE, '');
+    await p.evaluate(() => window.addEventListener('click', e => { window.__href = e.target.closest('a')?.getAttribute('href'); e.preventDefault(); }, { once: true }));
+    await card.click(); await p.waitForTimeout(1500);
+    info.fbq_after_click = await p.evaluate(() => window.__ev.slice());
+    info.clicked_href = await p.evaluate(() => window.__href);
   }
-  info.events = [...new Set(ev)];
+  info.events = [...new Set(ev)]; info.fbq_calls = await p.evaluate(() => (window.__ev || []).slice()).catch(() => null);
   rows.push({ L: L || '/(ko)', status: res.status(), ox390, errs: errs.slice(0, 3), ...info });
   await p.close(); await sleep(1500);
 }
