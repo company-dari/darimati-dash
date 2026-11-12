@@ -601,8 +601,10 @@ try:
                                   {'Content-Type': 'application/json', 'X-Shopify-Access-Token': _tok})
     with urllib.request.urlopen(_req, timeout=40, context=CTX) as _r:
         _pd = json.load(_r)
-    if _pd.get('errors') or not (_pd.get('data') or {}).get('pages'):
-        raise RuntimeError('페이지 목록 못 읽음(권한?): ' + str(_pd.get('errors'))[:200])
+    _pages_ok = not _pd.get('errors') and bool((_pd.get('data') or {}).get('pages'))
+    if not _pages_ok:   # 11/12 「재고 대시보드 읽기」 앱에 read_online_store_pages 권한 없음 → 페이지 겹은 맥 seo-watch(매주)가 대신. 권한 추가되면 저절로 켜짐
+        say('- ⚠️ 숨김 페이지 사이트맵 점검 꺼짐: 앱 권한(read_online_store_pages) 없음 — 매주 맥 seo-watch 가 대신')
+        _pd = {'data': {'pages': {'nodes': []}}}
     _ppriv = {p['handle'] for p in (_pd.get('data') or {}).get('pages', {}).get('nodes', [])
               if p['isPublished'] and (p.get('hidden') or {}).get('value') == '1'}
     _ph = {p['handle'] for p in _priv}
@@ -634,7 +636,7 @@ try:
     _ca = get('https://www.darimati.us/collections/all?page=1') or ''
     for _h in _ph:
         if f'/products/{_h}"' in _ca or f'/products/{_h}?' in _ca: _seen.add(_h); _src[_h] = 'collections/all'
-    if _n_pj == 0 or _n_sm == 0 or not _ppriv: _f.append(f'③ 공개 목록을 못 읽음(products.json {_n_pj} · 사이트맵 {_n_sm}) — 점검 무효')
+    if _n_pj == 0 or _n_sm == 0 or (_pages_ok and not _ppriv): _f.append(f'③ 공개 목록을 못 읽음(products.json {_n_pj} · 사이트맵 {_n_sm}) — 점검 무효')
     if _seen: _f.append(f"③ 공개 목록에 노출 {len(_seen)}개: " + ', '.join(f'{h}({_src[h]})' for h in sorted(_seen)[:6]))
     if _f:
         problems.append('비공개 상품 새는 곳 → 맥에서 「비공개 상품 점검해」: ' + ' / '.join(_f))
