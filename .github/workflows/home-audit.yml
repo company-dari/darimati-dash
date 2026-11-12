@@ -1,0 +1,25 @@
+name: home-audit
+# 홈 A~Z 점검 (11/13 홈 v7) — 11개 언어·모든 링크·사진·영상·넘침·픽셀·DeepView·상품 클릭 · 결과 artifact 「home-audit」(json + 캡처)
+on:
+  workflow_dispatch:
+    inputs:
+      base:
+        description: 기본 주소
+        default: https://www.darimati.us
+      preview:
+        description: 미리보기 테마 ID (비우면 라이브)
+        required: false
+        default: ''
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm i -s playwright@1 >/dev/null 2>&1 && npx -y playwright install --with-deps chromium >/dev/null 2>&1
+      - run: node tools/home-audit.mjs "${{ inputs.base }}" "${{ inputs.preview }}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: home-audit
+          path: shots/
