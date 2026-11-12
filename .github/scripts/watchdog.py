@@ -566,32 +566,69 @@ except Exception as e:
     problems.append(f'새 상품 점검을 못 돌림(⑬): {e}')
     say(f'- 🔴 점검 오류: {e}')
 
-# ── ⑭ 비공개 상품 = 링크로만 공개(UNLISTED) (11/12 지운님 「앞으로 이런 거 다 점검」) ─────────────
-#    partner-only 태그나 검색 숨김(seo.hidden=1) 상품이 ACTIVE 면 Copilot·Meta AI 같은 AI 채널에 자동으로 올라간다
-#    (11/11 vt-001-kr 사고). 상품 하나만 AI 채널에서 빼는 유일한 방법 = 상태 UNLISTED (링크 구매는 그대로)
-#    고치는 법: 맥에서 클로드에게 「비공개 상품 점검해」 → productUpdate status:UNLISTED · 규칙 RULES-검색노출.md
+# ── ⑭ 비공개 상품이 손님·로봇에게 보이는 길 전부 (11/12 지운님 「본질적으로 확인하고 규칙」) ─────────────
+#    「비공개」= 4겹. seo.hidden(구글 숨김)만 보던 게 사고 원인 — 상태 ACTIVE 로 남아 AI 채널(Copilot·Meta AI)에 자동 게시됨
+#      ① 관리자 상태 UNLISTED/DRAFT/ARCHIVED (ACTIVE 금지 — ACTIVE 면 AI 채널 자동 게시, 채널 단위로 못 뺌)
+#      ② 검색 숨김 seo.hidden=1 (구글 noindex)
+#      ③ 공개 목록에 없음: /products.json · 사이트맵(sitemap.xml) · /collections/all
+#      ④ 링크 직접 접속은 열려야 함(파트너가 사야 하니까) — 이건 seo-hidden-check 가 매주 실측
+#    비공개 상품 판정 = 태그 partner-only 또는 seo.hidden=1
+#    고치는 법: 맥에서 클로드에게 「비공개 상품 점검해」 · 규칙 ~/darimati-handoff/RULES-검색노출.md
 say('')
-say('## ⑭ 비공개 상품 상태 (링크로만 공개여야 AI 채널·검색에서 빠짐)')
+say('## ⑭ 비공개 상품 4겹 (상태 · 구글 숨김 · 공개 목록 · 링크)')
 try:
     _tok = admin_token()
     if not _tok:
         raise RuntimeError('쇼피파이 관리자 출입증 발급 실패')
-    _q = """{ products(first:250, query:"status:active"){ nodes{ handle tags
-        hidden: metafield(namespace:"seo", key:"hidden"){ value } } } }"""
-    _req = urllib.request.Request('https://pgwbea-fc.myshopify.com/admin/api/2025-07/graphql.json', json.dumps({'query': _q}).encode(),
-                                  {'Content-Type': 'application/json', 'X-Shopify-Access-Token': _tok})
-    with urllib.request.urlopen(_req, timeout=40, context=CTX) as _r:
-        _d = json.load(_r)
-    if _d.get('errors'):
-        raise RuntimeError(str(_d['errors'])[:200])
-    _priv = [p['handle'] for p in _d['data']['products']['nodes']
-             if 'partner-only' in p['tags'] or (p.get('hidden') or {}).get('value') == '1']
-    if _priv:
-        problems.append(f'비공개 상품 {len(_priv)}개가 일반 공개(ACTIVE) — AI 채널에 올라갈 수 있음 → 맥에서 「비공개 상품 점검해」 ('
-                        + ', '.join(_priv[:6]) + (' …' if len(_priv) > 6 else '') + ')')
-        for _h in _priv: say(f'- 🔴 {_h}')
+    _all, _cur = [], None
+    while True:
+        _q = """query($c:String){ products(first:250, after:$c){ pageInfo{hasNextPage endCursor} nodes{ handle status tags
+            hidden: metafield(namespace:"seo", key:"hidden"){ value } } } }"""
+        _req = urllib.request.Request('https://pgwbea-fc.myshopify.com/admin/api/2025-07/graphql.json',
+                                      json.dumps({'query': _q, 'variables': {'c': _cur}}).encode(),
+                                      {'Content-Type': 'application/json', 'X-Shopify-Access-Token': _tok})
+        with urllib.request.urlopen(_req, timeout=40, context=CTX) as _r:
+            _d = json.load(_r)
+        if _d.get('errors'):
+            raise RuntimeError(str(_d['errors'])[:200])
+        _pp = _d['data']['products']
+        _all += _pp['nodes']
+        if not _pp['pageInfo']['hasNextPage']: break
+        _cur = _pp['pageInfo']['endCursor']
+    _priv = [p for p in _all if 'partner-only' in p['tags'] or (p.get('hidden') or {}).get('value') == '1']
+    _ph = {p['handle'] for p in _priv}
+    _f = []
+    _act = [p['handle'] for p in _priv if p['status'] == 'ACTIVE']
+    if _act: _f.append(f"① 일반 공개(ACTIVE) {len(_act)}개 — AI 채널 자동 게시: " + ', '.join(_act[:6]))
+    _nh = [p['handle'] for p in _priv if p['status'] in ('ACTIVE', 'UNLISTED') and 'partner-only' in p['tags']
+           and (p.get('hidden') or {}).get('value') != '1']
+    if _nh: _f.append(f"② 구글 숨김 없음 {len(_nh)}개: " + ', '.join(_nh[:6]))
+    # ③ 공개 목록 — 미국 서버라 몇 번만, 2초 간격
+    _seen = set(); _src = {}
+    for _pg in range(1, 6):
+        _j = get(f'https://www.darimati.us/products.json?limit=250&page={_pg}')
+        time.sleep(2)
+        if not _j: raise RuntimeError('products.json 못 받음')
+        _items = json.loads(_j).get('products', [])
+        for _it in _items:
+            if _it['handle'] in _ph: _seen.add(_it['handle']); _src[_it['handle']] = 'products.json'
+        if len(_items) < 250: break
+    _sm = get('https://www.darimati.us/sitemap.xml') or ''
+    time.sleep(2)
+    for _u in _re.findall(r'<loc>([^<]*sitemap_products[^<]*)</loc>', _sm)[:6]:
+        _x = get(_u.replace('&amp;', '&')) or ''
+        time.sleep(2)
+        for _h in _ph:
+            if f'/products/{_h}<' in _x: _seen.add(_h); _src[_h] = 'sitemap'
+    _ca = get('https://www.darimati.us/collections/all?page=1') or ''
+    for _h in _ph:
+        if f'/products/{_h}"' in _ca or f'/products/{_h}?' in _ca: _seen.add(_h); _src[_h] = 'collections/all'
+    if _seen: _f.append(f"③ 공개 목록에 노출 {len(_seen)}개: " + ', '.join(f'{h}({_src[h]})' for h in sorted(_seen)[:6]))
+    if _f:
+        problems.append('비공개 상품 새는 곳 → 맥에서 「비공개 상품 점검해」: ' + ' / '.join(_f))
+        for _x in _f: say(f'- 🔴 {_x}')
     else:
-        say('- ✅ 비공개 상품 전부 링크로만 공개(UNLISTED) 또는 비활성')
+        say(f'- ✅ 비공개 상품 {len(_priv)}개: ACTIVE 0 · 구글 숨김 빠짐 0 · products.json·사이트맵·전체 목록 노출 0')
 except Exception as e:
     problems.append(f'비공개 상품 점검을 못 돌림(⑭): {e}')
     say(f'- 🔴 점검 오류: {e}')
