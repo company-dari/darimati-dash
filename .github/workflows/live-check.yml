@@ -69,7 +69,7 @@ jobs:
             const lab = await pg.evaluate(() => { const af = s => { const e = document.querySelector(s); return e ? getComputedStyle(e, "::after").content : "-"; };
               const so = document.querySelector(".variant-option__button-label:has(input[data-option-available=false]) .variant-option__button-label__text");
               return { lang: document.documentElement.lang, cart: af(".product-form-buttons .add-to-cart-text__content"), buy: af(".product-form-buttons .shopify-payment-button__button--unbranded"),
-                sbar: (document.querySelector(".dmc-sbar button") || {}).textContent || "-", soldout: so ? getComputedStyle(so, "::after").content : "-" }; });
+                sbar: (document.querySelector(".dmc-sbar button") || {}).textContent || "-", kakao_exchange: document.querySelectorAll(".dmp-benefit,.dmp-kakao,.dmc-kk").length, soldout: so ? getComputedStyle(so, "::after").content : "-" }; });
             console.log("버튼 글자:", JSON.stringify(lab));
             const H = await pg.evaluate(() => document.documentElement.scrollHeight);
             const vh = 844; let i = 0;
