@@ -566,6 +566,36 @@ except Exception as e:
     problems.append(f'새 상품 점검을 못 돌림(⑬): {e}')
     say(f'- 🔴 점검 오류: {e}')
 
+# ── ⑭ 비공개 상품 = 링크로만 공개(UNLISTED) (11/12 지운님 「앞으로 이런 거 다 점검」) ─────────────
+#    partner-only 태그나 검색 숨김(seo.hidden=1) 상품이 ACTIVE 면 Copilot·Meta AI 같은 AI 채널에 자동으로 올라간다
+#    (11/11 vt-001-kr 사고). 상품 하나만 AI 채널에서 빼는 유일한 방법 = 상태 UNLISTED (링크 구매는 그대로)
+#    고치는 법: 맥에서 클로드에게 「비공개 상품 점검해」 → productUpdate status:UNLISTED · 규칙 RULES-검색노출.md
+say('')
+say('## ⑭ 비공개 상품 상태 (링크로만 공개여야 AI 채널·검색에서 빠짐)')
+try:
+    _tok = admin_token()
+    if not _tok:
+        raise RuntimeError('쇼피파이 관리자 출입증 발급 실패')
+    _q = """{ products(first:250, query:"status:active"){ nodes{ handle tags
+        hidden: metafield(namespace:"seo", key:"hidden"){ value } } } }"""
+    _req = urllib.request.Request('https://pgwbea-fc.myshopify.com/admin/api/2025-07/graphql.json', json.dumps({'query': _q}).encode(),
+                                  {'Content-Type': 'application/json', 'X-Shopify-Access-Token': _tok})
+    with urllib.request.urlopen(_req, timeout=40, context=CTX) as _r:
+        _d = json.load(_r)
+    if _d.get('errors'):
+        raise RuntimeError(str(_d['errors'])[:200])
+    _priv = [p['handle'] for p in _d['data']['products']['nodes']
+             if 'partner-only' in p['tags'] or (p.get('hidden') or {}).get('value') == '1']
+    if _priv:
+        problems.append(f'비공개 상품 {len(_priv)}개가 일반 공개(ACTIVE) — AI 채널에 올라갈 수 있음 → 맥에서 「비공개 상품 점검해」 ('
+                        + ', '.join(_priv[:6]) + (' …' if len(_priv) > 6 else '') + ')')
+        for _h in _priv: say(f'- 🔴 {_h}')
+    else:
+        say('- ✅ 비공개 상품 전부 링크로만 공개(UNLISTED) 또는 비활성')
+except Exception as e:
+    problems.append(f'비공개 상품 점검을 못 돌림(⑭): {e}')
+    say(f'- 🔴 점검 오류: {e}')
+
 # ── 경보 시험 ────────────────────────────────────────────────────────
 #    "울리지 않는 경보기"가 아닌지 확인하려고 일부러 실패시키는 스위치.
 #    Actions 탭에서 alarm_test 를 켜고 실행하면 이슈가 만들어져야 한다.
