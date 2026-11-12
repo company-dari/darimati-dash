@@ -27,6 +27,7 @@ for (const L of LANGS) {
   const ev = []; p.on('request', r => { const u = r.url(); if (u.includes('facebook.com/tr')) { const m = u.match(/[?&]ev=([^&]+)/); if (m) ev.push(decodeURIComponent(m[1])); } });
   const errs = []; p.on('pageerror', e => errs.push(String(e).slice(0, 120)));
   await p.addInitScript(() => { window.__ev = []; let real; Object.defineProperty(window, 'fbq', { configurable: true, get() { return real; }, set(f) { const w = function () { try { window.__ev.push(arguments[0] + ':' + arguments[1]); } catch (e) {} return f.apply(this, arguments); }; Object.assign(w, f); w.getState = f.getState; real = w; } }); });
+  let hdrOv = null;
   const res = await p.goto(BASE + q(L + '/'), { waitUntil: 'load' }); await p.waitForTimeout(2500);
   if (L === '') {
     await p.screenshot({ path: 'shots/first-1440x900.jpg', type: 'jpeg', quality: 70 });
@@ -35,10 +36,10 @@ for (const L of LANGS) {
     await p.setViewportSize({ width: 390, height: 844 }); await p.waitForTimeout(1200);
     await p.screenshot({ path: 'shots/first-390x844.jpg', type: 'jpeg', quality: 70 });
     // 폰 헤더: 미리보기 알약 숨기고 360·390 캡처 + 로고와 다른 칸 겹침(px) 측정
-    info.header_overlap = {};
+    hdrOv = {};
     for (const w of [360, 390]) {
       await p.setViewportSize({ width: w, height: 844 }); await p.waitForTimeout(900);
-      info.header_overlap[w] = await p.evaluate(() => {
+      hdrOv[w] = await p.evaluate(() => {
         document.querySelectorAll('body *').forEach(e => { if (getComputedStyle(e).position === 'fixed' && /미리보기 화면/.test(e.textContent || '') && e.textContent.length < 80) e.style.display = 'none'; });
         const logo = document.querySelector('.header-logo__image-container--original'); if (!logo) return 'no logo';
         const L = logo.getBoundingClientRect(); const hdr = logo.closest('header, #header-component') || document.body;
@@ -71,6 +72,7 @@ for (const L of LANGS) {
       form: !!document.querySelector('.dm-h7 form[action*="/contact"][data-dm="lead"] input[name="contact[email]"]'),
     };
   });
+  info.header_overlap = hdrOv;
   // 폰 390 넘침
   await p.setViewportSize({ width: 390, height: 844 }); await p.waitForTimeout(1200);
   const ox390 = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth);
