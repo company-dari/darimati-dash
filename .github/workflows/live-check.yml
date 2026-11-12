@@ -55,6 +55,8 @@ jobs:
         run: |
           npm i -s playwright@1 >/dev/null 2>&1
           npx -y playwright install chromium 2>&1 | tail -3
+          # 11/12 태국어·한중일 글꼴 (없으면 캡처에 네모 칸)
+          sudo apt-get install -y -qq fonts-thai-tlwg fonts-noto-cjk >/dev/null 2>&1 || true
           mkdir -p shots
           node -e '
           const { chromium, devices } = require("playwright");
