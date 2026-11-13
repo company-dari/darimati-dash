@@ -32,13 +32,16 @@ await p.screenshot({ path: 'shots/p1.jpg', type: 'jpeg', quality: 70 });
 if (CLICK && info.preorder_cta) {
   await p.evaluate(() => scrollTo(0, 0)); await p.waitForTimeout(500);
   await p.evaluate(() => document.querySelector('#dmvp .dmvp__cta').click()); await p.waitForTimeout(800);
-  info.modal_open = await p.evaluate(() => { const m = document.getElementById('dmvp-modal'); return !!m && !m.hidden; });
-  info.modal_sizes = await p.evaluate(() => [...document.querySelectorAll('#dmvp-modal [data-size]')].map(x => x.dataset.size));
+  info.modal_open = await p.evaluate(() => { const m = document.getElementById('dmvpm') || document.getElementById('dmvp-modal'); return !!m && !m.hidden; });
+  info.modal_text = await p.evaluate(() => (document.querySelector('#dmvpm .dmvpm-card')?.innerText || '').replace(/\s+/g, ' ').slice(0, 220));
+  info.modal_size_buttons = await p.evaluate(() => document.querySelectorAll('#dmvpm [data-size], #dmvp-modal [data-size]').length);
   await p.screenshot({ path: 'shots/p2-modal.jpg', type: 'jpeg', quality: 70 });
-  // 사이즈만 고르고 번호 없이 제출 → 안내문(보내지 않음) 확인 · 실제 접수 안 함
-  await p.evaluate(() => { document.querySelectorAll('#dmvp-modal [data-size]')[3].click(); document.querySelector('#dmvp-modal .dm-ntf__go').click(); }); await p.waitForTimeout(400);
-  info.modal_hint = await p.evaluate(() => document.querySelector('#dmvp-modal [data-hint]')?.textContent);
+  // 번호 없이 제출 → 안내문(보내지 않음) 확인 · 실제 접수 안 함
+  await p.evaluate(() => document.querySelector('#dmvpm button[type=submit]')?.click()); await p.waitForTimeout(400);
+  info.modal_hint = await p.evaluate(() => document.querySelector('#dmvpm .dmvpm-msg')?.textContent);
 }
+// 사이즈 칸 모양: 모두 같은 배경인지(선택된 것처럼 보이는 칸 없음)
+info.size_bg = await p.evaluate(() => [...new Set([...document.querySelectorAll('variant-picker .variant-option__button-label')].filter(l => l.offsetWidth > 0).map(l => getComputedStyle(l).backgroundColor))]);
 info.status = res.status(); info.fbq_events = await p.evaluate(() => (window.__ev || []).map(e => e[1]));
 console.log(JSON.stringify(info, null, 1));
 await b.close();
