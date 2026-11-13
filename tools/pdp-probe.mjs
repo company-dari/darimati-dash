@@ -8,11 +8,11 @@ const ctx = await b.newContext({ ...devices['iPhone 13'], locale: 'ko-KR' });
 const p = await ctx.newPage();
 await p.addInitScript(() => { window.__ev = []; const w = () => { if (window.fbq && !window.fbq.__w) { const o = window.fbq; const f = function () { try { window.__ev.push([arguments[0], arguments[1]]); } catch (e) {} return o.apply(this, arguments); }; Object.assign(f, o); f.__w = 1; window.fbq = f; } }; setInterval(w, 200); });
 const res = await p.goto(URL, { waitUntil: 'load', timeout: 60000 }); await p.waitForTimeout(3500);
-await p.addStyleTag({ content: '#shopify-pc__banner,.shopify-pc__banner__dialog{display:none!important}' });
+await p.addStyleTag({ content: '#shopify-pc__banner,.shopify-pc__banner__dialog,#PBarNextFrame,#preview-bar-iframe{display:none!important}' });
 fs.mkdirSync('shots', { recursive: true });
 const vis = s => `[...document.querySelectorAll(${JSON.stringify(s)})].filter(e=>{const r=e.getBoundingClientRect(),c=getComputedStyle(e);return r.width>0&&r.height>0&&c.display!=='none'&&c.visibility!=='hidden'}).length`;
 const info = await p.evaluate(`({
-  url: location.href, preview: !!document.querySelector('#preview-bar-iframe, .dm-preview-banner') || /preview_theme_id/.test(document.cookie+location.search),
+  url: location.href, preview: !!document.querySelector('#PBarNextFrame, #preview-bar-iframe, .dm-preview-banner, [class*=dm-preview]'),
   ks_buttons: ${vis('[data-dm="KickstarterClickout"]')},
   vtn_section: ${vis('#vtn')},
   preorder_cta: ${vis('.dmvp__cta[data-open]')},
@@ -30,12 +30,12 @@ await p.evaluate(() => scrollTo(0, innerHeight * 1.2)); await p.waitForTimeout(9
 await p.screenshot({ path: 'shots/p1.jpg', type: 'jpeg', quality: 70 });
 if (CLICK && info.preorder_cta) {
   await p.evaluate(() => scrollTo(0, 0)); await p.waitForTimeout(500);
-  await p.locator('#dmvp .dmvp__cta').click(); await p.waitForTimeout(800);
+  await p.evaluate(() => document.querySelector('#dmvp .dmvp__cta').click()); await p.waitForTimeout(800);
   info.modal_open = await p.evaluate(() => { const m = document.getElementById('dmvp-modal'); return !!m && !m.hidden; });
   info.modal_sizes = await p.evaluate(() => [...document.querySelectorAll('#dmvp-modal [data-size]')].map(x => x.dataset.size));
   await p.screenshot({ path: 'shots/p2-modal.jpg', type: 'jpeg', quality: 70 });
   // 사이즈만 고르고 번호 없이 제출 → 안내문(보내지 않음) 확인 · 실제 접수 안 함
-  await p.locator('#dmvp-modal [data-size]').nth(3).click(); await p.locator('#dmvp-modal .dm-ntf__go').click(); await p.waitForTimeout(400);
+  await p.evaluate(() => { document.querySelectorAll('#dmvp-modal [data-size]')[3].click(); document.querySelector('#dmvp-modal .dm-ntf__go').click(); }); await p.waitForTimeout(400);
   info.modal_hint = await p.evaluate(() => document.querySelector('#dmvp-modal [data-hint]')?.textContent);
 }
 info.status = res.status(); info.fbq_events = await p.evaluate(() => (window.__ev || []).map(e => e[1]));
