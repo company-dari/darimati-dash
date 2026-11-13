@@ -2,8 +2,8 @@ name: pdp-probe (상세 페이지 브라우저 판정)
 on:
   workflow_dispatch:
     inputs:
-      url: { description: 확인할 상세 주소(미리보기는 ?preview_theme_id= 포함), required: true }
-      open: { description: 사전예약 신청 버튼 눌러 창 확인(open 이면), required: false, default: 'open' }
+      url: { description: '확인할 상세 주소 (미리보기는 preview_theme_id 포함)', required: true }
+      open: { description: '사전예약 신청 버튼 눌러 창 확인 (open 이면)', required: false, default: 'open' }
 jobs:
   probe:
     runs-on: ubuntu-latest
