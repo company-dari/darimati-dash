@@ -77,6 +77,15 @@ for (const L of LANGS) {
   await p.setViewportSize({ width: 390, height: 844 }); await p.waitForTimeout(1200);
   const ox390 = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth);
   if (L === '') {
+    // 11/14 영상이 자리만 차지하고 안 보이는 고장 감지: 홈 안 모든 video 의 크기·보임·조상 중 가리는 것
+    info.videos = await p.evaluate(async () => { const out = []; for (const v of document.querySelectorAll('.dm-h7 video')) {
+      v.scrollIntoView({ block: 'center' }); await new Promise(r => setTimeout(r, 300));
+      const r = v.getBoundingClientRect(), cs = getComputedStyle(v);
+      let hid = null; for (let e = v; e && e !== document.body; e = e.parentElement) { const s = getComputedStyle(e); if (s.display === 'none' || s.visibility === 'hidden' || +s.opacity < 0.05 || s.clipPath !== 'none' || s.contentVisibility === 'hidden') { hid = (e.tagName + '.' + (e.className || '') + ' ' + [s.display, s.visibility, s.opacity, s.clipPath].join('|')).slice(0, 120); break; } }
+      const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      out.push({ label: (v.getAttribute('aria-label') || '').slice(0, 30), w: Math.round(r.width), h: Math.round(r.height), bg: cs.backgroundColor, hid, ready: v.readyState, err: v.error && v.error.code, top: top === v ? 'self' : (top ? (top.tagName + '.' + (top.className && top.className.baseVal !== undefined ? top.className.baseVal : top.className) + ' ' + (top.getAttribute('style') || '').slice(0, 90)) : null) });
+    } return out; });
+    for (const v of info.videos) if (v.w < 20 || v.h < 20 || v.hid || (v.top && v.top !== 'self' && !/SPAN|svg|path|DIV.dm-swipe/.test(v.top))) problems.push('영상 안 보임 ' + JSON.stringify(v));
     // 캡처(한국어) 390 → 1440
     const H = await p.evaluate(() => document.documentElement.scrollHeight);
     for (let i = 0, y = 0; y < H && i < 6; i++, y += 2400) await p.screenshot({ path: `shots/ko-390-${i}.jpg`, type: 'jpeg', quality: 60, fullPage: true, clip: { x: 0, y, width: 390, height: Math.min(2400, H - y) } });
