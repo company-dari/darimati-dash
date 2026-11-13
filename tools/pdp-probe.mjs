@@ -21,6 +21,7 @@ const info = await p.evaluate(`({
   add_to_cart: ${vis('button[name="add"], .add-to-cart-button, .shopify-payment-button, sticky-add-to-cart')},
   variant_picker: (()=>{const v=document.querySelector('variant-picker');return v?getComputedStyle(v).pointerEvents+' op'+getComputedStyle(v).opacity:null})(),
   tabs: ${vis('[data-dmc-tabs]')},
+  picker_items: [...document.querySelectorAll('variant-picker label, variant-picker button')].slice(0,12).map(e=>(e.tagName+'.'+String(e.className).slice(0,40)+' |'+e.textContent.trim().slice(0,20)+'| '+Math.round(e.getBoundingClientRect().width)+'x'+Math.round(e.getBoundingClientRect().height))),
   detail: ${vis('.dm-vt')},
   ox: document.documentElement.scrollWidth - innerWidth,
   fbq_pixels: (()=>{try{return fbq.getState().pixels.map(x=>x.id)}catch(e){return null}})(),
