@@ -1,7 +1,7 @@
 {
  "version": 1,
- "generated_at": "2026-10-29",
- "based_on": 188,
+ "generated_at": "2026-11-15",
+ "based_on": 418,
  "made_by": "AI 주간 자동 (Claude) · 사장님 승인 전",
  "headline": "발볼이 넓어도 편하고,\n러닝과 근력운동 모두 안정적이에요",
  "pros": [
@@ -9,7 +9,7 @@
   "러닝머신·런지·하이록스에서 미끄러지지 않고 발목을 잘 잡아줘요",
   "운동 끝나고 출근·산책에도 그대로 신을 만큼 깔끔해요"
  ],
- "note": "말랑한 쿠션보다 탄탄하게 받쳐주는 타입이라 처음엔 단단하게 느껴질 수 있어요. 사이즈가 10mm 단위라, 평소 반 치수(235·255 등)를 신는 분은 길이가 살짝 남는다는 후기가 있어요. 발등이 높거나 조이면 끈을 풀어 신으면 괜찮다는 후기가 있고, 밝은 색이라 오염이 눈에 띈다는 후기도 있어요.",
+ "note": "말랑한 쿠션보다 탄탄하게 받쳐주는 타입이라 처음엔 단단하게 느껴질 수 있어요. 사이즈가 10mm 단위라 평소 반 치수를 신는 분은 길이가 살짝 남는다는 후기가 있고, 발이 얇거나 얇은 양말을 신으면 끈 조절이 필요하다는 후기도 있어요. 발등이 답답하면 끈을 풀어 신으면 괜찮다는 후기, 빠르게 뛰는 날엔 평소 러닝화가 더 편했다는 후기, 밝은 색이라 오염이 눈에 띈다는 후기도 있어요.",
  "fit": [
   {
    "label": "사이즈",
@@ -94,36 +94,12 @@
   "923b0574-4fc6-4fe8-8239-d7e73bf180d7",
   "49407f7c-2f1a-4c37-bf21-d536a4aa0f4b",
   "eb43d632-d6e8-4b3b-b382-f6b228e76b69",
-  "2351c57f-3467-44eb-a095-bf868d4988cb"
+  "2351c57f-3467-44eb-a095-bf868d4988cb",
+  "a0a4d6fa-2e7e-4e8d-86db-56a897a3eef9",
+  "c8bf0f81-be49-4a3d-a97f-4023fea36a5e",
+  "62378a58-ea18-4a94-8041-ea9439b73044"
  ],
- "hide": [
-  "3bbef169-d6a8-4dc4-8f0f-b47fed9f19f4",
-  "7a5a000e-5b98-4afb-b407-f3ffc27e3260",
-  "5fb6080c-9215-4ce5-891c-ac40dead7491",
-  "5ff6fa8e-f106-4bff-b427-aec8104f4a18",
-  "28124a1c-ef7e-4935-8373-77dc254cb100",
-  "0690a2d2-e788-47cb-8131-5015870e7235",
-  "fde837cf-b6ae-42fc-8bdc-219df0ce9b2b",
-  "6abf1862-06fc-4477-b50b-f787044dbcfb",
-  "69d01a25-ac16-407a-ad70-3c55209f617d",
-  "c1353535-baab-4d94-bc22-362d0d59fb27",
-  "9c3c784c-b91d-4818-a005-f1aa55066db4",
-  "3bf7971a-539e-485b-a564-719ecff88dcc",
-  "132eef78-0f8a-4ba6-976e-096e41e82cb6",
-  "e0ec11a4-cb5c-4157-ba67-d218885924f1",
-  "120484c5-e017-452a-918c-c344adf5ab99",
-  "3f0837b0-3ab5-4c66-9b95-6b80c8d6b989",
-  "d363eadc-71b8-4573-b567-1c216921d7ea",
-  "42ee9a98-6436-4563-bc34-8fa82ad446e5",
-  "20e65126-a270-45dc-a8c3-cacd554a0fda",
-  "4e2df2d3-7b6d-451d-88e0-eeb3996f3056",
-  "ba4bc592-e7fa-4cfc-ad35-99a07e11a34c",
-  "2a7e9d71-d9be-4f46-9ad0-1fbdd7f6be5d",
-  "5eb55e79-e9cb-40b7-a1a3-e42d5996553a",
-  "bf2d86be-334e-41d9-bab1-8deb3b6290c6",
-  "11e66b08-3905-47b9-ba58-8b33aa3e437c",
-  "168935ce-59c3-4b3a-97fc-c4193a42b604"
- ],
+ "hide": [],
  "i18n": {
   "en": {
    "headline": "Comfortable even for wide feet,\nsteady for both running and strength training",
@@ -132,7 +108,7 @@
     "Reviewers say it grips on treadmills, lunges and HYROX and supports the ankle",
     "Clean enough to keep wearing to work or on walks after a workout"
    ],
-   "note": "It supports with a firm feel rather than a soft cushion, so it may feel hard at first. Sizes come in 10mm steps, and some who usually wear half sizes (235, 255, etc.) say the length runs slightly long. Some say loosening the laces helps with a high instep, and some note that the light color shows dirt.",
+   "note": "It supports with a firm feel rather than a soft cushion, so it may feel hard at first. Sizes come in 10mm steps, and some who usually wear half sizes say the length runs slightly long; some with thin feet or thin socks say the laces need adjusting. Some say loosening the laces helps when the instep feels tight, some found their usual running shoes more comfortable on fast running days, and some note that the light color shows dirt.",
    "fit": [
     {
      "label": "Size",
@@ -171,7 +147,7 @@
     "ランニングマシンやランジ、HYROXで滑らず足首をしっかり支えるという声があります",
     "運動後そのまま通勤や散歩に履けるほどすっきりしています"
    ],
-   "note": "柔らかいクッションより、しっかり支えるタイプなので、最初は硬く感じることがあります。サイズは10mm単位で、普段ハーフサイズ(235・255など)を履く方は長さが少し余るという声があります。甲が高い場合は紐を緩めると楽という声や、明るい色なので汚れが目立つという声もあります。",
+   "note": "柔らかいクッションより、しっかり支えるタイプなので、最初は硬く感じることがあります。サイズは10mm単位で、普段ハーフサイズを履く方は長さが少し余るという声があり、足が薄い方や薄手の靴下では紐の調整が必要という声もあります。甲が窮屈なら紐を緩めると楽という声、速く走る日は普段のランニングシューズの方が楽だったという声、明るい色なので汚れが目立つという声もあります。",
    "fit": [
     {
      "label": "サイズ",
@@ -210,7 +186,7 @@
     "Laut Bewertungen rutscht er auf dem Laufband, bei Ausfallschritten und bei HYROX nicht und stützt den Knöchel",
     "Schlicht genug, um ihn nach dem Training auch zur Arbeit oder beim Spazierengehen zu tragen"
    ],
-   "note": "Er stützt eher fest als weich gepolstert und kann sich daher anfangs hart anfühlen. Die Größen gibt es in 10-mm-Schritten; wer normalerweise halbe Größen (235, 255 usw.) trägt, berichtet teils von etwas Spielraum in der Länge. Bei hohem Spann oder Druck hilft es laut einigen, die Schnürung zu lockern, und manche merken an, dass man auf der hellen Farbe Schmutz sieht.",
+   "note": "Er stützt eher fest als weich gepolstert, deshalb kann er sich anfangs hart anfühlen. Die Größen gehen in 10-mm-Schritten; wer sonst halbe Größen trägt, findet ihn laut einigen Bewertungen etwas lang, und bei schmalen Füßen oder dünnen Socken muss man die Schnürung anpassen. Einige sagen, lockerere Schnürung hilft bei engem Spann, manche fanden an schnellen Lauftagen ihre gewohnten Laufschuhe bequemer, und einige merken an, dass die helle Farbe Schmutz zeigt.",
    "fit": [
     {
      "label": "Größe",
@@ -249,7 +225,7 @@
     "Selon les avis, elle accroche sur tapis de course, en fentes et en HYROX, et maintient bien la cheville",
     "Assez sobre pour la garder au travail ou en balade après l'entraînement"
    ],
-   "note": "Elle soutient avec une sensation ferme plutôt qu'un amorti moelleux, elle peut donc sembler dure au début. Les pointures vont de 10 mm en 10 mm ; certaines personnes qui portent habituellement des demi-pointures (235, 255, etc.) trouvent la longueur un peu grande. Selon certains avis, desserrer les lacets aide en cas de cou-de-pied haut, et d'autres notent que la couleur claire laisse voir les salissures.",
+   "note": "Il soutient plutôt fermement qu'avec un coussin moelleux, donc il peut sembler dur au début. Les tailles vont par pas de 10 mm ; certains qui portent d'habitude des demi-pointures trouvent la longueur un peu grande, et avec un pied fin ou des chaussettes fines, il faut ajuster les lacets. Certains disent que desserrer les lacets aide quand le cou-de-pied serre, d'autres ont trouvé leurs chaussures de running habituelles plus confortables les jours de course rapide, et la couleur claire laisse voir la saleté.",
    "fit": [
     {
      "label": "Pointure",
@@ -288,7 +264,7 @@
     "Según las reseñas, no resbala en la cinta, en zancadas ni en HYROX y sujeta bien el tobillo",
     "Lo bastante limpia para seguir usándola en el trabajo o de paseo después de entrenar"
    ],
-   "note": "Sujeta con una sensación firme en lugar de una amortiguación blanda, así que al principio puede notarse dura. Las tallas van de 10 en 10 mm y algunas personas que suelen usar medias tallas (235, 255, etc.) dicen que el largo queda un poco holgado. Hay quien dice que aflojar los cordones ayuda si tienes el empeine alto o te aprieta, y quien comenta que el color claro deja ver la suciedad.",
+   "note": "Sujeta con firmeza más que con un acolchado blando, así que al principio puede sentirse duro. Las tallas van de 10 mm en 10 mm; algunos que suelen llevar media talla dicen que el largo sobra un poco, y con pies finos o calcetines finos hay que ajustar los cordones. Algunos dicen que aflojar los cordones ayuda si el empeine aprieta, otros encontraron más cómodas sus zapatillas de running habituales los días de carrera rápida, y algunos señalan que el color claro deja ver la suciedad.",
    "fit": [
     {
      "label": "Talla",
@@ -327,7 +303,7 @@
     "Secondo le recensioni non scivola su tapis roulant, affondi e HYROX e sostiene la caviglia",
     "Abbastanza pulita da indossarla anche al lavoro o a passeggio dopo l'allenamento"
    ],
-   "note": "Sostiene con una sensazione compatta più che con un'ammortizzazione morbida, quindi all'inizio può sembrare rigida. Le taglie vanno a passi di 10 mm e chi porta di solito mezze misure (235, 255 ecc.) dice che la lunghezza avanza un po'. Alcuni dicono che allentare i lacci aiuta con il collo del piede alto, e altri notano che il colore chiaro mostra lo sporco.",
+   "note": "Sostiene con fermezza più che con un'imbottitura morbida, quindi all'inizio può sembrare duro. Le misure vanno a passi di 10 mm; alcuni che di solito portano le mezze misure dicono che la lunghezza avanza un po', e con piedi sottili o calze sottili bisogna regolare i lacci. Alcuni dicono che allentare i lacci aiuta se il collo del piede stringe, altri hanno trovato più comode le solite scarpe da corsa nei giorni di corsa veloce, e alcuni notano che il colore chiaro mostra lo sporco.",
    "fit": [
     {
      "label": "Taglia",
@@ -366,7 +342,7 @@
     "Volgens reviews glijdt hij niet weg op de loopband, bij lunges en bij HYROX en ondersteunt hij de enkel",
     "Strak genoeg om na het sporten ook naar je werk of tijdens een wandeling te dragen"
    ],
-   "note": "Hij ondersteunt eerder stevig dan met zachte demping, dus in het begin kan hij hard aanvoelen. De maten gaan per 10 mm; wie normaal halve maten (235, 255 enz.) draagt, merkt soms dat de lengte iets ruim valt. Volgens sommigen helpt het om de veters losser te doen bij een hoge wreef, en anderen merken op dat vuil op de lichte kleur opvalt.",
+   "note": "Hij ondersteunt eerder stevig dan met een zacht kussen, dus in het begin kan hij hard aanvoelen. De maten gaan in stappen van 10 mm; sommigen die normaal halve maten dragen, vinden hem iets aan de lange kant, en bij smalle voeten of dunne sokken moeten de veters worden aangepast. Sommigen zeggen dat losser vastmaken helpt als de wreef knelt, anderen vonden hun gebruikelijke hardloopschoenen comfortabeler op dagen met snel hardlopen, en sommigen merken op dat de lichte kleur vuil laat zien.",
    "fit": [
     {
      "label": "Maat",
@@ -405,7 +381,7 @@
     "Segundo as avaliações, não escorrega na passadeira, nas lunges nem no HYROX e segura bem o tornozelo",
     "Discreta o suficiente para continuar a usar no trabalho ou em passeios depois do treino"
    ],
-   "note": "Dá apoio com uma sensação firme em vez de um amortecimento macio, por isso pode parecer dura no início. Os tamanhos vão de 10 em 10 mm e quem costuma usar meios números (235, 255, etc.) refere que o comprimento fica ligeiramente folgado. Há quem diga que alargar os atacadores ajuda com o peito do pé alto e quem note que a cor clara mostra a sujidade.",
+   "note": "Apoia de forma firme em vez de ter uma almofada macia, por isso pode parecer duro ao início. Os tamanhos vão de 10 em 10 mm; alguns que costumam usar meios tamanhos dizem que o comprimento sobra um pouco, e com pés finos ou meias finas é preciso ajustar os atacadores. Alguns dizem que afrouxar os atacadores ajuda quando o peito do pé aperta, outros acharam os seus ténis de corrida habituais mais confortáveis em dias de corrida rápida, e alguns notam que a cor clara mostra a sujidade.",
    "fit": [
     {
      "label": "Tamanho",
@@ -444,7 +420,7 @@
     "Arvostelujen mukaan kenkä ei luista juoksumatolla, askelkyykyissä eikä HYROXissa ja tukee nilkkaa",
     "Tarpeeksi siisti käytettäväksi treenin jälkeen myös töissä tai kävelyllä"
    ],
-   "note": "Kenkä tukee ennemmin tukevasti kuin pehmeällä vaimennuksella, joten se voi tuntua aluksi kovalta. Koot etenevät 10 mm:n välein, ja osa puolikkaita kokoja (235, 255 jne.) käyttävistä kertoo pituuden jäävän hieman väljäksi. Joidenkin mukaan nauhojen löysääminen auttaa korkeaan jalkapöytään, ja osa mainitsee, että vaalea väri näyttää lian.",
+   "note": "Se tukee napakasti eikä pehmeän pehmusteen tavoin, joten alussa se voi tuntua kovalta. Koot etenevät 10 mm:n portain; jotkut, jotka käyttävät yleensä puolikokoja, sanovat pituuden olevan hieman liian pitkä, ja ohuella jalalla tai ohuilla sukilla nauhoja täytyy säätää. Jotkut sanovat, että nauhojen löysääminen auttaa, jos jalkapöytä painaa, jotkut pitivät tavallisia juoksukenkiään mukavampina nopean juoksun päivinä, ja jotkut mainitsevat, että vaalea väri näyttää lian.",
    "fit": [
     {
      "label": "Koko",
