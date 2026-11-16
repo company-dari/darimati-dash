@@ -86,6 +86,19 @@ for (const L of LANGS) {
       out.push({ label: (v.getAttribute('aria-label') || '').slice(0, 30), w: Math.round(r.width), h: Math.round(r.height), bg: cs.backgroundColor, hid, ready: v.readyState, err: v.error && v.error.code, top: top === v ? 'self' : (top ? (top.tagName + '.' + (top.className && top.className.baseVal !== undefined ? top.className.baseVal : top.className) + ' ' + (top.getAttribute('style') || '').slice(0, 90)) : null) });
     } return out; });
     for (const v of info.videos) if (v.w < 20 || v.h < 20 || v.hid || (v.top && v.top !== 'self' && !/SPAN|svg|path|DIV.dm-swipe/.test(v.top))) problems.push('영상 안 보임 ' + JSON.stringify(v));
+    // 11/16 상품 줄 순서·가격 표시(BR-001 만 가격, 나머지 COMING SOON) + VT 포스터 아무 데나 눌러도 VT-001 로
+    info.lineup = await p.evaluate(() => [...document.querySelectorAll('.dm-h7 a[data-dm-at="home7-lineup"]')].map(a => a.dataset.dmName + ' | ' + (a.innerText.match(/(₩\s?[\d,]+|\$[\d.,]+|COMING SOON|출시 ?예정|[\d,]+원)/i) || ['?'])[0]));
+    for (const l of info.lineup) { const br = /^BR-001/.test(l); if (br === /COMING|출시/i.test(l)) problems.push('상품 줄 가격 표시 ' + l); }
+    info.kv_click = [];
+    for (const i of [0, 1, 2]) {
+      const pt = await p.evaluate(i => { const a = [...document.querySelectorAll('.dm-h7 a[data-dm-at="home7-kv"]')][i]; const s = a && a.closest('section'); if (!s) return null; s.scrollIntoView({ block: 'center' }); const r = s.getBoundingClientRect(); return { x: r.left + r.width * 0.25, y: r.top + r.height * 0.5 }; }, i);
+      if (!pt) { info.kv_click.push('no-section'); continue; }
+      await p.waitForTimeout(400); const before = p.url();
+      await Promise.all([p.waitForURL(u => u.toString() !== before, { timeout: 8000 }).catch(() => {}), p.mouse.click(pt.x, pt.y)]);
+      const after = p.url(); info.kv_click.push(after.includes('vt-001') ? 'ok' : 'fail ' + after.slice(0, 80));
+      if (after !== before) { await p.goBack({ waitUntil: 'load' }).catch(() => {}); await p.waitForTimeout(1500); }
+    }
+    for (const k of info.kv_click) if (k !== 'ok') problems.push('VT 포스터 클릭 ' + k);
     // 캡처(한국어) 390 → 1440
     const H = await p.evaluate(() => document.documentElement.scrollHeight);
     for (let i = 0, y = 0; y < H && i < 6; i++, y += 2400) await p.screenshot({ path: `shots/ko-390-${i}.jpg`, type: 'jpeg', quality: 60, fullPage: true, clip: { x: 0, y, width: 390, height: Math.min(2400, H - y) } });
