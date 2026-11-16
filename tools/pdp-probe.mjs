@@ -41,7 +41,7 @@ if (CLICK && info.preorder_cta) {
   info.modal_hint = await p.evaluate(() => document.querySelector('#dmvpm .dmvpm-msg')?.textContent);
 }
 // 11/16 킥스타터 배너(.dmks) 위치 캡처
-info.ks_banner = await p.evaluate(() => { const e = document.querySelector('.dmks'); if (!e) return null; e.scrollIntoView({ block: 'center' }); const r = e.getBoundingClientRect(); return Math.round(r.width) + 'x' + Math.round(r.height); });
+info.ks_banner = await p.evaluate(() => { const m = document.getElementById('dmvpm'); if (m) m.hidden = true; document.documentElement.classList.remove('dmvpm-lock'); const e = document.querySelector('.dmks'); if (!e) return null; e.scrollIntoView({ block: 'center' }); const r = e.getBoundingClientRect(); return Math.round(r.width) + 'x' + Math.round(r.height); });
 if (info.ks_banner) { await p.waitForTimeout(700); await p.screenshot({ path: 'shots/p3-banner.jpg', type: 'jpeg', quality: 70 }); }
 // 사이즈 칸 모양: 모두 같은 배경인지(선택된 것처럼 보이는 칸 없음)
 info.sizes = await p.evaluate(() => [...document.querySelectorAll('variant-picker .variant-option__button-label')].filter(l => l.offsetWidth > 0).map(l => (l.textContent.match(/\d{3}/)||[''])[0]).join(','));
