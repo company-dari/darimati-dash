@@ -12,7 +12,7 @@ on:
         required: false
         default: 'fbq\('
       shots:
-        description: 폰 390 화면 캡처(스크롤 위치별) → 실행 결과 「shots」 파일로 받기 (11/11)
+        description: 폰 390 화면 캡처(스크롤 위치별) + PC 1440 전체 한 장 → 실행 결과 「shots」 파일로 받기 (11/11)
         type: boolean
         default: false
       cart_attr:
@@ -100,6 +100,12 @@ jobs:
             }
             const ow = await pg.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
             console.log("height", H, "shots", i, "가로 넘침(px)", ow);
+            // 11/16 PC 1440 한 장(전체 길이) — PC·폰 같이 판정
+            const pc = await (await b.newContext({ viewport: { width: 1440, height: 900 }, locale: "ko-KR" })).newPage();
+            await pc.goto(process.env.URL, { waitUntil: "load" }); await pc.waitForTimeout(3000);
+            await pc.addStyleTag({ content: "#shopify-pc__banner,.shopify-pc__banner__dialog{display:none!important}" });
+            await pc.screenshot({ path: "shots/pc-1440.jpg", type: "jpeg", quality: 60, fullPage: true });
+            console.log("PC 가로 넘침(px)", await pc.evaluate(() => document.documentElement.scrollWidth - window.innerWidth));
             await b.close();
           })();'
       - uses: actions/upload-artifact@v4
