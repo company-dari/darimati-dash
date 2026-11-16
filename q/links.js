@@ -34,7 +34,7 @@ window.QR = {
     "br001-preorder": "https://www.darimati.us/pages/br001-preorder?utm_source=qr&utm_medium=offline&utm_campaign=qr-br001-preorder",
     "ispo-booth": "https://www.darimati.us/en/pages/ispo?utm_source=ispo2026&utm_medium=qr&utm_campaign=ispo2026&utm_content=booth",
     "seongsu-popup": "https://www.darimati.us/products/br-001-core-black-gb?utm_source=seongsu-popup&utm_medium=qr&utm_campaign=br001-black",
-    "f45-sinsa": "https://www.darimati.us/pages/br001-f45-sinsa",
+    "f45-sinsa": "https://www.darimati.us/pages/br001-f45-sinsa-15?utm_source=f45&utm_medium=partner&utm_campaign=sinsa15&utm_content=qr",
     "f45-yeongtong": "https://www.darimati.us/pages/br001-f45-yeongtong",
     "f45-seongsu": "https://www.darimati.us/pages/br001-f45-seongsu",
     "f45-sinjungdong": "https://www.darimati.us/pages/br001-f45-sinjungdong",
