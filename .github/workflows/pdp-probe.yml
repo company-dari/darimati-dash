@@ -4,13 +4,14 @@ on:
     inputs:
       url: { description: '확인할 상세 주소 (미리보기는 preview_theme_id 포함)', required: true }
       open: { description: '사전예약 신청 버튼 눌러 창 확인 (open 이면)', required: false, default: 'open' }
+      pc: { description: 'pc 면 1440×900 PC 창', required: false, default: '' }
 jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - run: npm i -s playwright@1 >/dev/null 2>&1 && npx -y playwright install --with-deps chromium >/dev/null 2>&1; sudo apt-get install -y -qq fonts-noto-cjk >/dev/null 2>&1 || true
-      - run: node tools/pdp-probe.mjs "${{ inputs.url }}" "${{ inputs.open }}"
+      - run: node tools/pdp-probe.mjs "${{ inputs.url }}" "${{ inputs.open }}" "${{ inputs.pc }}"
       - uses: actions/upload-artifact@v4
         if: always()
         with: { name: pdp-probe, path: shots/ }

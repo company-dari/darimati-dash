@@ -2,9 +2,9 @@
 // 사용: node tools/pdp-probe.mjs "<주소>" [open]   · open = 「사전예약 신청」 버튼을 눌러 창이 열리는지까지
 import { chromium, devices } from 'playwright';
 import fs from 'node:fs';
-const URL = process.argv[2], CLICK = process.argv[3] === 'open';
+const URL = process.argv[2], CLICK = process.argv[3] === 'open', PC = process.argv[4] === 'pc'; // pc = 1440×900 PC 창
 const b = await chromium.launch();
-const ctx = await b.newContext({ ...devices['iPhone 13'], locale: 'ko-KR' });
+const ctx = await b.newContext(PC ? { viewport: { width: 1440, height: 900 }, locale: 'ko-KR' } : { ...devices['iPhone 13'], locale: 'ko-KR' });
 const p = await ctx.newPage();
 await p.addInitScript(() => { window.__ev = []; const w = () => { if (window.fbq && !window.fbq.__w) { const o = window.fbq; const f = function () { try { window.__ev.push([arguments[0], arguments[1]]); } catch (e) {} return o.apply(this, arguments); }; Object.assign(f, o); f.__w = 1; window.fbq = f; } }; setInterval(w, 200); });
 const res = await p.goto(URL, { waitUntil: 'load', timeout: 60000 }); await p.waitForTimeout(3500);
@@ -41,6 +41,7 @@ if (CLICK && info.preorder_cta) {
   info.modal_hint = await p.evaluate(() => document.querySelector('#dmvpm .dmvpm-msg')?.textContent);
 }
 // 사이즈 칸 모양: 모두 같은 배경인지(선택된 것처럼 보이는 칸 없음)
+info.sizes = await p.evaluate(() => [...document.querySelectorAll('variant-picker .variant-option__button-label')].filter(l => l.offsetWidth > 0).map(l => (l.textContent.match(/\d{3}/)||[''])[0]).join(','));
 info.size_bg = await p.evaluate(() => [...new Set([...document.querySelectorAll('variant-picker .variant-option__button-label')].filter(l => l.offsetWidth > 0).map(l => getComputedStyle(l).backgroundColor))]);
 info.status = res.status(); info.fbq_events = await p.evaluate(() => (window.__ev || []).map(e => e[1]));
 console.log(JSON.stringify(info, null, 1));
