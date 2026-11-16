@@ -91,11 +91,11 @@ for (const L of LANGS) {
     for (const l of info.lineup) { const br = /^BR-001/.test(l); if (br === /COMING|출시/i.test(l)) problems.push('상품 줄 가격 표시 ' + l); }
     info.kv_click = [];
     for (const i of [0, 1, 2]) {
-      const pt = await p.evaluate(i => { const a = [...document.querySelectorAll('.dm-h7 a[data-dm-at="home7-kv"]')][i]; const s = a && a.closest('section'); if (!s) return null; s.scrollIntoView({ block: 'center' }); const r = s.getBoundingClientRect(); return { x: r.left + r.width * 0.25, y: r.top + r.height * 0.5 }; }, i);
+      const pt = await p.evaluate(i => { const a = [...document.querySelectorAll('.dm-h7 a[data-dm-at="home7-kv"]')][i]; const s = a && a.closest('section'); if (!s) return null; s.scrollIntoView({ block: 'center' }); const r = s.getBoundingClientRect(); const x = r.left + r.width * 0.25, y = r.top + r.height * 0.5; const t = document.elementFromPoint(x, y); const c = t && t.closest('a, button, video, input'); return { x, y, dbg: (t ? t.tagName + '.' + String(t.className).slice(0, 30) : 'none') + ' blk=' + (c ? c.tagName + ' ' + (c.getAttribute('href') || '').slice(0, 40) : '-') + ' inSec=' + (t ? s.contains(t) : '') + ' kv=' + s.dataset.dmKv + ' cur=' + s.style.cursor }; }, i);
       if (!pt) { info.kv_click.push('no-section'); continue; }
       await p.waitForTimeout(400); const before = p.url();
       await Promise.all([p.waitForURL(u => u.toString() !== before, { timeout: 8000 }).catch(() => {}), p.mouse.click(pt.x, pt.y)]);
-      const after = p.url(); info.kv_click.push(after.includes('vt-001') ? 'ok' : 'fail ' + after.slice(0, 80));
+      const after = p.url(); info.kv_click.push(after.includes('vt-001') ? 'ok' : 'fail ' + after.slice(0, 60) + ' ' + pt.dbg);
       if (after !== before) { await p.goBack({ waitUntil: 'load' }).catch(() => {}); await p.waitForTimeout(1500); }
     }
     for (const k of info.kv_click) if (k !== 'ok') problems.push('VT 포스터 클릭 ' + k);
