@@ -48,6 +48,27 @@ jobs:
             const c = await pg.evaluate(() => fetch("/cart.js").then(r => r.json()));
             console.log("장바구니 속성:", JSON.stringify(c.attributes)); await b.close();
           })();'
+      - name: product click event (상품 링크 누름 → DMProductClick, 11/16)
+        if: ${{ inputs.cart_attr }}
+        env:
+          URL: ${{ inputs.url }}
+        run: |
+          # 픽셀 대신 기록용 fbq 를 먼저 깔고, 페이지 안 첫 상품 링크(고르기 카드 우선)를 눌러 나간 이벤트를 찍는다
+          node -e '
+          const { chromium } = require("playwright");
+          (async () => {
+            const b = await chromium.launch(); const pg = await b.newPage();
+            await pg.addInitScript(() => { window.__ev = []; window.fbq = function () { window.__ev.push([].slice.call(arguments, 0, 3)); }; });
+            await pg.goto(process.env.URL, { waitUntil: "load" }); await pg.waitForTimeout(3000);
+            const r = await pg.evaluate(async () => {
+              const a = document.querySelector("main a[href*=\"/products/\"]") || document.querySelector("a[href*=\"/products/\"]");
+              if (!a) return "상품 링크 없음";
+              a.addEventListener("click", e => e.preventDefault(), { once: true }); a.click();
+              await new Promise(r => setTimeout(r, 1500));
+              return window.__ev.filter(e => e[1] === "DMProductClick");
+            });
+            console.log("상품 클릭 이벤트:", JSON.stringify(r)); await b.close();
+          })();'
       - name: phone screenshots (390)
         if: ${{ inputs.shots }}
         env:
