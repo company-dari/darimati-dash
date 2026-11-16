@@ -15,6 +15,10 @@ on:
         description: 폰 390 화면 캡처(스크롤 위치별) + PC 1440 전체 한 장 → 실행 결과 「shots」 파일로 받기 (11/11)
         type: boolean
         default: false
+      act:
+        description: (캡처 전) 폰 화면에서 실행할 자바스크립트 — 누르기 시험용. 결과(return 값)를 로그에 출력 (11/16)
+        required: false
+        default: ''
       cart_attr:
         description: 브라우저로 열어 장바구니 속성(유입 등) 출력
         type: boolean
@@ -38,6 +42,7 @@ jobs:
         if: ${{ inputs.cart_attr }}
         env:
           URL: ${{ inputs.url }}
+          ACT: ${{ inputs.act }}
         run: |
           npm i -s playwright@1 >/dev/null 2>&1 && npx -y playwright install chromium >/dev/null 2>&1
           node -e '
@@ -92,6 +97,7 @@ jobs:
               return { lang: document.documentElement.lang, cart: af(".product-form-buttons .add-to-cart-text__content"), buy: af(".product-form-buttons .shopify-payment-button__button--unbranded"),
                 sbar: (document.querySelector(".dmc-sbar button") || {}).textContent || "-", kakao_exchange: document.querySelectorAll(".dmp-benefit,.dmp-kakao,.dmc-kk").length, kakao_in_main: ((document.querySelector("main") || document.body).textContent || "").split(/Kakao|카카오/).length - 1, soldout: so ? getComputedStyle(so, "::after").content : "-" }; });
             console.log("버튼 글자:", JSON.stringify(lab));
+            if (process.env.ACT) { const r = await pg.evaluate("(async () => {" + process.env.ACT + "})()"); await pg.waitForTimeout(1500); console.log("act 결과:", JSON.stringify(r)); await pg.evaluate(() => window.scrollTo(0, 0)); }
             const H = await pg.evaluate(() => document.documentElement.scrollHeight);
             const vh = 844; let i = 0;
             for (let y = 0; y < H && i < 24; y += vh * 0.9, i++) {
