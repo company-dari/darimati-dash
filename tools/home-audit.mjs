@@ -98,7 +98,7 @@ for (const L of LANGS) {
       await p.waitForTimeout(400); const before = p.url();
       await Promise.all([p.waitForURL(u => u.toString() !== before, { timeout: 8000 }).catch(() => {}), p.mouse.click(ptx.x, ptx.y)]);
       const after = p.url(); info.kv_click.push(after.includes('vt-001') ? 'ok' : 'fail ' + after.slice(0, 60) + ' ' + ptx.dbg);
-      if (after !== before) { await p.goBack({ waitUntil: 'load' }).catch(() => {}); await p.waitForTimeout(1500); }
+      if (after !== before) { await p.goto(BASE + q(L + '/'), { waitUntil: 'load' }).catch(() => {}); await p.waitForTimeout(2000); } // 뒤로가기는 미리보기가 풀려 라이브로 돌아감 → 미리보기 주소로 다시
     }
     for (const k of info.kv_click) if (k !== 'ok') problems.push('VT 포스터 클릭 ' + k);
     // 캡처(한국어) 390 → 1440
