@@ -42,7 +42,6 @@ jobs:
         if: ${{ inputs.cart_attr }}
         env:
           URL: ${{ inputs.url }}
-          ACT: ${{ inputs.act }}
         run: |
           npm i -s playwright@1 >/dev/null 2>&1 && npx -y playwright install chromium >/dev/null 2>&1
           node -e '
@@ -78,6 +77,7 @@ jobs:
         if: ${{ inputs.shots }}
         env:
           URL: ${{ inputs.url }}
+          ACT: ${{ inputs.act }}
         run: |
           npm i -s playwright@1 >/dev/null 2>&1
           npx -y playwright install chromium 2>&1 | tail -3
