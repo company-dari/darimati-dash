@@ -1,6 +1,6 @@
 {
-  "date": "2026-11-15",
+  "date": "2026-11-22",
   "result": "반영 요청",
-  "reviews": {"br-001-sand-beige": 418, "br-001-oyster-grey": 418},
-  "usage_warn": "후기가 188 → 418개로 2배 넘게 늘었음 (분석 규모 점검)"
+  "reviews": {"br-001-sand-beige": 419, "br-001-oyster-grey": 419},
+  "usage_warn": "후기가 188 → 419개로 2배 넘게 늘었음 (분석 규모 점검)"
 }
