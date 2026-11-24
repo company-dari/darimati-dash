@@ -22,11 +22,11 @@ fs.mkdirSync('shots', { recursive: true });
 if (process.argv[3] === 'ig') {
   const before = p.url(); const a = p.locator('[data-p8-ig]:visible').first(); await a.scrollIntoViewIfNeeded(); await p.waitForTimeout(800);
   await a.click(); await p.waitForTimeout(6000);
-  const r = await p.evaluate(() => ({ iframe: !!document.querySelector('[data-p8-ig] iframe'), ev: (window.__ev || []).map(e => e[1]).filter(x => typeof x === 'string') }));
-  const box = await a.boundingBox(); await p.screenshot({ path: 'shots/ig-after.jpg', type: 'jpeg', quality: 75, clip: { x: Math.max(0, box.x - 10), y: Math.max(0, box.y - 10), width: Math.min(box.width * 2 + 40, 1400), height: box.height + 20 } });
+  const r = await p.evaluate(() => ({ iframe: !!document.querySelector('.dm-p8-igm iframe'), ev: (window.__ev || []).map(e => e[1]).filter(x => typeof x === 'string') }));
+  await p.screenshot({ path: 'shots/ig-after.jpg', type: 'jpeg', quality: 75 });
   // 재생 버튼 눌러보기(인스타 안쪽)
-  try { const fr = p.frameLocator('[data-p8-ig] iframe'); await fr.locator('video, [role=button]').first().click({ timeout: 5000 }); await p.waitForTimeout(3000); } catch (e) {}
-  await p.screenshot({ path: 'shots/ig-play.jpg', type: 'jpeg', quality: 75, clip: { x: Math.max(0, box.x - 10), y: Math.max(0, box.y - 10), width: Math.min(box.width * 2 + 40, 1400), height: box.height + 20 } });
+  try { const fr = p.frameLocator('.dm-p8-igm iframe'); await fr.locator('video, [role=button]').first().click({ timeout: 5000 }); await p.waitForTimeout(3000); } catch (e) {}
+  await p.screenshot({ path: 'shots/ig-play.jpg', type: 'jpeg', quality: 75 });
   console.log(JSON.stringify({ sameUrl: p.url() === before, pages: ctx.pages().length, ...r })); await b.close(); process.exit(0);
 }
 // 11/24 open=topyt → 홈 맨 위 띠 「영상 보기」 눌러 페이지 이탈 없이 위 창 재생되는지(주소 그대로·유튜브 창·ContentPlay)
