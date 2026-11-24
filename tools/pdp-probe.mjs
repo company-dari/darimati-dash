@@ -5,6 +5,8 @@ import fs from 'node:fs';
 const URL = process.argv[2], CLICK = process.argv[3] === 'open', PC = process.argv[4] === 'pc' || /^\d+$/.test(process.argv[4] || ''); const PW = /^\d+$/.test(process.argv[4] || '') ? +process.argv[4] : 1440; // pc = 1440×900 PC 창 · 숫자 = 그 너비 PC 창(시안 대조용 11/24)
 const b = await chromium.launch();
 const ctx = await b.newContext(PC ? { viewport: { width: PW, height: 900 }, locale: 'ko-KR' } : { ...devices['iPhone 13'], locale: 'ko-KR' });
+// 11/24 깃허브 서버는 미국 → 한국 손님 화면(원화·한국 배송)으로 보이게 나라 쿠키
+await ctx.addCookies(['localization', 'cart_currency'].map((n, i) => ({ name: n, value: i ? 'KRW' : 'KR', domain: 'darimati.us', path: '/' })));
 const p = await ctx.newPage();
 await p.addInitScript(() => { window.__ev = []; const w = () => { if (window.fbq && !window.fbq.__w) { const o = window.fbq; const f = function () { try { window.__ev.push([arguments[0], arguments[1]]); } catch (e) {} return o.apply(this, arguments); }; Object.assign(f, o); f.__w = 1; window.fbq = f; } }; setInterval(w, 200); });
 const res = await p.goto(URL, { waitUntil: 'load', timeout: 60000 }); await p.waitForTimeout(3500);
