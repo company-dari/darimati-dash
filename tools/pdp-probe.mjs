@@ -20,7 +20,7 @@ await p.addStyleTag({ content: '#shopify-pc__banner,.shopify-pc__banner__dialog,
 fs.mkdirSync('shots', { recursive: true });
 // 11/24 open=sizes → Look closer 를 여러 화면 크기 × 3장면(옆·위·밑창)으로 캡처 + 설명 칸 겹침·화면 밖·잘림 숫자 판정
 if (process.argv[3] === 'sizes') {
-  const SZ = [[1280, 720], [1366, 768], [1440, 900], [1920, 1080], [2560, 1440], [1024, 768], [820, 1180]];
+  const SZ = [[1280, 720], [1366, 768], [1440, 900], [1920, 1080], [2560, 1440], [1024, 768], [1008, 600], [820, 1180]];
   const out = [];
   for (const [w, h] of SZ) {
     await p.setViewportSize({ width: w, height: h }); await p.waitForTimeout(800);
