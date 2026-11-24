@@ -456,5 +456,44 @@
     }
    ]
   }
- }
+ },
+ "themes": [
+  {
+   "key": "HYBRID",
+   "pct": 45,
+   "count": 205,
+   "of": 459,
+   "base": "all"
+  },
+  {
+   "key": "STYLE",
+   "pct": 28,
+   "count": 129,
+   "of": 459,
+   "base": "all"
+  },
+  {
+   "key": "BOUNCE",
+   "pct": 28,
+   "count": 128,
+   "of": 459,
+   "base": "all"
+  },
+  {
+   "key": "FIT",
+   "pct": 18,
+   "count": 83,
+   "of": 459,
+   "base": "all"
+  },
+  {
+   "key": "GRIP",
+   "pct": 9,
+   "count": 19,
+   "of": 205,
+   "base": "HYBRID"
+  }
+ ],
+ "themes_base": 459,
+ "themes_at": "2026-11-24"
 }
