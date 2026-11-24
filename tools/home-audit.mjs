@@ -55,7 +55,7 @@ for (const L of LANGS) {
   }
   await scrollAll(p);
   const info = await p.evaluate(() => {
-    const root = document.querySelector('.dm-h7');
+    const root = document.querySelector('.dm-h8, .dm-h7');
     const txt = root ? root.innerText : '';
     return {
       lang: document.documentElement.lang, has: !!root,
