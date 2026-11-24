@@ -10,6 +10,13 @@ await p.addInitScript(() => { window.__ev = []; const w = () => { if (window.fbq
 const res = await p.goto(URL, { waitUntil: 'load', timeout: 60000 }); await p.waitForTimeout(3500);
 await p.addStyleTag({ content: '#shopify-pc__banner,.shopify-pc__banner__dialog,#PBarNextFrame,#preview-bar-iframe{display:none!important}' });
 fs.mkdirSync('shots', { recursive: true });
+// 11/24 open=closer → 「Look closer」 칸을 2초 간격 8장 (16초 움직이는 장면 판정용)
+if (process.argv[3] === 'closer') {
+  const el = p.locator('.dm-p8 #closer:visible, .dm-p8 #closer-m:visible').first();
+  await el.scrollIntoViewIfNeeded(); await p.waitForTimeout(500);
+  for (let i = 0; i < 8; i++) { await el.screenshot({ path: `shots/closer-${String(i).padStart(2, '0')}.jpg`, type: 'jpeg', quality: 72 }); await p.waitForTimeout(2000); }
+  await b.close(); process.exit(0);
+}
 // 11/24 open=long → 페이지 끝까지 스크롤(지연 사진 불러오기) 후 2400px 조각 캡처만 하고 끝 (시안 대조용)
 if (process.argv[3] === 'long') {
   let H = await p.evaluate(() => document.documentElement.scrollHeight);
