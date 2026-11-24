@@ -2,9 +2,9 @@
 // 사용: node tools/pdp-probe.mjs "<주소>" [open]   · open = 「사전예약 신청」 버튼을 눌러 창이 열리는지까지
 import { chromium, devices } from 'playwright';
 import fs from 'node:fs';
-const URL = process.argv[2], CLICK = process.argv[3] === 'open', PC = process.argv[4] === 'pc'; // pc = 1440×900 PC 창
+const URL = process.argv[2], CLICK = process.argv[3] === 'open', PC = process.argv[4] === 'pc' || /^\d+$/.test(process.argv[4] || ''); const PW = /^\d+$/.test(process.argv[4] || '') ? +process.argv[4] : 1440; // pc = 1440×900 PC 창 · 숫자 = 그 너비 PC 창(시안 대조용 11/24)
 const b = await chromium.launch();
-const ctx = await b.newContext(PC ? { viewport: { width: 1440, height: 900 }, locale: 'ko-KR' } : { ...devices['iPhone 13'], locale: 'ko-KR' });
+const ctx = await b.newContext(PC ? { viewport: { width: PW, height: 900 }, locale: 'ko-KR' } : { ...devices['iPhone 13'], locale: 'ko-KR' });
 const p = await ctx.newPage();
 await p.addInitScript(() => { window.__ev = []; const w = () => { if (window.fbq && !window.fbq.__w) { const o = window.fbq; const f = function () { try { window.__ev.push([arguments[0], arguments[1]]); } catch (e) {} return o.apply(this, arguments); }; Object.assign(f, o); f.__w = 1; window.fbq = f; } }; setInterval(w, 200); });
 const res = await p.goto(URL, { waitUntil: 'load', timeout: 60000 }); await p.waitForTimeout(3500);
@@ -54,7 +54,7 @@ if (process.argv[3] === 'long') {
   let H = await p.evaluate(() => document.documentElement.scrollHeight);
   for (let y = 0; y < H; y += 600) { await p.evaluate(y => scrollTo(0, y), y); await p.waitForTimeout(150); H = await p.evaluate(() => document.documentElement.scrollHeight); }
   await p.evaluate(() => scrollTo(0, 0)); await p.waitForTimeout(2500);
-  const W = PC ? 1440 : 390, n = Math.ceil(H / 2400);
+  const W = PC ? PW : 390, n = Math.ceil(H / 2400);
   for (let i = 0; i < n; i++) await p.screenshot({ path: `shots/long-${W}-${String(i).padStart(2, '0')}.jpg`, type: 'jpeg', quality: 72, fullPage: true, clip: { x: 0, y: i * 2400, width: W, height: Math.min(2400, H - i * 2400) } });
   console.log(JSON.stringify({ status: res.status(), H, ox: await p.evaluate(() => document.documentElement.scrollWidth - innerWidth), broken: await p.evaluate(() => [...document.images].filter(i => i.complete && i.naturalWidth === 0).length), chunks: n }));
   await b.close(); process.exit(0);

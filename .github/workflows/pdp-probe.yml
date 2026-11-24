@@ -4,7 +4,7 @@ on:
     inputs:
       url: { description: '확인할 상세 주소 (미리보기는 preview_theme_id 포함)', required: true }
       open: { description: '사전예약 신청 버튼 눌러 창 확인 (open 이면)', required: false, default: 'open' }
-      pc: { description: 'pc 면 1440×900 PC 창', required: false, default: '' }
+      pc: { description: 'pc 면 1440×900 PC 창 · 숫자면 그 너비', required: false, default: '' }
 jobs:
   probe:
     runs-on: ubuntu-latest
