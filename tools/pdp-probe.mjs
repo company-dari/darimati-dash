@@ -18,6 +18,17 @@ if (!(await p.evaluate(() => (window.Shopify && Shopify.currency && Shopify.curr
 console.log('currency', await p.evaluate(() => window.Shopify && Shopify.currency && Shopify.currency.active)); await p.waitForTimeout(3500);
 await p.addStyleTag({ content: '#shopify-pc__banner,.shopify-pc__banner__dialog,#PBarNextFrame,#preview-bar-iframe{display:none!important}' });
 fs.mkdirSync('shots', { recursive: true });
+// 11/24 open=ig → 상세 레이스 데이 인스타 인터뷰 칸 눌러 이 자리 재생되는지(주소 그대로·인스타 iframe·ContentPlay) + 칸 캡처
+if (process.argv[3] === 'ig') {
+  const before = p.url(); const a = p.locator('[data-p8-ig]:visible').first(); await a.scrollIntoViewIfNeeded(); await p.waitForTimeout(800);
+  await a.click(); await p.waitForTimeout(6000);
+  const r = await p.evaluate(() => ({ iframe: !!document.querySelector('[data-p8-ig] iframe'), ev: (window.__ev || []).map(e => e[1]).filter(x => typeof x === 'string') }));
+  const box = await a.boundingBox(); await p.screenshot({ path: 'shots/ig-after.jpg', type: 'jpeg', quality: 75, clip: { x: Math.max(0, box.x - 10), y: Math.max(0, box.y - 10), width: Math.min(box.width * 2 + 40, 1400), height: box.height + 20 } });
+  // 재생 버튼 눌러보기(인스타 안쪽)
+  try { const fr = p.frameLocator('[data-p8-ig] iframe'); await fr.locator('video, [role=button]').first().click({ timeout: 5000 }); await p.waitForTimeout(3000); } catch (e) {}
+  await p.screenshot({ path: 'shots/ig-play.jpg', type: 'jpeg', quality: 75, clip: { x: Math.max(0, box.x - 10), y: Math.max(0, box.y - 10), width: Math.min(box.width * 2 + 40, 1400), height: box.height + 20 } });
+  console.log(JSON.stringify({ sameUrl: p.url() === before, pages: ctx.pages().length, ...r })); await b.close(); process.exit(0);
+}
 // 11/24 open=topyt → 홈 맨 위 띠 「영상 보기」 눌러 페이지 이탈 없이 위 창 재생되는지(주소 그대로·유튜브 창·ContentPlay)
 if (process.argv[3] === 'topyt') {
   const before = p.url(); const a = p.locator('[data-h8-yt]').first(); await a.scrollIntoViewIfNeeded(); await a.click(); await p.waitForTimeout(3000);
