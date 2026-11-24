@@ -18,6 +18,15 @@ if (!(await p.evaluate(() => (window.Shopify && Shopify.currency && Shopify.curr
 console.log('currency', await p.evaluate(() => window.Shopify && Shopify.currency && Shopify.currency.active)); await p.waitForTimeout(3500);
 await p.addStyleTag({ content: '#shopify-pc__banner,.shopify-pc__banner__dialog,#PBarNextFrame,#preview-bar-iframe{display:none!important}' });
 fs.mkdirSync('shots', { recursive: true });
+// 11/24 open=topyt → 홈 맨 위 띠 「영상 보기」 눌러 페이지 이탈 없이 위 창 재생되는지(주소 그대로·유튜브 창·ContentPlay)
+if (process.argv[3] === 'topyt') {
+  const before = p.url(); const a = p.locator('[data-h8-yt]').first(); await a.scrollIntoViewIfNeeded(); await a.click(); await p.waitForTimeout(3000);
+  const r = await p.evaluate(() => ({ iframe: !!document.querySelector('[role=dialog] iframe[src*="youtube"]'), ev: (window.__ev || []).map(e => e[1]).filter(Boolean) }));
+  await p.screenshot({ path: 'shots/topyt-open.jpg', type: 'jpeg', quality: 70 });
+  await p.keyboard.press('Escape'); await p.waitForTimeout(500);
+  const closed = await p.evaluate(() => !document.querySelector('[role=dialog]'));
+  console.log(JSON.stringify({ sameUrl: p.url() === before, pages: ctx.pages().length, ...r, closed })); await b.close(); process.exit(0);
+}
 // 11/24 open=sizes → Look closer 를 여러 화면 크기 × 3장면(옆·위·밑창)으로 캡처 + 설명 칸 겹침·화면 밖·잘림 숫자 판정
 if (process.argv[3] === 'sizes') {
   const SZ = [[1280, 720], [1366, 768], [1440, 900], [1920, 1080], [2560, 1440], [1024, 768], [1008, 600], [820, 1180]];
