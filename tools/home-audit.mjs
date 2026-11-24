@@ -60,16 +60,16 @@ for (const L of LANGS) {
     return {
       lang: document.documentElement.lang, has: !!root,
       missing: (document.body.innerHTML.match(/translation missing[^<"]{0,60}/g) || []).slice(0, 5),
-      intro: (document.querySelector('.dm-h7 .dm-intro') || {}).innerText?.slice(0, 40),
+      intro: (document.querySelector(':is(.dm-h7,.dm-h8) .dm-intro') || {}).innerText?.slice(0, 40),
       hangul: root ? (txt.match(/[가-힣]/g) || []).length : -1,
       imgs: root ? root.querySelectorAll('img').length : 0,
       broken: root ? [...root.querySelectorAll('img')].filter(i => i.complete && i.naturalWidth === 0).map(i => i.src.split('/').pop().slice(0, 40)) : [],
       videos: root ? root.querySelectorAll('video').length : 0,
       ox: document.documentElement.scrollWidth - innerWidth,
       pixels: window.fbq && fbq.getState ? fbq.getState().pixels.map(x => x.id) : null,
-      prices: root ? [...root.querySelectorAll('#lineup a[data-dm-at="home7-lineup"]')].map(a => a.innerText.replace(/\s+/g, ' ').trim().slice(0, 80)) : [],
+      prices: root ? [...root.querySelectorAll('#lineup a[data-dm-at$="-lineup"]')].map(a => a.innerText.replace(/\s+/g, ' ').trim().slice(0, 80)) : [],
       links: root ? [...new Set([...root.querySelectorAll('a[href]')].map(a => a.getAttribute('href')))] : [],
-      form: !!document.querySelector('.dm-h7 form[action*="/contact"][data-dm="lead"] input[name="contact[email]"]'),
+      form: !!document.querySelector(':is(.dm-h7,.dm-h8) form[action*="/contact"][data-dm="lead"] input[name="contact[email]"]'),
     };
   });
   info.header_overlap = hdrOv;
@@ -78,7 +78,7 @@ for (const L of LANGS) {
   const ox390 = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth);
   if (L === '') {
     // 11/14 영상이 자리만 차지하고 안 보이는 고장 감지: 홈 안 모든 video 의 크기·보임·조상 중 가리는 것
-    info.videos = await p.evaluate(async () => { const out = []; for (const v of document.querySelectorAll('.dm-h7 video')) {
+    info.videos = await p.evaluate(async () => { const out = []; for (const v of document.querySelectorAll(':is(.dm-h7,.dm-h8) video')) {
       v.scrollIntoView({ block: 'center' }); await new Promise(r => setTimeout(r, 300));
       const r = v.getBoundingClientRect(), cs = getComputedStyle(v);
       let hid = null; for (let e = v; e && e !== document.body; e = e.parentElement) { const s = getComputedStyle(e); if (s.display === 'none' || s.visibility === 'hidden' || +s.opacity < 0.05 || s.clipPath !== 'none' || s.contentVisibility === 'hidden') { hid = (e.tagName + '.' + (e.className || '') + ' ' + [s.display, s.visibility, s.opacity, s.clipPath].join('|')).slice(0, 120); break; } }
@@ -87,13 +87,13 @@ for (const L of LANGS) {
     } return out; });
     for (const v of info.videos) if (v.w < 20 || v.h < 20 || v.hid || (v.top && v.top !== 'self' && !/SPAN|svg|path|DIV.dm-swipe/.test(v.top))) problems.push('영상 안 보임 ' + JSON.stringify(v));
     // 11/16 상품 줄 순서·가격 표시(BR-001 만 가격, 나머지 COMING SOON) + VT 포스터 아무 데나 눌러도 VT-001 로
-    info.lineup = await p.evaluate(() => [...document.querySelectorAll('.dm-h7 a[data-dm-at="home7-lineup"]')].map(a => a.dataset.dmName + ' | ' + (a.innerText.match(/(₩\s?[\d,]+|\$[\d.,]+|COMING SOON|출시 ?예정|[\d,]+원)/i) || ['?'])[0]));
+    info.lineup = await p.evaluate(() => [...document.querySelectorAll(':is(.dm-h7,.dm-h8) a[data-dm-at$="-lineup"]')].map(a => a.dataset.dmName + ' | ' + (a.innerText.match(/(₩\s?[\d,]+|\$[\d.,]+|COMING SOON|출시 ?예정|[\d,]+원)/i) || ['?'])[0]));
     for (const l of info.lineup) { const br = /^BR-001/.test(l); if (br === /COMING|출시/i.test(l)) problems.push('상품 줄 가격 표시 ' + l); }
     info.kv_click = [];
     for (const i of [0, 1, 2]) {
-      const pt = await p.evaluate(i => { const a = [...document.querySelectorAll('.dm-h7 a[data-dm-at="home7-kv"]')][i]; const s = a && a.closest('section'); if (!s) return null; const r0 = s.getBoundingClientRect(); window.scrollTo({ top: scrollY + r0.top - (innerHeight - r0.height) / 2, behavior: 'instant' }); return null; }, i);
+      const pt = await p.evaluate(i => { const a = [...document.querySelectorAll(':is(.dm-h7,.dm-h8) a[data-dm-at$="-kv"]')][i]; const s = a && a.closest('section'); if (!s) return null; const r0 = s.getBoundingClientRect(); window.scrollTo({ top: scrollY + r0.top - (innerHeight - r0.height) / 2, behavior: 'instant' }); return null; }, i);
       await p.waitForTimeout(900);
-      const pt2 = await p.evaluate(i => { const a = [...document.querySelectorAll('.dm-h7 a[data-dm-at="home7-kv"]')][i]; const s = a && a.closest('section'); if (!s) return null; const r = s.getBoundingClientRect(); const x = r.left + r.width * 0.25, y = r.top + r.height * 0.5; const t = document.elementFromPoint(x, y); const c = t && t.closest('a, button, video, input'); return { x, y, dbg: (t ? t.tagName + '.' + String(t.className).slice(0, 30) : 'none') + ' blk=' + (c ? c.tagName + ' ' + (c.getAttribute('href') || '').slice(0, 40) : '-') + ' inSec=' + (t ? s.contains(t) : '') + ' kv=' + s.dataset.dmKv + ' cur=' + s.style.cursor }; }, i);
+      const pt2 = await p.evaluate(i => { const a = [...document.querySelectorAll(':is(.dm-h7,.dm-h8) a[data-dm-at$="-kv"]')][i]; const s = a && a.closest('section'); if (!s) return null; const r = s.getBoundingClientRect(); const x = r.left + r.width * 0.25, y = r.top + r.height * 0.5; const t = document.elementFromPoint(x, y); const c = t && t.closest('a, button, video, input'); return { x, y, dbg: (t ? t.tagName + '.' + String(t.className).slice(0, 30) : 'none') + ' blk=' + (c ? c.tagName + ' ' + (c.getAttribute('href') || '').slice(0, 40) : '-') + ' inSec=' + (t ? s.contains(t) : '') + ' kv=' + s.dataset.dmKv + ' cur=' + s.style.cursor }; }, i);
       const ptx = pt2; if (!ptx) { info.kv_click.push('no-section'); continue; }
       await p.waitForTimeout(400); const before = p.url();
       await Promise.all([p.waitForURL(u => u.toString() !== before, { timeout: 8000 }).catch(() => {}), p.mouse.click(ptx.x, ptx.y)]);
@@ -112,7 +112,7 @@ for (const L of LANGS) {
     await p.evaluate(() => scrollTo(0, 0)); await p.waitForTimeout(800);
     await p.evaluate(() => scrollTo(0, document.documentElement.scrollHeight * 0.6)); await p.waitForTimeout(2500);
     info.fbq_after_scroll = await p.evaluate(() => window.__ev.slice());
-    const card = p.locator('#lineup a[data-dm-at="home7-lineup"]').nth(2);
+    const card = p.locator('#lineup a[data-dm-at$="-lineup"]').nth(2);
     await card.scrollIntoViewIfNeeded();
     await p.evaluate(() => window.addEventListener('click', e => { window.__href = e.target.closest('a')?.getAttribute('href'); e.preventDefault(); }, { once: true }));
     await card.click(); await p.waitForTimeout(1500);
