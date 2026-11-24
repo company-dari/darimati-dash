@@ -11,13 +11,15 @@ const p = await ctx.newPage();
 await p.addInitScript(() => { window.__ev = []; const w = () => { if (window.fbq && !window.fbq.__w) { const o = window.fbq; const f = function () { try { window.__ev.push([arguments[0], arguments[1]]); } catch (e) {} return o.apply(this, arguments); }; Object.assign(f, o); f.__w = 1; window.fbq = f; } }; setInterval(w, 200); });
 let res = await p.goto(URL, { waitUntil: 'load', timeout: 60000 }); await p.waitForTimeout(1500);
 // 11/24 쿠키로 안 바뀌면 쇼피파이 나라 바꾸기 양식(/localization)으로 한국 지정 후 다시 열기
-if (!(await p.evaluate(() => (window.Shopify && Shopify.currency && Shopify.currency.active) === 'KRW'))) {
+if (URL.includes('darimati.us') && !(await p.evaluate(() => (window.Shopify && Shopify.currency && Shopify.currency.active) === 'KRW'))) {
   await p.evaluate(async () => { const f = new FormData(); f.append('form_type', 'localization'); f.append('utf8', '✓'); f.append('_method', 'put'); f.append('country_code', 'KR'); f.append('return_to', '/'); await fetch('/localization', { method: 'POST', body: f, credentials: 'include' }); });
   res = await p.goto(URL, { waitUntil: 'load', timeout: 60000 });
 }
 console.log('currency', await p.evaluate(() => window.Shopify && Shopify.currency && Shopify.currency.active)); await p.waitForTimeout(3500);
 await p.addStyleTag({ content: '#shopify-pc__banner,.shopify-pc__banner__dialog,#PBarNextFrame,#preview-bar-iframe{display:none!important}' });
 fs.mkdirSync('shots', { recursive: true });
+// 11/24 open=shot → 아무 주소나 10초 뒤 화면 한 장(남의 위젯 시험용)
+if (process.argv[3] === 'shot') { await p.waitForTimeout(8000); await p.screenshot({ path: 'shots/shot.jpg', type: 'jpeg', quality: 72 }); await b.close(); process.exit(0); }
 // 11/24 open=ig → 상세 레이스 데이 인스타 인터뷰 칸 눌러 이 자리 재생되는지(주소 그대로·인스타 iframe·ContentPlay) + 칸 캡처
 if (process.argv[3] === 'ig') {
   const before = p.url(); const a = p.locator('[data-p8-ig]:visible').first(); await a.scrollIntoViewIfNeeded(); await p.waitForTimeout(800);
