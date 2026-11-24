@@ -10,6 +10,16 @@ await p.addInitScript(() => { window.__ev = []; const w = () => { if (window.fbq
 const res = await p.goto(URL, { waitUntil: 'load', timeout: 60000 }); await p.waitForTimeout(3500);
 await p.addStyleTag({ content: '#shopify-pc__banner,.shopify-pc__banner__dialog,#PBarNextFrame,#preview-bar-iframe{display:none!important}' });
 fs.mkdirSync('shots', { recursive: true });
+// 11/24 open=long → 페이지 끝까지 스크롤(지연 사진 불러오기) 후 2400px 조각 캡처만 하고 끝 (시안 대조용)
+if (process.argv[3] === 'long') {
+  let H = await p.evaluate(() => document.documentElement.scrollHeight);
+  for (let y = 0; y < H; y += 600) { await p.evaluate(y => scrollTo(0, y), y); await p.waitForTimeout(150); H = await p.evaluate(() => document.documentElement.scrollHeight); }
+  await p.evaluate(() => scrollTo(0, 0)); await p.waitForTimeout(2500);
+  const W = PC ? 1440 : 390, n = Math.ceil(H / 2400);
+  for (let i = 0; i < n; i++) await p.screenshot({ path: `shots/long-${W}-${String(i).padStart(2, '0')}.jpg`, type: 'jpeg', quality: 72, fullPage: true, clip: { x: 0, y: i * 2400, width: W, height: Math.min(2400, H - i * 2400) } });
+  console.log(JSON.stringify({ status: res.status(), H, ox: await p.evaluate(() => document.documentElement.scrollWidth - innerWidth), broken: await p.evaluate(() => [...document.images].filter(i => i.complete && i.naturalWidth === 0).length), chunks: n }));
+  await b.close(); process.exit(0);
+}
 const vis = s => `[...document.querySelectorAll(${JSON.stringify(s)})].filter(e=>{const r=e.getBoundingClientRect(),c=getComputedStyle(e);return r.width>0&&r.height>0&&c.display!=='none'&&c.visibility!=='hidden'}).length`;
 const info = await p.evaluate(`({
   url: location.href, preview: !!document.querySelector('#PBarNextFrame, #preview-bar-iframe, .dm-preview-banner, [class*=dm-preview]'),
