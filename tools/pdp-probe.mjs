@@ -18,6 +18,17 @@ if (URL.includes('darimati.us') && !(await p.evaluate(() => (window.Shopify && S
 console.log('currency', await p.evaluate(() => window.Shopify && Shopify.currency && Shopify.currency.active)); await p.waitForTimeout(3500);
 await p.addStyleTag({ content: '#shopify-pc__banner,.shopify-pc__banner__dialog,#PBarNextFrame,#preview-bar-iframe{display:none!important}' });
 fs.mkdirSync('shots', { recursive: true });
+// 11/24 open=tab → Look closer 칸에서 「03 SOLE」 → 「01 SIDE」 차례로 눌러 그 장면 번호가 뜨는지
+if (process.argv[3] === 'tab') {
+  const sec = p.locator('.dm-p8 #closer:visible, .dm-p8 #closer-m:visible').first(); await sec.scrollIntoViewIfNeeded(); await p.waitForTimeout(800);
+  const out = [];
+  for (const [i, n] of [[2, '03'], [0, '01'], [1, '02']]) {
+    await sec.locator('.dl-st').nth(i).click(); await p.waitForTimeout(1800);
+    const shown = await sec.evaluate(s => [...s.querySelectorAll('.dl-num span')].filter(e => parseFloat(getComputedStyle(e).opacity) > .5).map(e => e.textContent.trim().slice(0, 2)).join(','));
+    out.push({ clicked: n, shown }); await p.screenshot({ path: `shots/tab-${n}.jpg`, type: 'jpeg', quality: 65 });
+  }
+  console.log(JSON.stringify(out)); await b.close(); process.exit(0);
+}
 // 11/24 open=shot → 아무 주소나 10초 뒤 화면 한 장(남의 위젯 시험용)
 if (process.argv[3] === 'shot') { await p.waitForTimeout(8000); await p.screenshot({ path: 'shots/shot.jpg', type: 'jpeg', quality: 72 }); await b.close(); process.exit(0); }
 // 11/24 open=ig → 상세 레이스 데이 인스타 인터뷰 칸 눌러 이 자리 재생되는지(주소 그대로·인스타 iframe·ContentPlay) + 칸 캡처
