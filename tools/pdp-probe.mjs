@@ -10,6 +10,35 @@ await p.addInitScript(() => { window.__ev = []; const w = () => { if (window.fbq
 const res = await p.goto(URL, { waitUntil: 'load', timeout: 60000 }); await p.waitForTimeout(3500);
 await p.addStyleTag({ content: '#shopify-pc__banner,.shopify-pc__banner__dialog,#PBarNextFrame,#preview-bar-iframe{display:none!important}' });
 fs.mkdirSync('shots', { recursive: true });
+// 11/24 open=sizes → Look closer 를 여러 화면 크기 × 3장면(옆·위·밑창)으로 캡처 + 설명 칸 겹침·화면 밖·잘림 숫자 판정
+if (process.argv[3] === 'sizes') {
+  const SZ = [[1280, 720], [1366, 768], [1440, 900], [1920, 1080], [2560, 1440], [1024, 768], [820, 1180]];
+  const out = [];
+  for (const [w, h] of SZ) {
+    await p.setViewportSize({ width: w, height: h }); await p.waitForTimeout(800);
+    const sec = p.locator('.dm-p8 #closer:visible, .dm-p8 #closer-m:visible').first();
+    const top = await sec.evaluate(e => e.getBoundingClientRect().top + scrollY); const H = await sec.evaluate(e => e.offsetHeight);
+    for (const [k, f] of [['side', .12], ['top', .5], ['sole', .78]]) {
+      await p.evaluate(y => scrollTo(0, y), top + (H - h) * f); await p.waitForTimeout(900);
+      const r = await p.evaluate(() => {
+        const vis = e => { const s = getComputedStyle(e); return s.display !== 'none' && s.visibility !== 'hidden' && parseFloat(s.opacity) > .5; };
+        const boxes = [...document.querySelectorAll('.dm-p8 .dl-co')].filter(e => e.offsetParent && vis(e)).map(e => { const b = e.getBoundingClientRect(); return { n: e.className.match(/dl-c\d/)[0], l: b.left, t: b.top, r: b.right, b: b.bottom }; });
+        const tabs = [...document.querySelectorAll('.dm-p8 .dl-st')].filter(e => e.offsetParent).map(e => e.getBoundingClientRect());
+        const ttl = [...document.querySelectorAll('.dm-p8 #closer h2, .dm-p8 #closer-m h2')].filter(e => e.offsetParent).map(e => e.getBoundingClientRect())[0];
+        const bar = document.querySelector('.dm-p8-sticky, [class*=sticky-atc], [class*=pdp-sticky]'); const bb = bar && bar.offsetParent ? bar.getBoundingClientRect() : null;
+        const ov = (a, c) => a.l < c.right && a.r > c.left && a.t < c.bottom && a.b > c.top;
+        const issues = [];
+        boxes.forEach((a, i) => { boxes.slice(i + 1).forEach(c => { if (a.l < c.r && a.r > c.l && a.t < c.b && a.b > c.t) issues.push('겹침 ' + a.n + '·' + c.n); });
+          if (a.l < 0 || a.r > innerWidth) issues.push('화면 밖(가로) ' + a.n); if (a.t < 0 || a.b > innerHeight) issues.push('화면 밖(세로) ' + a.n);
+          if (ttl && ov(a, ttl)) issues.push('제목과 겹침 ' + a.n); tabs.forEach(t => { if (ov(a, t)) issues.push('탭과 겹침 ' + a.n); }); if (bb && ov(a, bb)) issues.push('구매 바와 겹침 ' + a.n); });
+        return { shown: boxes.map(b => b.n).join(','), ox: document.documentElement.scrollWidth - innerWidth, issues };
+      });
+      await p.screenshot({ path: `shots/sz-${w}x${h}-${k}.jpg`, type: 'jpeg', quality: 60 });
+      out.push({ size: `${w}x${h}`, k, ...r });
+    }
+  }
+  console.log(JSON.stringify(out)); await b.close(); process.exit(0);
+}
 // 11/24 open=closer → 「Look closer」 칸을 2초 간격 8장 (16초 움직이는 장면 판정용)
 if (process.argv[3] === 'closer') {
   const el = p.locator('.dm-p8 #closer:visible, .dm-p8 #closer-m:visible').first();
