@@ -14,7 +14,10 @@ fs.mkdirSync('shots', { recursive: true });
 if (process.argv[3] === 'closer') {
   const el = p.locator('.dm-p8 #closer:visible, .dm-p8 #closer-m:visible').first();
   await el.scrollIntoViewIfNeeded(); await p.waitForTimeout(500);
-  for (let i = 0; i < 8; i++) { await el.screenshot({ path: `shots/closer-${String(i).padStart(2, '0')}.jpg`, type: 'jpeg', quality: 72 }); await p.waitForTimeout(2000); }
+  // 스크롤 연동 확인: 칸이 화면 아래에서 들어와 위로 나갈 때까지 8단계로 내리며 화면 캡처
+  const box = await el.boundingBox(); const top0 = await p.evaluate(() => scrollY) + box.y; const vh = await p.evaluate(() => innerHeight);
+  for (let i = 0; i < 8; i++) { const y = top0 - vh * 0.6 + (box.height + vh * 0.3) * i / 7; await p.evaluate(y => scrollTo(0, y), y); await p.waitForTimeout(700);
+    await p.screenshot({ path: `shots/closer-${String(i).padStart(2, '0')}.jpg`, type: 'jpeg', quality: 70 }); }
   await b.close(); process.exit(0);
 }
 // 11/24 open=long → 페이지 끝까지 스크롤(지연 사진 불러오기) 후 2400px 조각 캡처만 하고 끝 (시안 대조용)
