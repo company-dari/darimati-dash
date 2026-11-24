@@ -23,7 +23,7 @@ if (process.argv[3] === 'topyt') {
   const before = p.url(); const a = p.locator('[data-h8-yt]').first(); await a.scrollIntoViewIfNeeded(); await a.click(); await p.waitForTimeout(3000);
   const r = await p.evaluate(() => ({ iframe: !!document.querySelector('[role=dialog] iframe[src*="youtube"]'), ev: (window.__ev || []).map(e => e[1]).filter(Boolean) }));
   await p.screenshot({ path: 'shots/topyt-open.jpg', type: 'jpeg', quality: 70 });
-  await p.keyboard.press('Escape'); await p.waitForTimeout(500);
+  await p.locator('[role=dialog] button').click(); await p.waitForTimeout(500);
   const closed = await p.evaluate(() => !document.querySelector('[role=dialog]'));
   console.log(JSON.stringify({ sameUrl: p.url() === before, pages: ctx.pages().length, ...r, closed })); await b.close(); process.exit(0);
 }
