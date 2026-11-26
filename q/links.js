@@ -24,6 +24,7 @@ window.QR = {
     "mangrove": "https://darimati.github.io/inventory-dashboard/qr-mangrove.html",
     "hyundai-popup": "https://store.kakao.com/darimati/products/724477023",
     "rungongdeok": "https://www.darimati.us/pages/br001-rungongdeok",
+    "crossfit-hannam": "https://www.darimati.us/products/br-001-core-black-crossfit-hannam?utm_source=crossfit-hannam&utm_medium=partner&utm_campaign=crossfit-hannam&utm_content=qr",
     "crossfit-jungsim": "https://www.darimati.us/pages/br001-crossfit-jungsim",
     "f45-yeoksam": "https://www.darimati.us/pages/br001-f45-yeoksam",
     "f45-gangnam": "https://www.darimati.us/pages/br001-f45-gangnam",
