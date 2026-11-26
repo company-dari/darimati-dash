@@ -24,7 +24,6 @@ window.QR = {
     "mangrove": "https://darimati.github.io/inventory-dashboard/qr-mangrove.html",
     "hyundai-popup": "https://store.kakao.com/darimati/products/724477023",
     "rungongdeok": "https://www.darimati.us/pages/br001-rungongdeok",
-    "crossfit-hannam": "https://www.darimati.us/products/br-001-core-black-crossfit-hannam?utm_source=crossfit-hannam&utm_medium=partner&utm_campaign=crossfit-hannam&utm_content=qr",
     "crossfit-jungsim": "https://www.darimati.us/pages/br001-crossfit-jungsim",
     "f45-yeoksam": "https://www.darimati.us/pages/br001-f45-yeoksam",
     "f45-gangnam": "https://www.darimati.us/pages/br001-f45-gangnam",
@@ -42,6 +41,8 @@ window.QR = {
     "f45-ilsan": "https://www.darimati.us/pages/br001-f45-ilsan",
     "box-coupon": "https://www.darimati.us/collections/all?utm_source=box_insert&utm_medium=qr&utm_campaign=box10_coupon&utm_content=parcel",
     "f45-gwanghwamun-20": "https://www.darimati.us/pages/br001-f45-gwanghwamun-20?utm_source=f45&utm_medium=partner&utm_campaign=gwanghwamun20&utm_content=qr",
-    "f45-guro-20": "https://www.darimati.us/pages/br001-f45-guro-20?utm_source=f45&utm_medium=partner&utm_campaign=guro20&utm_content=qr"
+    "f45-guro-20": "https://www.darimati.us/pages/br001-f45-guro-20?utm_source=f45&utm_medium=partner&utm_campaign=guro20&utm_content=qr",
+    "crossfit-hannam": "https://www.darimati.us/products/br-001-core-black-crossfit-hannam?utm_source=crossfit-hannam&utm_medium=partner&utm_campaign=crossfit-hannam&utm_content=qr",
+    "f45-beomgye-hybrid": "https://www.darimati.us/products/br-001-core-black-f45-beomgye-hybrid?utm_source=f45-beomgye&utm_medium=partner&utm_campaign=f45-beomgye-hybrid&utm_content=qr"
   }
 };
